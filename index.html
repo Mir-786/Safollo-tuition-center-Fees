@@ -36,7 +36,7 @@
         <div class="inline-flex p-3 bg-indigo-600 rounded-2xl text-amber-300 shadow-inner mb-3">
           <i data-lucide="graduation-cap" class="w-8 h-8"></i>
         </div>
-        <h2 class="text-xl font-bold tracking-tight">Tuition Fee Portal</h2>
+        <h2 class="text-xl font-bold tracking-tight">Safollo Tuition Fee Portal</h2>
         <p class="text-xs text-indigo-200 mt-1">Authorized Staff & Admin Login</p>
       </div>
 
@@ -49,7 +49,7 @@
           <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Username</label>
           <div class="relative">
             <i data-lucide="user" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
-            <input type="text" id="loginUsername" required placeholder="miraj / moyna / abida" class="w-full pl-9 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-800">
+            <input type="text" id="loginUsername" required placeholder="User Name" class="w-full pl-9 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-800">
           </div>
         </div>
 
@@ -66,7 +66,7 @@
         </button>
 
         <div class="pt-3 border-t border-slate-100 text-center">
-          <p class="text-[11px] text-slate-400">Authorized Accounts: Miraj, Moyna, Abida</p>
+          <p class="text-[11px] text-slate-400">Authorized Accounts</p>
         </div>
       </form>
     </div>
@@ -83,7 +83,7 @@
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <h1 class="text-lg font-bold tracking-tight">Tuition Fee Portal</h1>
+              <h1 class="text-lg font-bold tracking-tight">Safollo Tuition Fee Portal</h1>
               <button onclick="openCloudConfigModal()" id="cloudStatusBadge" class="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-indigo-950 shadow-sm transition hover:opacity-90">
                 <span class="w-2 h-2 rounded-full bg-amber-600 animate-ping"></span>
                 <span id="cloudStatusText">Setup Cloud</span>
@@ -336,7 +336,7 @@
                   </button>
                 </div>
               </div>
-              <p class="text-xs text-slate-500 mt-0.5">Click any month tile to pay or manage fees for that month.</p>
+              <p class="text-xs text-slate-500 mt-0.5">Click any month tile to pay, exempt, unpay, or cancel advance.</p>
             </div>
             
             <div class="flex items-center gap-2 text-[11px] font-medium flex-wrap">
@@ -378,7 +378,7 @@
           </div>
         </div>
 
-        <!-- Payment History Table (With Collector Info) -->
+        <!-- Payment History Table (Clean without Ref ID) -->
         <div>
           <h4 class="text-xs font-bold uppercase text-slate-600 mb-2 flex items-center gap-1.5">
             <i data-lucide="history" class="w-4 h-4 text-indigo-600"></i> Payment & Exemption Ledger
@@ -388,7 +388,6 @@
               <thead class="bg-slate-100 text-slate-600 font-semibold border-b border-slate-200">
                 <tr>
                   <th class="py-2.5 px-3">Date (DD/MM/YYYY)</th>
-                  <th class="py-2.5 px-3">Ref ID</th>
                   <th class="py-2.5 px-3">Amount</th>
                   <th class="py-2.5 px-3">Collected By</th>
                   <th class="py-2.5 px-3">Mode</th>
@@ -409,6 +408,45 @@
         <button onclick="closeModal('profileModal')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-4 py-2 rounded-lg">
           Close Profile
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: MANAGE PAID / ADVANCE MONTH (UNPAID / UNADVANCE) ==================== -->
+  <div id="managePaidMonthModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden animate-fade-in">
+      <div class="bg-slate-800 px-5 py-4 flex justify-between items-center text-white">
+        <h3 class="font-bold text-sm flex items-center gap-2">
+          <i data-lucide="calendar" class="w-4 h-4 text-amber-300"></i>
+          <span id="managePaidMonthTitle">October 2026</span>
+        </h3>
+        <button onclick="closeModal('managePaidMonthModal')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <div class="p-5 space-y-4 text-xs">
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
+          <div class="flex justify-between">
+            <span class="text-slate-500">Student:</span>
+            <span class="font-bold text-slate-800" id="managePaidStudentName">-</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Status:</span>
+            <span class="font-bold" id="managePaidStatusBadge">-</span>
+          </div>
+        </div>
+        <p class="text-slate-600">
+          This month is currently cleared. Click below to unmark this payment, cancel advance, or convert it to exemption.
+        </p>
+        <div class="space-y-2 pt-1">
+          <button onclick="executeUnpayMonth()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-lg text-xs transition shadow flex items-center justify-center gap-1.5">
+            <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Mark as Unpaid / Unadvance
+          </button>
+          <button onclick="executeExemptFromPaid()" class="w-full bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 rounded-lg text-xs transition flex items-center justify-center gap-1.5">
+            <i data-lucide="shield-check" class="w-4 h-4"></i> Convert to Exemption (Waived)
+          </button>
+          <button onclick="closeModal('managePaidMonthModal')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 rounded-lg text-xs transition">
+            Keep as Paid (Close)
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -671,7 +709,7 @@
     </div>
   </div>
 
-  <!-- Printable Fee Receipt Layout -->
+  <!-- Printable Fee Receipt Layout (Clean without Ref ID) -->
   <div id="printableReceipt" class="hidden p-6 max-w-sm mx-auto bg-white border border-slate-400 font-mono text-xs">
     <div class="text-center pb-2 border-b border-dashed border-slate-400">
       <h2 class="text-sm font-bold tracking-tight">TUITION FEE RECEIPT</h2>
@@ -679,7 +717,6 @@
     </div>
     <div class="py-3 space-y-1">
       <div class="flex justify-between"><span>Date (DD/MM/YYYY):</span> <span id="recDate">-</span></div>
-      <div class="flex justify-between"><span>Receipt No:</span> <span id="recNo">-</span></div>
       <div class="flex justify-between"><span>Student:</span> <span id="recName" class="font-bold">-</span></div>
       <div class="flex justify-between"><span>Roll / Batch:</span> <span id="recRollClass">-</span></div>
       <div class="flex justify-between"><span>Payment Mode:</span> <span id="recMode">-</span></div>
@@ -712,8 +749,8 @@
     let currentLoggedInAdmin = null;
 
     // Optional hardcoded Supabase keys
-    const DEFAULT_SUPABASE_URL = ""; 
-    const DEFAULT_SUPABASE_KEY = "";
+    const DEFAULT_SUPABASE_URL = "https://qlmrbaadqshccqzswwzr.supabase.co"; 
+    const DEFAULT_SUPABASE_KEY = "sb_publishable_ZUjzXyMzKTdKR1ZquFjRYg_Skb6o4nv";
 
     const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const SHORT_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -750,6 +787,7 @@
     let activeProfileCalendarYear = new Date().getFullYear();
     let activePaymentStudent = null;
     let html5QrScanner = null;
+    let activeManageMonthData = null; // Holds student & month clicked for Unpay/Unadvance
 
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
@@ -941,8 +979,6 @@
     }
 
     // ==================== MATURITY & DUES CALCULATION ====================
-    // RULE: A month's fee matures AFTER next month's payment date.
-    // E.g., admitted on 10 October 2026 -> October fee matures after 10 November 2026.
     function getMonthStatus(student, monthIndex, year) {
       const monthName = MONTH_NAMES[monthIndex];
       const key = formatMonthKey(monthName, year);
@@ -969,7 +1005,6 @@
         return { status: 'EXEMPT', label: 'Exempt', isDueNow: false, key, maturityDate };
       }
 
-      // Pre-admission check
       const adm = new Date(student.admissionDate || '2026-01-01');
       const admYear = adm.getFullYear();
       const admMonth = adm.getMonth();
@@ -978,7 +1013,6 @@
         return { status: 'PRE_ADMISSION', label: 'Pre-admission', isDueNow: false, key, maturityDate };
       }
 
-      // If today is on or before maturity date -> UPCOMING
       if (startOfToday <= maturityDate) {
         return {
           status: 'UPCOMING',
@@ -989,7 +1023,6 @@
         };
       }
 
-      // If today is past the maturity date -> DUE NOW
       return {
         status: 'DUE',
         label: 'Due Today',
@@ -1071,7 +1104,7 @@
       };
     }
 
-    // ==================== CLICK-TO-PAY MONTH ====================
+    // ==================== CALENDAR TILE CLICK (PAY / UNPAY / UNADVANCE) ====================
     function handleCalendarTileClick(studentId, monthIndex, year) {
       const s = students.find(item => item.id === studentId);
       if (!s) return;
@@ -1080,18 +1113,32 @@
       const targetMonthName = MONTH_NAMES[monthIndex];
       const monthKey = formatMonthKey(targetMonthName, year);
 
+      // If already paid or advance paid -> Open Manage Paid Month Modal (Unpay / Unadvance)
       if (info.status === 'PAID' || info.status === 'PAID_ADVANCE') {
-        const choice = confirm(`Month: ${monthKey} is marked as ${info.label}.\n\nClick CANCEL if you want to unmark/refund this month.`);
-        if (!choice) {
-          s.paidMonths = s.paidMonths.filter(k => k !== monthKey);
-          syncStudentToCloud(s);
-          viewStudentProfile(s.id);
+        activeManageMonthData = {
+          studentId: s.id,
+          monthKey,
+          isAdvance: info.status === 'PAID_ADVANCE'
+        };
+        document.getElementById('managePaidMonthTitle').innerText = monthKey;
+        document.getElementById('managePaidStudentName').innerText = `${s.name} (Roll: ${s.roll})`;
+        
+        const badge = document.getElementById('managePaidStatusBadge');
+        if (info.status === 'PAID_ADVANCE') {
+          badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-100 text-cyan-800";
+          badge.innerText = "Advance Paid";
+        } else {
+          badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800";
+          badge.innerText = "Paid (Cleared)";
         }
+
+        openModal('managePaidMonthModal');
+        lucide.createIcons();
         return;
       }
 
       if (info.status === 'EXEMPT') {
-        if (confirm(`Month: ${monthKey} is EXEMPTED.\n\nCancel exemption and mark as billable?`)) {
+        if (confirm(`Month: ${monthKey} is EXEMPTED.\n\nCancel exemption and mark as unpaid/billable?`)) {
           s.exemptedMonths = s.exemptedMonths.filter(k => k !== monthKey);
           syncStudentToCloud(s);
           viewStudentProfile(s.id);
@@ -1104,6 +1151,7 @@
         return;
       }
 
+      // If Due or Upcoming -> Open Click to Pay Modal
       document.getElementById('targetMonthStudentId').value = s.id;
       document.getElementById('targetMonthKey').value = monthKey;
       document.getElementById('targetMonthTitle').innerText = monthKey;
@@ -1119,6 +1167,64 @@
 
       calculateTargetMonthPreview();
       openModal('clickMonthPayModal');
+    }
+
+    // Unpay / Unadvance execution
+    async function executeUnpayMonth() {
+      if (!activeManageMonthData) return;
+      const { studentId, monthKey, isAdvance } = activeManageMonthData;
+      const s = students.find(item => item.id === studentId);
+      if (!s) return;
+
+      const actionLabel = isAdvance ? "Unadvance" : "Unpaid";
+      s.paidMonths = (s.paidMonths || []).filter(k => k !== monthKey);
+
+      const log = {
+        amount: 0,
+        mode: "Reversal",
+        note: `${actionLabel} for ${monthKey}`,
+        collectedBy: getCurrentCollectorName(),
+        date: new Date().toISOString().slice(0, 10),
+        type: "Adjustment"
+      };
+      if (!s.history) s.history = [];
+      s.history.unshift(log);
+
+      await syncStudentToCloud(s);
+      closeModal('managePaidMonthModal');
+      if (selectedStudentIdForProfile === s.id) {
+        viewStudentProfile(s.id);
+      }
+      alert(`Success: ${monthKey} marked as ${actionLabel}.`);
+    }
+
+    async function executeExemptFromPaid() {
+      if (!activeManageMonthData) return;
+      const { studentId, monthKey } = activeManageMonthData;
+      const s = students.find(item => item.id === studentId);
+      if (!s) return;
+
+      s.paidMonths = (s.paidMonths || []).filter(k => k !== monthKey);
+      if (!s.exemptedMonths) s.exemptedMonths = [];
+      if (!s.exemptedMonths.includes(monthKey)) s.exemptedMonths.push(monthKey);
+
+      const log = {
+        amount: 0,
+        mode: "Fee Exemption",
+        note: `Converted ${monthKey} to Exemption`,
+        collectedBy: getCurrentCollectorName(),
+        date: new Date().toISOString().slice(0, 10),
+        type: "Exemption"
+      };
+      if (!s.history) s.history = [];
+      s.history.unshift(log);
+
+      await syncStudentToCloud(s);
+      closeModal('managePaidMonthModal');
+      if (selectedStudentIdForProfile === s.id) {
+        viewStudentProfile(s.id);
+      }
+      alert(`Success: ${monthKey} converted to Exemption.`);
     }
 
     function calculateTargetMonthPreview() {
@@ -1165,7 +1271,6 @@
 
       const todayISO = new Date().toISOString().slice(0, 10);
       const receipt = {
-        recId: 'REC-' + Math.floor(100000 + Math.random() * 900000),
         amount,
         mode,
         note,
@@ -1182,7 +1287,6 @@
 
       const dueInfo = getStudentCalculatedDue(s);
       document.getElementById('recDate').innerText = formatDateDMY(todayISO);
-      document.getElementById('recNo').innerText = receipt.recId;
       document.getElementById('recName').innerText = s.name;
       document.getElementById('recRollClass').innerText = `${s.roll} (${s.class})`;
       document.getElementById('recMode').innerText = mode;
@@ -1218,7 +1322,6 @@
       s.paidMonths = (s.paidMonths || []).filter(k => k !== monthKey);
 
       const log = {
-        recId: 'EXM-' + Math.floor(100000 + Math.random() * 900000),
         amount: 0,
         mode: 'Fee Exemption',
         note: `Exemption for ${monthKey} (${reason})`,
@@ -1283,7 +1386,7 @@
         dueTextEl.className = "text-xs font-semibold text-emerald-800 mt-1";
         dueTextEl.innerText = (s.advanceBalance > 0) 
           ? `All dues cleared! Student has ₹${s.advanceBalance} Advance Credit in Cloud.`
-          : "All matured dues cleared. Next billing matures after next month's payment date.";
+          : "All matured dues cleared. Next bill on cycle date.";
       } else {
         dueBanner.className = "rounded-xl border border-rose-200 bg-rose-50/70 p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3";
         dueAmountEl.className = "text-2xl font-black mt-0.5 text-rose-600";
@@ -1294,11 +1397,11 @@
 
       renderProfileCalendar(s, activeProfileCalendarYear);
 
-      // Ledger Table (DD/MM/YYYY)
+      // Ledger Table (Clean without Ref ID)
       const historyTbody = document.getElementById('profHistoryTable');
       historyTbody.innerHTML = '';
       if (!s.history || s.history.length === 0) {
-        historyTbody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-slate-400">No payment records yet.</td></tr>`;
+        historyTbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-400">No payment records yet.</td></tr>`;
       } else {
         s.history.forEach(h => {
           const isExempt = h.type === "Exemption";
@@ -1307,7 +1410,6 @@
           row.className = isExempt ? "bg-violet-50/50 hover:bg-violet-50" : "hover:bg-slate-50";
           row.innerHTML = `
             <td class="py-2 px-3 text-slate-600 font-medium">${formatDateDMY(h.date)}</td>
-            <td class="py-2 px-3 font-mono text-slate-700 font-semibold">${h.recId}</td>
             <td class="py-2 px-3 font-bold ${isExempt ? 'text-violet-700' : 'text-emerald-700'}">${isExempt ? 'WAIVED' : '₹' + h.amount}</td>
             <td class="py-2 px-3">
               <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-100 text-indigo-800">
@@ -1456,7 +1558,7 @@
 
       const textEl = document.getElementById('genBreakdownText');
       if (remainingDue === 0 && advanceAdded > 0) {
-        textEl.innerHTML = `🌟 Matured due cleared! <span class="font-bold text-cyan-800">₹${totalNewAdvance} in Advance Wallet</span> to offset future months.`;
+        textEl.innerHTML = `🌟 Matured due cleared! <span class="font-bold text-cyan-800">₹${totalNewAdvance} stored in Advance</span>.`;
       } else if (remainingDue === 0 && advanceAdded === 0) {
         textEl.innerText = "Exact amount to clear all dues matured up to today.";
       } else {
@@ -1498,7 +1600,6 @@
       if (!note) note = `Payment of ₹${amount}`;
 
       const receipt = {
-        recId: 'REC-' + Math.floor(100000 + Math.random() * 900000),
         amount,
         mode,
         note,
@@ -1514,7 +1615,6 @@
 
       const afterDue = getStudentCalculatedDue(s);
       document.getElementById('recDate').innerText = formatDateDMY(payDateISO);
-      document.getElementById('recNo').innerText = receipt.recId;
       document.getElementById('recName').innerText = s.name;
       document.getElementById('recRollClass').innerText = `${s.roll} (${s.class})`;
       document.getElementById('recMode').innerText = mode;
@@ -1915,7 +2015,7 @@
       lucide.createIcons();
     }
 
-    // ==================== EXPORTS (DD/MM/YYYY) ====================
+    // ==================== EXPORTS (CLEAN WITHOUT REF ID) ====================
     function exportToExcel() {
       const wb = XLSX.utils.book_new();
 
@@ -1945,7 +2045,6 @@
       students.forEach(s => {
         (s.history || []).forEach(h => {
           ledgerData.push({
-            "Receipt/Ref ID": h.recId,
             "Date (DD/MM/YYYY)": formatDateDMY(h.date),
             "Roll No": s.roll,
             "Student Name": s.name,
