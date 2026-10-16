@@ -1,0 +1,1784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tuition Fee Management System</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- QR Code Generator & Scanner -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <!-- SheetJS for Excel (.xlsx) Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- jsPDF & AutoTable for PDF Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+  <style>
+    @media print {
+      body * { visibility: hidden; }
+      #printableReceipt, #printableReceipt * { visibility: visible; }
+      #printableReceipt { position: absolute; left: 0; top: 0; width: 100%; display: block !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-indigo-700 text-white shadow-md sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-wrap justify-between items-center gap-3">
+      <div class="flex items-center space-x-3">
+        <div class="bg-indigo-600 p-2 rounded-xl text-amber-300 shadow-inner">
+          <i data-lucide="graduation-cap" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight">Tuition Fee Portal</h1>
+          <p class="text-xs text-indigo-200">Multi-Year Academic Ledger • Click-to-Pay Calendar</p>
+        </div>
+      </div>
+      
+      <!-- Action Toolbar -->
+      <div class="flex items-center gap-2 flex-wrap">
+        <button onclick="openBatchManagerModal()" class="bg-indigo-800 hover:bg-indigo-900 text-indigo-100 hover:text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition border border-indigo-600">
+          <i data-lucide="layers" class="w-4 h-4 text-amber-300"></i> Batches
+        </button>
+        <button onclick="openQRScanner()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+          <i data-lucide="scan" class="w-4 h-4 text-amber-300"></i> Scan QR
+        </button>
+        <button onclick="openAddStudentModal()" class="bg-amber-400 hover:bg-amber-300 text-indigo-950 px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 transition shadow">
+          <i data-lucide="user-plus" class="w-4 h-4"></i> New Admission
+        </button>
+
+        <!-- Export Dropdown -->
+        <div class="relative inline-block text-left">
+          <button onclick="toggleExportMenu()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 transition shadow">
+            <i data-lucide="download" class="w-4 h-4"></i> Export <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+          </button>
+          <div id="exportDropdownMenu" class="hidden absolute right-0 mt-2 w-48 rounded-xl shadow-xl bg-white border border-slate-200 z-50 py-1 text-xs">
+            <button onclick="exportToExcel(); toggleExportMenu();" class="w-full text-left px-4 py-2.5 text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium">
+              <i data-lucide="sheet" class="w-4 h-4 text-emerald-600"></i> Export to Excel (.xlsx)
+            </button>
+            <button onclick="exportToPDF(); toggleExportMenu();" class="w-full text-left px-4 py-2.5 text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium border-t border-slate-100">
+              <i data-lucide="file-text" class="w-4 h-4 text-rose-600"></i> Export to PDF (.pdf)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+
+    <!-- KPI Metric Cards -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Enrolled</p>
+          <h3 class="text-2xl font-bold text-slate-800 mt-1" id="kpiTotalStudents">0</h3>
+          <p class="text-[11px] text-indigo-600 mt-0.5 font-medium" id="kpiActiveBatchesCount">0 Active Batches</p>
+        </div>
+        <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl"><i data-lucide="users" class="w-5 h-5"></i></div>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Dues Matured Today</p>
+          <h3 class="text-2xl font-bold text-rose-600 mt-1" id="kpiTotalDue">₹0</h3>
+          <p class="text-[11px] text-rose-500 mt-0.5 font-medium"><span id="kpiDueStudents">0</span> students pending</p>
+        </div>
+        <div class="p-3 bg-rose-50 text-rose-600 rounded-xl"><i data-lucide="alert-triangle" class="w-5 h-5"></i></div>
+      </div>
+
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Advance Held</p>
+          <h3 class="text-2xl font-bold text-cyan-600 mt-1" id="kpiTotalAdvance">₹0</h3>
+          <p class="text-[11px] text-cyan-700 mt-0.5 font-medium"><span id="kpiAdvanceStudents">0</span> students in advance</p>
+        </div>
+        <div class="p-3 bg-cyan-50 text-cyan-600 rounded-xl"><i data-lucide="wallet-cards" class="w-5 h-5"></i></div>
+      </div>
+
+      <!-- Fees Collection Card with Date Filter -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
+          <div class="flex items-center gap-1.5">
+            <div class="p-1 bg-emerald-50 text-emerald-600 rounded"><i data-lucide="wallet" class="w-3.5 h-3.5"></i></div>
+            <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider">Collections</span>
+          </div>
+          <select id="collectionPeriodFilter" onchange="updateCollectionMetrics()" class="text-[11px] border border-slate-200 rounded px-1.5 py-0.5 bg-slate-50 font-semibold text-slate-700 focus:outline-none">
+            <option value="ALL">All Time</option>
+            <option value="YEAR">Current Year</option>
+            <option value="MONTH" selected>This Month</option>
+          </select>
+        </div>
+        <div class="pt-2 flex items-baseline justify-between">
+          <div>
+            <h3 class="text-xl font-black text-emerald-600 tracking-tight" id="kpiFilteredCollection">₹0</h3>
+            <p class="text-[11px] text-slate-400 mt-0.5" id="kpiCollectionLabel">Filtered Collection</p>
+          </div>
+          <span class="text-[11px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full" id="kpiTxnCount">0 Receipts</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Filters & Search Toolbar -->
+    <section class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
+      <div class="relative w-full md:w-96">
+        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-slate-400"></i>
+        <input 
+          type="text" 
+          id="searchInput" 
+          oninput="renderStudents()" 
+          placeholder="Search by Name, Roll No, or Mobile..." 
+          class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+        />
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+        <select id="filterClass" onchange="renderStudents()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium">
+          <!-- Batches injected dynamically -->
+        </select>
+
+        <select id="filterStatus" onchange="renderStudents()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium">
+          <option value="ALL">All Status</option>
+          <option value="DUE">Pending Due Today</option>
+          <option value="ADVANCE">With Advance Balance</option>
+          <option value="PAID">All Dues Cleared</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Students Table -->
+    <section class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse" id="mainStudentsTable">
+          <thead>
+            <tr class="bg-slate-100 text-slate-600 text-xs font-semibold uppercase tracking-wider border-b border-slate-200">
+              <th class="py-3 px-4">Roll</th>
+              <th class="py-3 px-4">Student & Contact</th>
+              <th class="py-3 px-4">Batch</th>
+              <th class="py-3 px-4">Monthly Fee & Cycle</th>
+              <th class="py-3 px-4">Dues & Advance Balance</th>
+              <th class="py-3 px-4">Calendar Status</th>
+              <th class="py-3 px-4 text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="studentTableBody" class="divide-y divide-slate-100 text-sm">
+            <!-- Dynamic Rows -->
+          </tbody>
+        </table>
+      </div>
+      <div id="noDataMessage" class="hidden text-center py-12 text-slate-400">
+        <i data-lucide="user-x" class="w-12 h-12 mx-auto stroke-1 mb-2"></i>
+        <p class="text-sm">No students found matching your criteria.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- ==================== MODAL: STUDENT PROFILE & MULTI-YEAR CALENDAR ==================== -->
+  <div id="profileModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col">
+      <div class="bg-gradient-to-r from-indigo-700 to-indigo-900 px-6 py-5 text-white flex justify-between items-start">
+        <div class="flex items-center gap-3">
+          <div class="w-14 h-14 rounded-full bg-indigo-500/50 border-2 border-amber-300 flex items-center justify-center text-xl font-black text-amber-300 shadow" id="profAvatar">
+            ST
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-xl font-bold" id="profName">-</h2>
+              <span class="bg-indigo-600 text-indigo-100 text-[11px] px-2 py-0.5 rounded-full font-semibold" id="profClassBadge">-</span>
+            </div>
+            <p class="text-xs text-indigo-200 mt-0.5">
+              Roll: <span class="font-mono font-bold text-white" id="profRoll">-</span> • 
+              Admitted: <span id="profJoined" class="text-amber-200 font-semibold">-</span>
+            </p>
+          </div>
+        </div>
+        <button onclick="closeModal('profileModal')" class="text-indigo-200 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-6 text-sm">
+        
+        <!-- Due & Advance Status Banner -->
+        <div class="rounded-xl border p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3" id="profDueBanner">
+          <div>
+            <div class="flex items-center gap-2">
+              <p class="text-xs font-semibold uppercase text-slate-500">Matured Dues As of Today</p>
+              <span id="profAdvanceBadge" class="hidden bg-cyan-600 text-white text-[11px] font-bold px-2 py-0.5 rounded-full">
+                Advance: ₹0
+              </span>
+            </div>
+            <div class="text-2xl font-black mt-0.5" id="profDueAmount">₹0</div>
+            <p class="text-xs font-medium text-slate-700 mt-1" id="profDueBreakdownText">-</p>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <button onclick="openPaymentFromProfile()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow transition">
+              <i data-lucide="credit-card" class="w-4 h-4"></i> Pay / Add Advance
+            </button>
+            <button onclick="sendWhatsAppFromProfile()" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow transition">
+              <i data-lucide="message-circle" class="w-4 h-4"></i> WhatsApp
+            </button>
+          </div>
+        </div>
+
+        <!-- Multi-Year Calendar with Year Switcher -->
+        <div>
+          <div class="flex justify-between items-center mb-2.5 flex-wrap gap-2">
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                  <i data-lucide="calendar" class="w-4 h-4 text-indigo-600"></i> Fee Calendar:
+                </h3>
+                <!-- Year Navigator -->
+                <div class="inline-flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200">
+                  <button onclick="changeProfileCalendarYear(-1)" title="Previous Year" class="p-1 hover:bg-white rounded text-slate-700 transition">
+                    <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
+                  </button>
+                  <span id="profileCalendarYearDisplay" class="font-bold text-xs px-2 text-indigo-900">2026</span>
+                  <button onclick="changeProfileCalendarYear(1)" title="Next Year" class="p-1 hover:bg-white rounded text-slate-700 transition">
+                    <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">Click any month tile below to instantly pay or manage fees for that month.</p>
+            </div>
+            
+            <div class="flex items-center gap-2 text-[11px] font-medium flex-wrap">
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Paid</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-cyan-500"></span> Adv Paid</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-violet-600"></span> Exempt</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Due Today</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span> Upcoming</span>
+            </div>
+          </div>
+          <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2" id="profCalendarGrid"></div>
+        </div>
+
+        <!-- Details Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <div>
+            <p class="text-xs text-slate-500 uppercase font-semibold">Monthly Payment Cycle</p>
+            <p class="text-sm font-bold text-indigo-700 mt-0.5 flex items-center gap-1">
+              <i data-lucide="calendar-clock" class="w-4 h-4"></i>
+              <span id="profDueCycle">Every 1st of the month</span>
+            </p>
+            <p class="text-[11px] text-slate-400 mt-0.5">Determined by admission date</p>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 uppercase font-semibold">Monthly Agreed Fee</p>
+            <p class="text-sm font-bold text-slate-800 mt-0.5" id="profMonthlyFee">₹0 / month</p>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 uppercase font-semibold">Advance Balance in Wallet</p>
+            <p class="text-sm font-black text-cyan-700 mt-0.5" id="profAdvanceHeld">₹0</p>
+            <p class="text-[11px] text-slate-400">Offsets upcoming cycles automatically</p>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 uppercase font-semibold">Guardian WhatsApp</p>
+            <p class="text-sm font-bold text-slate-800 mt-0.5 flex items-center gap-1.5">
+              <i data-lucide="phone" class="w-3.5 h-3.5 text-indigo-600"></i>
+              <span id="profPhone">-</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Payment History Table -->
+        <div>
+          <h4 class="text-xs font-bold uppercase text-slate-600 mb-2 flex items-center gap-1.5">
+            <i data-lucide="history" class="w-4 h-4 text-indigo-600"></i> Payment & Exemption Ledger
+          </h4>
+          <div class="border border-slate-200 rounded-xl overflow-hidden">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-100 text-slate-600 font-semibold border-b border-slate-200">
+                <tr>
+                  <th class="py-2.5 px-3">Date</th>
+                  <th class="py-2.5 px-3">Ref ID</th>
+                  <th class="py-2.5 px-3">Amount</th>
+                  <th class="py-2.5 px-3">Mode</th>
+                  <th class="py-2.5 px-3">Remarks & Month Covered</th>
+                </tr>
+              </thead>
+              <tbody id="profHistoryTable" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-between items-center text-xs">
+        <button onclick="deleteStudentFromProfile()" class="text-rose-600 hover:text-rose-800 font-semibold flex items-center gap-1">
+          <i data-lucide="trash-2" class="w-4 h-4"></i> Remove Student
+        </button>
+        <button onclick="closeModal('profileModal')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-4 py-2 rounded-lg">
+          Close Profile
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: CLICK-TO-PAY TARGET MONTH ==================== -->
+  <div id="clickMonthPayModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden animate-fade-in">
+      <div class="bg-emerald-600 px-6 py-4 flex justify-between items-center text-white">
+        <h3 class="font-bold text-base flex items-center gap-2">
+          <i data-lucide="calendar-check-2" class="w-5 h-5 text-amber-300"></i>
+          <span>Pay Fee: <span id="targetMonthTitle">-</span></span>
+        </h3>
+        <button onclick="closeModal('clickMonthPayModal')" class="text-emerald-100 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      
+      <form id="clickMonthPayForm" onsubmit="processClickMonthPayment(event)" class="p-6 space-y-4 text-sm">
+        <input type="hidden" id="targetMonthStudentId">
+        <input type="hidden" id="targetMonthKey">
+
+        <div class="bg-emerald-50 p-3.5 rounded-xl border border-emerald-100 space-y-1">
+          <div class="flex justify-between items-center">
+            <span class="text-xs text-slate-500 uppercase font-semibold">Student</span>
+            <span class="text-xs font-bold text-emerald-800" id="targetMonthStudentName">-</span>
+          </div>
+          <div class="flex justify-between items-center text-xs">
+            <span class="text-slate-600">Standard Monthly Fee:</span>
+            <span class="font-bold text-slate-900" id="targetMonthStandardFee">₹0</span>
+          </div>
+          <div class="flex justify-between items-center text-xs text-cyan-800 font-semibold">
+            <span>Available Advance Wallet:</span>
+            <span id="targetMonthAvailAdvance">₹0</span>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Payment Amount (₹)</label>
+          <input 
+            type="number" 
+            id="targetMonthAmount" 
+            required 
+            min="1" 
+            step="any"
+            oninput="calculateTargetMonthPreview()" 
+            class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-xl font-black text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+          >
+          <p class="text-[11px] text-slate-500 mt-1" id="targetMonthPreviewHelp">Enter any custom rupee amount.</p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Payment Mode</label>
+          <select id="targetMonthMode" class="w-full px-3 py-2 border rounded-lg bg-white focus:ring-2 focus:ring-emerald-500 text-xs">
+            <option value="Cash">Cash</option>
+            <option value="UPI / PhonePe / GPay">UPI (PhonePe / GPay)</option>
+            <option value="Bank Transfer">Bank Transfer</option>
+            <option value="Cheque">Cheque</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Payment Remarks</label>
+          <input type="text" id="targetMonthNote" placeholder="e.g. Paid via Cash" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-emerald-500">
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg text-xs transition shadow flex items-center justify-center gap-1.5">
+            <i data-lucide="check" class="w-4 h-4"></i> Confirm Payment
+          </button>
+          <button type="button" onclick="exemptTargetMonthDirect()" class="bg-violet-100 hover:bg-violet-200 text-violet-800 font-bold px-3 py-2.5 rounded-lg text-xs transition flex items-center gap-1" title="Waive / Exempt this month without paying">
+            <i data-lucide="shield-check" class="w-4 h-4 text-violet-600"></i> Exempt Month
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: GENERAL CUSTOM PAYMENT ==================== -->
+  <div id="paymentModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
+      <div class="bg-emerald-600 px-6 py-4 flex justify-between items-center text-white">
+        <h3 class="font-bold text-base flex items-center gap-2"><i data-lucide="receipt" class="w-5 h-5"></i> Record Custom Payment / Advance</h3>
+        <button onclick="closeModal('paymentModal')" class="text-emerald-100 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <form id="paymentForm" onsubmit="processGeneralPayment(event)" class="p-6 space-y-4 text-sm">
+        <input type="hidden" id="payStudentId">
+        
+        <div class="bg-emerald-50 p-3.5 rounded-xl border border-emerald-100">
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-xs text-slate-500 uppercase font-semibold">Student</p>
+              <p class="font-bold text-slate-900 text-base" id="payStudentDetails">-</p>
+            </div>
+            <span class="text-xs font-bold bg-emerald-200/80 text-emerald-900 px-2 py-0.5 rounded-full" id="payStudentFeeRate">Fee: ₹0</span>
+          </div>
+          <div class="flex items-center justify-between mt-2 pt-2 border-t border-emerald-100 text-xs">
+            <span class="text-rose-700 font-bold" id="payStudentDueBadge">Due Today: ₹0</span>
+            <span class="text-cyan-800 font-bold" id="payStudentAdvBadge">Current Advance: ₹0</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="block text-xs font-semibold text-slate-600 uppercase">Payment Amount (₹)</label>
+            <span class="text-[11px] text-emerald-700 font-medium">Extra is stored in Advance</span>
+          </div>
+          <input 
+            type="number" 
+            id="payAmount" 
+            required 
+            min="1" 
+            step="any"
+            oninput="calculateGeneralPaymentPreview()" 
+            class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-xl font-black text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+            placeholder="e.g. 500"
+          >
+          
+          <div class="mt-2.5 p-3 bg-slate-100 rounded-xl border border-slate-200 text-xs space-y-1" id="generalPayCalcBox">
+            <div class="flex justify-between font-semibold text-slate-700">
+              <span>Remaining Due Today:</span>
+              <span id="genRemainingDue" class="font-bold text-emerald-600">₹0</span>
+            </div>
+            <div class="flex justify-between font-semibold text-cyan-800">
+              <span>Advance Wallet Credit:</span>
+              <span id="genAdvanceCredit" class="font-black text-cyan-700">₹0</span>
+            </div>
+            <p class="text-[11px] text-slate-500 pt-1 border-t border-slate-200" id="genBreakdownText">-</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Payment Mode</label>
+            <select id="payMode" class="w-full px-3 py-2 border rounded-lg bg-white focus:ring-2 focus:ring-emerald-500 text-xs">
+              <option value="Cash">Cash</option>
+              <option value="UPI / PhonePe / GPay">UPI (PhonePe / GPay)</option>
+              <option value="Bank Transfer">Bank Transfer</option>
+              <option value="Cheque">Cheque</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Payment Date</label>
+            <input type="date" id="payCustomDate" class="w-full px-3 py-2 border rounded-lg bg-white focus:ring-2 focus:ring-emerald-500 text-xs">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Payment Remarks</label>
+          <input type="text" id="payNote" placeholder="e.g. Cleared dues + advance" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-emerald-500">
+        </div>
+
+        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg text-sm transition shadow">
+          Confirm Payment & Print Receipt
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: BATCH MANAGER ==================== -->
+  <div id="batchManagerModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
+      <div class="bg-indigo-800 px-6 py-4 flex justify-between items-center text-white">
+        <h3 class="font-bold text-base flex items-center gap-2"><i data-lucide="layers" class="w-5 h-5 text-amber-300"></i> Manage Batches</h3>
+        <button onclick="closeModal('batchManagerModal')" class="text-indigo-200 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <div class="p-6 space-y-5">
+        <div>
+          <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Add New Batch</label>
+          <div class="flex gap-2">
+            <input type="text" id="newBatchInput" placeholder="e.g. Class 10 Science, WBP Mock" class="flex-1 px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+            <button onclick="addNewBatch()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-lg text-sm transition flex items-center gap-1">
+              <i data-lucide="plus" class="w-4 h-4"></i> Add
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase text-slate-600 mb-2">Active Batches (<span id="batchCountBadge">0</span>)</label>
+          <div class="max-h-60 overflow-y-auto space-y-2 border border-slate-200 rounded-xl p-2 bg-slate-50" id="batchListContainer"></div>
+          <p class="text-[11px] text-slate-400 mt-2">Batches with active enrolled students cannot be deleted until students are moved.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: ADD STUDENT ==================== -->
+  <div id="addStudentModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
+      <div class="bg-indigo-700 px-6 py-4 flex justify-between items-center text-white">
+        <h3 class="font-bold text-base flex items-center gap-2"><i data-lucide="user-plus" class="w-5 h-5"></i> Enroll New Student</h3>
+        <button onclick="closeModal('addStudentModal')" class="text-indigo-200 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <form id="studentForm" onsubmit="saveNewStudent(event)" class="p-6 space-y-3.5 text-sm">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Roll Number</label>
+          <input type="text" id="mRoll" required placeholder="e.g. 106" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Student Full Name</label>
+          <input type="text" id="mName" required placeholder="Full Name" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Batch / Class</label>
+            <select id="mClass" class="w-full px-3 py-2 border rounded-lg bg-white focus:ring-2 focus:ring-indigo-500"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Monthly Fee (₹)</label>
+            <input type="number" id="mMonthlyFee" required placeholder="500" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">WhatsApp Phone (Guardian)</label>
+          <input type="tel" id="mPhone" required placeholder="10-digit number" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 bg-indigo-50/60 p-3 rounded-xl border border-indigo-100">
+          <div>
+            <label class="block text-xs font-bold text-indigo-900 uppercase mb-1">Admission Date</label>
+            <input type="date" id="mAdmissionDate" required onchange="syncDueDayFromAdmission()" class="w-full px-2.5 py-1.5 border rounded-lg bg-white text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-indigo-900 uppercase mb-1">Monthly Due Day</label>
+            <div class="flex items-center gap-1">
+              <span class="text-xs text-slate-500">Every</span>
+              <input type="number" id="mDueDay" min="1" max="31" required class="w-16 px-2 py-1.5 border rounded-lg bg-white text-xs font-bold text-center focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+              <span class="text-xs text-slate-500">th</span>
+            </div>
+          </div>
+          <p class="text-[10px] text-indigo-700 col-span-2">Fees become due on this day every month.</p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-cyan-800 uppercase mb-1">Initial Advance Deposit (Optional ₹)</label>
+          <input type="number" id="mInitialAdvance" value="0" placeholder="0" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-cyan-500 focus:outline-none font-bold text-cyan-900">
+        </div>
+
+        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg text-sm transition mt-2">
+          Save Admission
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: QR SCANNER ==================== -->
+  <div id="qrScannerModal" class="hidden fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden">
+      <div class="bg-slate-900 px-5 py-3.5 flex justify-between items-center text-white">
+        <h3 class="font-bold text-sm flex items-center gap-2"><i data-lucide="scan" class="w-4 h-4 text-amber-400"></i> Scan Student QR</h3>
+        <button onclick="closeQRScanner()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <div class="p-4 text-center">
+        <div id="qr-reader" class="w-full rounded-xl overflow-hidden border border-slate-200"></div>
+        <p class="text-xs text-slate-500 mt-3">Scan student ID card to open profile instantly</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden Printable Fee Receipt -->
+  <div id="printableReceipt" class="hidden p-6 max-w-sm mx-auto bg-white border border-slate-400 font-mono text-xs">
+    <div class="text-center pb-2 border-b border-dashed border-slate-400">
+      <h2 class="text-sm font-bold tracking-tight">TUITION FEE RECEIPT</h2>
+      <p class="text-[10px] text-slate-500">Official Payment Acknowledgment</p>
+    </div>
+    <div class="py-3 space-y-1">
+      <div class="flex justify-between"><span>Date:</span> <span id="recDate">-</span></div>
+      <div class="flex justify-between"><span>Receipt No:</span> <span id="recNo">-</span></div>
+      <div class="flex justify-between"><span>Student:</span> <span id="recName" class="font-bold">-</span></div>
+      <div class="flex justify-between"><span>Roll / Batch:</span> <span id="recRollClass">-</span></div>
+      <div class="flex justify-between"><span>Payment Mode:</span> <span id="recMode">-</span></div>
+      <div class="flex justify-between"><span>Remarks:</span> <span id="recNote">-</span></div>
+    </div>
+    <div class="py-2 border-t border-b border-dashed border-slate-400 flex justify-between font-bold text-sm">
+      <span>Amount Paid:</span>
+      <span id="recAmount">₹0</span>
+    </div>
+    <div class="pt-2 space-y-1">
+      <div class="flex justify-between text-slate-700 font-semibold"><span>Remaining Due Today:</span> <span id="recBalanceDue">₹0</span></div>
+      <div class="flex justify-between text-cyan-800 font-black"><span>Advance Wallet Balance:</span> <span id="recAdvanceBalance">₹0</span></div>
+      <div class="flex justify-between text-[11px] text-slate-500 font-sans"><span>Status:</span> <span id="recDueBreakdown">-</span></div>
+    </div>
+    <p class="text-center text-[10px] text-slate-400 mt-4">Thank you for your study dedication!</p>
+  </div>
+
+  <!-- Application Logic -->
+  <script>
+    const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const SHORT_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    const DEFAULT_BATCHES = [
+      "Class 8",
+      "Class 9",
+      "Class 10",
+      "Class 11",
+      "Class 12",
+      "Competitive (WBP/SSC)"
+    ];
+
+    // Standardized Month Key: "Month YYYY" (e.g., "October 2026")
+    function formatMonthKey(monthName, year) {
+      return `${monthName} ${year}`;
+    }
+
+    // Default Students with multi-year keys
+    const DEFAULT_STUDENTS = [
+      {
+        id: "S101",
+        roll: "101",
+        name: "Rohan Das",
+        class: "Class 10",
+        monthlyFee: 500,
+        phone: "9876543210",
+        admissionDate: "2025-11-10", // Admitted late 2025
+        dueDay: 10,
+        paidMonths: ["November 2025", "December 2025", "January 2026", "February 2026", "March 2026", "April 2026", "May 2026", "June 2026", "July 2026", "August 2026", "September 2026"],
+        exemptedMonths: [],
+        advanceBalance: 200,
+        history: [
+          { recId: "REC-948210", date: "2026-09-10", amount: 500, mode: "UPI / PhonePe / GPay", note: "September 2026 Fee", type: "Payment" }
+        ]
+      },
+      {
+        id: "S102",
+        roll: "102",
+        name: "Ananya Roy",
+        class: "Class 9",
+        monthlyFee: 600,
+        phone: "9876543211",
+        admissionDate: "2026-01-15",
+        dueDay: 15,
+        paidMonths: ["January 2026", "February 2026", "March 2026", "April 2026", "May 2026", "June 2026", "July 2026", "August 2026", "September 2026", "October 2026"],
+        exemptedMonths: [],
+        advanceBalance: 0,
+        history: [
+          { recId: "REC-948212", date: "2026-10-15", amount: 600, mode: "Cash", note: "October 2026 Fee", type: "Payment" }
+        ]
+      },
+      {
+        id: "S103",
+        roll: "103",
+        name: "Subhajit Sen",
+        class: "Class 12",
+        monthlyFee: 800,
+        phone: "9876543212",
+        admissionDate: "2026-03-05",
+        dueDay: 5,
+        paidMonths: ["March 2026", "April 2026", "May 2026", "June 2026", "July 2026"],
+        exemptedMonths: ["August 2026"],
+        advanceBalance: 0,
+        history: []
+      }
+    ];
+
+    let batches = JSON.parse(localStorage.getItem('tuition_batches_db_v7')) || DEFAULT_BATCHES;
+    let students = JSON.parse(localStorage.getItem('tuition_portal_db_v7')) || DEFAULT_STUDENTS;
+    
+    // Auto-migrate any legacy single month names to "Month YYYY"
+    students.forEach(s => {
+      s.paidMonths = (s.paidMonths || []).map(m => m.includes(" ") ? m : `${m} 2026`);
+      s.exemptedMonths = (s.exemptedMonths || []).map(m => m.includes(" ") ? m : `${m} 2026`);
+    });
+
+    let selectedStudentIdForProfile = null;
+    let activeProfileCalendarYear = new Date().getFullYear(); // Dynamic current calendar year
+    let activePaymentStudent = null;
+    let html5QrScanner = null;
+
+    function saveToStorage() {
+      localStorage.setItem('tuition_portal_db_v7', JSON.stringify(students));
+      localStorage.setItem('tuition_batches_db_v7', JSON.stringify(batches));
+      updateMetrics();
+      renderStudents();
+    }
+
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+    function toggleExportMenu() { document.getElementById('exportDropdownMenu').classList.toggle('hidden'); }
+
+    // ==================== DYNAMIC MULTI-YEAR ACCRUAL ENGINE ====================
+
+    // Status of any arbitrary month and year for a student
+    function getMonthStatus(student, monthIndex, year) {
+      const monthName = MONTH_NAMES[monthIndex];
+      const key = formatMonthKey(monthName, year);
+
+      const today = new Date();
+      const currentYear = today.getFullYear();
+      const currentMonth = today.getMonth();
+      const currentDay = today.getDate();
+      const dueDay = student.dueDay || 1;
+
+      // 1. Paid
+      if ((student.paidMonths || []).includes(key)) {
+        // Is it Advance Paid (future month/cycle)?
+        const isFuture = (year > currentYear) || 
+                         (year === currentYear && monthIndex > currentMonth) || 
+                         (year === currentYear && monthIndex === currentMonth && currentDay < dueDay);
+        return {
+          status: isFuture ? 'PAID_ADVANCE' : 'PAID',
+          label: isFuture ? 'Adv Paid' : 'Paid',
+          isDueNow: false,
+          key
+        };
+      }
+
+      // 2. Exempted
+      if ((student.exemptedMonths || []).includes(key)) {
+        return { status: 'EXEMPT', label: 'Exempt', isDueNow: false, key };
+      }
+
+      // 3. Pre-admission (Month before student enrollment)
+      const adm = new Date(student.admissionDate || '2026-01-01');
+      const admYear = adm.getFullYear();
+      const admMonth = adm.getMonth();
+
+      if (year < admYear || (year === admYear && monthIndex < admMonth)) {
+        return { status: 'PRE_ADMISSION', label: 'Pre-admission', isDueNow: false, key };
+      }
+
+      // 4. Future / Upcoming month
+      if (year > currentYear || (year === currentYear && monthIndex > currentMonth)) {
+        return { status: 'UPCOMING', label: `Due ${dueDay} ${SHORT_MONTHS[monthIndex]}`, isDueNow: false, key };
+      }
+
+      // 5. Current month before billing day
+      if (year === currentYear && monthIndex === currentMonth) {
+        if (currentDay < dueDay) {
+          return { status: 'UPCOMING', label: `Due on ${dueDay}th`, isDueNow: false, key };
+        }
+      }
+
+      // 6. Billing day has passed on or before today -> DUE NOW
+      return { status: 'DUE', label: 'Due Today', isDueNow: true, key };
+    }
+
+    // Calculates all matured dues across all years from admission date up to TODAY
+    function getStudentCalculatedDue(student) {
+      const today = new Date();
+      const currentYear = today.getFullYear();
+      const currentMonth = today.getMonth();
+
+      const adm = new Date(student.admissionDate || '2026-01-01');
+      const startYear = adm.getFullYear();
+      const startMonth = adm.getMonth();
+
+      let maturedUnpaidMonthsCount = 0;
+      const dueKeys = [];
+
+      // Iterate through every single month from admission up to current month & year
+      for (let y = startYear; y <= currentYear; y++) {
+        const mStart = (y === startYear) ? startMonth : 0;
+        const mEnd = (y === currentYear) ? currentMonth : 11;
+
+        for (let m = mStart; m <= mEnd; m++) {
+          const st = getMonthStatus(student, m, y);
+          if (st.isDueNow) {
+            maturedUnpaidMonthsCount++;
+            dueKeys.push(st.key);
+          }
+        }
+      }
+
+      const grossMaturedDue = maturedUnpaidMonthsCount * student.monthlyFee;
+      const advanceInWallet = student.advanceBalance || 0;
+      let netDueToday = 0;
+      let adjustedFromAdvance = 0;
+
+      if (advanceInWallet >= grossMaturedDue) {
+        adjustedFromAdvance = grossMaturedDue;
+        netDueToday = 0;
+      } else {
+        adjustedFromAdvance = advanceInWallet;
+        netDueToday = grossMaturedDue - advanceInWallet;
+      }
+
+      let breakdownText = "";
+      if (netDueToday === 0) {
+        if (advanceInWallet > 0) {
+          breakdownText = `All cleared • ₹${advanceInWallet} Advance for upcoming cycle`;
+        } else {
+          breakdownText = "All dues cleared as of today";
+        }
+      } else {
+        const fullM = Math.floor(netDueToday / student.monthlyFee);
+        const rem = netDueToday % student.monthlyFee;
+        if (fullM > 0 && rem > 0) {
+          breakdownText = `${fullM} month${fullM > 1 ? 's' : ''} and ${rem} rupees`;
+        } else if (fullM > 0 && rem === 0) {
+          breakdownText = `${fullM} month${fullM > 1 ? 's' : ''}`;
+        } else {
+          breakdownText = `${rem} rupees (partial fee)`;
+        }
+        if (adjustedFromAdvance > 0) {
+          breakdownText += ` (₹${adjustedFromAdvance} adjusted from Advance)`;
+        }
+      }
+
+      return {
+        grossMaturedDue,
+        netDueToday,
+        advanceInWallet,
+        adjustedFromAdvance,
+        maturedUnpaidMonthsCount,
+        dueKeys,
+        breakdownText,
+        isCleared: netDueToday === 0
+      };
+    }
+
+    // ==================== CLICK-TO-PAY ON CALENDAR TILE ====================
+    function handleCalendarTileClick(studentId, monthIndex, year) {
+      const s = students.find(item => item.id === studentId);
+      if (!s) return;
+
+      const info = getMonthStatus(s, monthIndex, year);
+      const targetMonthName = MONTH_NAMES[monthIndex];
+      const monthKey = formatMonthKey(targetMonthName, year);
+
+      // If already paid -> offer to view receipt or unmark
+      if (info.status === 'PAID' || info.status === 'PAID_ADVANCE') {
+        const choice = confirm(`Month: ${monthKey} is currently marked as ${info.label}.\n\nClick OK to keep as is, or CANCEL to refund/unmark this month.`);
+        if (!choice) {
+          s.paidMonths = s.paidMonths.filter(k => k !== monthKey);
+          saveToStorage();
+          viewStudentProfile(s.id);
+        }
+        return;
+      }
+
+      // If already exempt -> offer to unmark
+      if (info.status === 'EXEMPT') {
+        if (confirm(`Month: ${monthKey} is currently EXEMPTED.\n\nDo you want to cancel the exemption and mark it as billable?`)) {
+          s.exemptedMonths = s.exemptedMonths.filter(k => k !== monthKey);
+          saveToStorage();
+          viewStudentProfile(s.id);
+        }
+        return;
+      }
+
+      // If pre-admission
+      if (info.status === 'PRE_ADMISSION') {
+        alert(`${monthKey} is prior to student's admission date (${s.admissionDate}).`);
+        return;
+      }
+
+      // Open Click-to-Pay Modal for this exact month
+      document.getElementById('targetMonthStudentId').value = s.id;
+      document.getElementById('targetMonthKey').value = monthKey;
+      document.getElementById('targetMonthTitle').innerText = monthKey;
+      document.getElementById('targetMonthStudentName').innerText = `${s.name} (Roll: ${s.roll})`;
+      document.getElementById('targetMonthStandardFee').innerText = `₹${s.monthlyFee}`;
+      document.getElementById('targetMonthAvailAdvance').innerText = `₹${s.advanceBalance || 0}`;
+
+      // Calculate suggested payment after advance offset
+      const availAdvance = s.advanceBalance || 0;
+      const suggestedAmount = Math.max(0, s.monthlyFee - availAdvance);
+      document.getElementById('targetMonthAmount').value = suggestedAmount > 0 ? suggestedAmount : s.monthlyFee;
+      document.getElementById('targetMonthNote').value = `Fee payment for ${monthKey}`;
+
+      calculateTargetMonthPreview();
+      openModal('clickMonthPayModal');
+    }
+
+    function calculateTargetMonthPreview() {
+      const studentId = document.getElementById('targetMonthStudentId').value;
+      const s = students.find(item => item.id === studentId);
+      if (!s) return;
+
+      const amt = parseFloat(document.getElementById('targetMonthAmount').value) || 0;
+      const availAdvance = s.advanceBalance || 0;
+      const totalAvailable = amt + availAdvance;
+      const helpEl = document.getElementById('targetMonthPreviewHelp');
+
+      if (totalAvailable >= s.monthlyFee) {
+        const surplus = totalAvailable - s.monthlyFee;
+        helpEl.innerHTML = `✅ Clears <span class="font-bold text-emerald-700">${document.getElementById('targetMonthTitle').innerText}</span> in full.${surplus > 0 ? ` <span class="text-cyan-700 font-bold">+₹${surplus} surplus added to Advance Wallet</span>.` : ''}`;
+      } else {
+        const short = s.monthlyFee - totalAvailable;
+        helpEl.innerHTML = `⚠️ Partial payment: ₹${short} will still remain due for this month.`;
+      }
+    }
+
+    function processClickMonthPayment(e) {
+      e.preventDefault();
+      const studentId = document.getElementById('targetMonthStudentId').value;
+      const monthKey = document.getElementById('targetMonthKey').value;
+      const amount = parseFloat(document.getElementById('targetMonthAmount').value) || 0;
+      const mode = document.getElementById('targetMonthMode').value;
+      const note = document.getElementById('targetMonthNote').value.trim() || `Fee payment for ${monthKey}`;
+
+      const s = students.find(item => item.id === studentId);
+      if (!s) return;
+
+      if (!s.paidMonths) s.paidMonths = [];
+      if (!s.advanceBalance) s.advanceBalance = 0;
+
+      // Deduct fee and adjust advance
+      const totalAvailable = amount + s.advanceBalance;
+      if (totalAvailable >= s.monthlyFee) {
+        if (!s.paidMonths.includes(monthKey)) s.paidMonths.push(monthKey);
+        s.advanceBalance = totalAvailable - s.monthlyFee;
+      } else {
+        // Did not cover full month, advance holds what they paid
+        s.advanceBalance = totalAvailable;
+      }
+
+      // Record receipt
+      const receipt = {
+        recId: 'REC-' + Math.floor(100000 + Math.random() * 900000),
+        amount,
+        mode,
+        note,
+        date: new Date().toISOString().slice(0, 10),
+        monthCovered: monthKey,
+        type: 'Payment'
+      };
+      if (!s.history) s.history = [];
+      s.history.unshift(receipt);
+
+      saveToStorage();
+      closeModal('clickMonthPayModal');
+
+      // Populate printable receipt
+      const dueInfo = getStudentCalculatedDue(s);
+      document.getElementById('recDate').innerText = new Date().toLocaleDateString('en-IN');
+      document.getElementById('recNo').innerText = receipt.recId;
+      document.getElementById('recName').innerText = s.name;
+      document.getElementById('recRollClass').innerText = `${s.roll} (${s.class})`;
+      document.getElementById('recMode').innerText = mode;
+      document.getElementById('recNote').innerText = note;
+      document.getElementById('recAmount').innerText = '₹' + amount;
+      document.getElementById('recBalanceDue').innerText = '₹' + dueInfo.netDueToday;
+      document.getElementById('recAdvanceBalance').innerText = '₹' + s.advanceBalance;
+      document.getElementById('recDueBreakdown').innerText = dueInfo.breakdownText;
+
+      if (selectedStudentIdForProfile === s.id) {
+        viewStudentProfile(s.id);
+      }
+
+      if (confirm(`Payment of ₹${amount} recorded for ${monthKey}!\nRemaining due today: ₹${dueInfo.netDueToday} • Advance: ₹${s.advanceBalance}.\n\nPrint official receipt now?`)) {
+        window.print();
+      }
+    }
+
+    function exemptTargetMonthDirect() {
+      const studentId = document.getElementById('targetMonthStudentId').value;
+      const monthKey = document.getElementById('targetMonthKey').value;
+      const s = students.find(item => item.id === studentId);
+      if (!s) return;
+
+      const reason = prompt(`Enter reason for granting fee exemption for ${monthKey}:`, "Merit Scholarship / Concession");
+      if (!reason) return;
+
+      if (!s.exemptedMonths) s.exemptedMonths = [];
+      if (!s.exemptedMonths.includes(monthKey)) {
+        s.exemptedMonths.push(monthKey);
+      }
+      s.paidMonths = (s.paidMonths || []).filter(k => k !== monthKey);
+
+      const log = {
+        recId: 'EXM-' + Math.floor(100000 + Math.random() * 900000),
+        amount: 0,
+        mode: 'Fee Exemption',
+        note: `Exemption for ${monthKey} (${reason})`,
+        date: new Date().toISOString().slice(0, 10),
+        type: 'Exemption'
+      };
+      if (!s.history) s.history = [];
+      s.history.unshift(log);
+
+      saveToStorage();
+      closeModal('clickMonthPayModal');
+      if (selectedStudentIdForProfile === s.id) viewStudentProfile(s.id);
+      alert(`Month ${monthKey} exempted successfully for ${s.name}.`);
+    }
+
+    // ==================== PROFILE CALENDAR RENDERING ====================
+    function changeProfileCalendarYear(delta) {
+      activeProfileCalendarYear += delta;
+      document.getElementById('profileCalendarYearDisplay').innerText = activeProfileCalendarYear;
+      if (selectedStudentIdForProfile) {
+        const s = students.find(item => item.id === selectedStudentIdForProfile);
+        if (s) renderProfileCalendar(s, activeProfileCalendarYear);
+      }
+    }
+
+    function viewStudentProfile(id) {
+      const s = students.find(item => item.id === id);
+      if (!s) return;
+      selectedStudentIdForProfile = id;
+
+      const initials = s.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+      document.getElementById('profAvatar').innerText = initials;
+      document.getElementById('profName').innerText = s.name;
+      document.getElementById('profRoll').innerText = s.roll;
+      document.getElementById('profClassBadge').innerText = s.class;
+      document.getElementById('profJoined').innerText = s.admissionDate || '2026-01-01';
+      document.getElementById('profPhone').innerText = s.phone || 'Not provided';
+      document.getElementById('profMonthlyFee').innerText = `₹${s.monthlyFee} / month`;
+      document.getElementById('profDueCycle').innerText = `Every ${s.dueDay || 1}th of the month`;
+      document.getElementById('profAdvanceHeld').innerText = `₹${s.advanceBalance || 0}`;
+
+      document.getElementById('profileCalendarYearDisplay').innerText = activeProfileCalendarYear;
+
+      const dueInfo = getStudentCalculatedDue(s);
+      const dueBanner = document.getElementById('profDueBanner');
+      const dueAmountEl = document.getElementById('profDueAmount');
+      const dueTextEl = document.getElementById('profDueBreakdownText');
+      const advBadge = document.getElementById('profAdvanceBadge');
+
+      if ((s.advanceBalance || 0) > 0) {
+        advBadge.classList.remove('hidden');
+        advBadge.innerText = `Advance: ₹${s.advanceBalance}`;
+      } else {
+        advBadge.classList.add('hidden');
+      }
+
+      if (dueInfo.isCleared) {
+        dueBanner.className = "rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3";
+        dueAmountEl.className = "text-2xl font-black mt-0.5 text-emerald-700";
+        dueAmountEl.innerText = "₹0";
+        dueTextEl.className = "text-xs font-semibold text-emerald-800 mt-1";
+        dueTextEl.innerText = (s.advanceBalance > 0) 
+          ? `All dues cleared! Student has ₹${s.advanceBalance} Advance Credit for upcoming cycles.`
+          : "All matured dues cleared. Next billing arrives on their cycle date.";
+      } else {
+        dueBanner.className = "rounded-xl border border-rose-200 bg-rose-50/70 p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3";
+        dueAmountEl.className = "text-2xl font-black mt-0.5 text-rose-600";
+        dueAmountEl.innerText = `₹${dueInfo.netDueToday}`;
+        dueTextEl.className = "text-xs font-bold text-rose-800 mt-1";
+        dueTextEl.innerHTML = `⚠️ Due Today: <span class="underline">${dueInfo.breakdownText}</span>`;
+      }
+
+      renderProfileCalendar(s, activeProfileCalendarYear);
+
+      // Ledger Table
+      const historyTbody = document.getElementById('profHistoryTable');
+      historyTbody.innerHTML = '';
+      if (!s.history || s.history.length === 0) {
+        historyTbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-400">No payment records yet.</td></tr>`;
+      } else {
+        s.history.forEach(h => {
+          const isExempt = h.type === "Exemption";
+          const row = document.createElement('tr');
+          row.className = isExempt ? "bg-violet-50/50 hover:bg-violet-50" : "hover:bg-slate-50";
+          row.innerHTML = `
+            <td class="py-2 px-3 text-slate-600 font-medium">${h.date}</td>
+            <td class="py-2 px-3 font-mono text-slate-700 font-semibold">${h.recId}</td>
+            <td class="py-2 px-3 font-bold ${isExempt ? 'text-violet-700' : 'text-emerald-700'}">${isExempt ? 'WAIVED' : '₹' + h.amount}</td>
+            <td class="py-2 px-3 text-slate-600">${h.mode}</td>
+            <td class="py-2 px-3 text-slate-500">${h.note || '-'}</td>
+          `;
+          historyTbody.appendChild(row);
+        });
+      }
+
+      openModal('profileModal');
+      lucide.createIcons();
+    }
+
+    function renderProfileCalendar(student, year) {
+      const grid = document.getElementById('profCalendarGrid');
+      grid.innerHTML = '';
+
+      for (let m = 0; m < 12; m++) {
+        const info = getMonthStatus(student, m, year);
+        const card = document.createElement('div');
+        
+        if (info.status === 'PAID') {
+          card.className = "bg-emerald-500 text-white rounded-xl p-2.5 text-center shadow-sm cursor-pointer hover:bg-emerald-600 border border-emerald-600 transition";
+          card.innerHTML = `
+            <p class="text-[10px] font-bold uppercase tracking-wider">${SHORT_MONTHS[m]}</p>
+            <div class="flex items-center justify-center gap-0.5 mt-1 text-[11px] font-extrabold">
+              <i data-lucide="check-circle" class="w-3 h-3 text-amber-200"></i> Paid
+            </div>
+          `;
+        } else if (info.status === 'PAID_ADVANCE') {
+          card.className = "bg-cyan-500 text-white rounded-xl p-2.5 text-center shadow-sm cursor-pointer hover:bg-cyan-600 border border-cyan-600 transition";
+          card.innerHTML = `
+            <p class="text-[10px] font-bold uppercase tracking-wider">${SHORT_MONTHS[m]}</p>
+            <div class="flex items-center justify-center gap-0.5 mt-1 text-[10px] font-extrabold">
+              <i data-lucide="sparkles" class="w-3 h-3 text-amber-200"></i> Adv Paid
+            </div>
+          `;
+        } else if (info.status === 'EXEMPT') {
+          card.className = "bg-violet-600 text-white rounded-xl p-2.5 text-center shadow-sm cursor-pointer hover:bg-violet-700 border border-violet-700 transition";
+          card.innerHTML = `
+            <p class="text-[10px] font-bold uppercase tracking-wider">${SHORT_MONTHS[m]}</p>
+            <div class="flex items-center justify-center gap-0.5 mt-1 text-[11px] font-extrabold">
+              <i data-lucide="shield-check" class="w-3 h-3 text-amber-300"></i> Exempt
+            </div>
+          `;
+        } else if (info.status === 'DUE') {
+          card.className = "bg-rose-50 text-rose-700 rounded-xl p-2.5 text-center border-2 border-rose-300 shadow-sm cursor-pointer hover:bg-rose-100 transition animate-pulse";
+          card.innerHTML = `
+            <p class="text-[10px] font-bold uppercase tracking-wider text-rose-900">${SHORT_MONTHS[m]}</p>
+            <div class="flex items-center justify-center gap-0.5 mt-1 text-[11px] font-black text-rose-600">
+              <i data-lucide="alert-circle" class="w-3 h-3 text-rose-500"></i> Pay Due
+            </div>
+          `;
+        } else if (info.status === 'UPCOMING') {
+          card.className = "bg-slate-100 text-slate-600 rounded-xl p-2.5 text-center border border-slate-200 shadow-sm cursor-pointer hover:bg-slate-200 transition";
+          card.innerHTML = `
+            <p class="text-[10px] font-bold uppercase tracking-wider text-slate-700">${SHORT_MONTHS[m]}</p>
+            <div class="flex items-center justify-center gap-0.5 mt-1 text-[10px] font-medium text-slate-500">
+              <i data-lucide="clock" class="w-2.5 h-2.5"></i> ${info.label}
+            </div>
+          `;
+        } else {
+          card.className = "bg-slate-50 border border-dashed border-slate-200 text-slate-400 rounded-xl p-2.5 text-center opacity-50";
+          card.innerHTML = `
+            <p class="text-[10px] font-semibold uppercase">${SHORT_MONTHS[m]}</p>
+            <span class="text-[9px] block mt-1">Pre-admission</span>
+          `;
+        }
+
+        // Attach click handler to pay or inspect
+        card.onclick = () => handleCalendarTileClick(student.id, m, year);
+        grid.appendChild(card);
+      }
+      lucide.createIcons();
+    }
+
+    function openPaymentFromProfile() {
+      if (selectedStudentIdForProfile) openGeneralPaymentModal(selectedStudentIdForProfile);
+    }
+    function sendWhatsAppFromProfile() {
+      if (selectedStudentIdForProfile) sendWhatsAppReminder(selectedStudentIdForProfile);
+    }
+    function deleteStudentFromProfile() {
+      if (selectedStudentIdForProfile) {
+        if (confirm('Permanently remove this student and all records?')) {
+          students = students.filter(s => s.id !== selectedStudentIdForProfile);
+          saveToStorage();
+          closeModal('profileModal');
+        }
+      }
+    }
+
+    // ==================== GENERAL CUSTOM PAYMENT MODAL ====================
+    function openGeneralPaymentModal(id) {
+      const s = students.find(item => item.id === id);
+      if (!s) return;
+      activePaymentStudent = s;
+
+      const dueInfo = getStudentCalculatedDue(s);
+
+      document.getElementById('payStudentId').value = s.id;
+      document.getElementById('payStudentDetails').innerText = `${s.name} (Roll: ${s.roll} • ${s.class})`;
+      document.getElementById('payStudentFeeRate').innerText = `Cycle: ${s.dueDay}th • ₹${s.monthlyFee}`;
+      document.getElementById('payStudentDueBadge').innerText = `Due Today: ₹${dueInfo.netDueToday}`;
+      document.getElementById('payStudentAdvBadge').innerText = `Advance: ₹${dueInfo.advanceInWallet}`;
+      document.getElementById('payCustomDate').value = new Date().toISOString().slice(0, 10);
+      
+      document.getElementById('payAmount').value = dueInfo.netDueToday > 0 ? dueInfo.netDueToday : s.monthlyFee;
+      document.getElementById('payNote').value = "";
+      
+      calculateGeneralPaymentPreview();
+      openModal('paymentModal');
+    }
+
+    function calculateGeneralPaymentPreview() {
+      if (!activePaymentStudent) return;
+      const s = activePaymentStudent;
+      const dueInfo = getStudentCalculatedDue(s);
+      const enteredAmount = parseFloat(document.getElementById('payAmount').value) || 0;
+      
+      let remainingDue = 0;
+      let advanceAdded = 0;
+      let totalNewAdvance = dueInfo.advanceInWallet;
+
+      if (enteredAmount <= dueInfo.netDueToday) {
+        remainingDue = dueInfo.netDueToday - enteredAmount;
+        advanceAdded = 0;
+      } else {
+        remainingDue = 0;
+        advanceAdded = enteredAmount - dueInfo.netDueToday;
+        totalNewAdvance += advanceAdded;
+      }
+
+      document.getElementById('genRemainingDue').innerText = `₹${remainingDue}`;
+      document.getElementById('genAdvanceCredit').innerText = `+₹${advanceAdded} (Total: ₹${totalNewAdvance})`;
+
+      const textEl = document.getElementById('genBreakdownText');
+      if (remainingDue === 0 && advanceAdded > 0) {
+        textEl.innerHTML = `🌟 Matured due cleared! <span class="font-bold text-cyan-800">₹${totalNewAdvance} held in Advance Wallet</span> to offset future months automatically.`;
+      } else if (remainingDue === 0 && advanceAdded === 0) {
+        textEl.innerText = "Exact amount to clear all dues matured up to today.";
+      } else {
+        textEl.innerText = `Partial payment. Student will still owe ₹${remainingDue} today.`;
+      }
+    }
+
+    function processGeneralPayment(e) {
+      e.preventDefault();
+      if (!activePaymentStudent) return;
+      const s = activePaymentStudent;
+
+      const amount = parseFloat(document.getElementById('payAmount').value) || 0;
+      const mode = document.getElementById('payMode').value;
+      const payDate = document.getElementById('payCustomDate').value || new Date().toISOString().slice(0, 10);
+      let note = document.getElementById('payNote').value.trim();
+
+      if (amount <= 0) {
+        alert('Please enter a valid positive payment amount.');
+        return;
+      }
+
+      if (!s.paidMonths) s.paidMonths = [];
+      if (!s.advanceBalance) s.advanceBalance = 0;
+
+      const dueInfo = getStudentCalculatedDue(s);
+
+      // Auto-clear oldest matured due months
+      if (amount >= dueInfo.netDueToday) {
+        // Mark all currently matured unpaid months as paid
+        dueInfo.dueKeys.forEach(k => {
+          if (!s.paidMonths.includes(k)) s.paidMonths.push(k);
+        });
+        const surplus = amount - dueInfo.netDueToday;
+        s.advanceBalance += surplus;
+      } else {
+        s.advanceBalance += amount;
+      }
+
+      if (!note) {
+        note = `Payment of ₹${amount}`;
+      }
+
+      const receipt = {
+        recId: 'REC-' + Math.floor(100000 + Math.random() * 900000),
+        amount,
+        mode,
+        note,
+        date: payDate,
+        type: 'Payment'
+      };
+      if (!s.history) s.history = [];
+      s.history.unshift(receipt);
+
+      saveToStorage();
+      closeModal('paymentModal');
+
+      const afterDue = getStudentCalculatedDue(s);
+      document.getElementById('recDate').innerText = payDate;
+      document.getElementById('recNo').innerText = receipt.recId;
+      document.getElementById('recName').innerText = s.name;
+      document.getElementById('recRollClass').innerText = `${s.roll} (${s.class})`;
+      document.getElementById('recMode').innerText = mode;
+      document.getElementById('recNote').innerText = note;
+      document.getElementById('recAmount').innerText = '₹' + amount;
+      document.getElementById('recBalanceDue').innerText = '₹' + afterDue.netDueToday;
+      document.getElementById('recAdvanceBalance').innerText = '₹' + s.advanceBalance;
+      document.getElementById('recDueBreakdown').innerText = afterDue.breakdownText;
+
+      if (selectedStudentIdForProfile === s.id) {
+        viewStudentProfile(s.id);
+      }
+
+      if (confirm(`Payment of ₹${amount} recorded! Due: ₹${afterDue.netDueToday} • Advance: ₹${s.advanceBalance}. Print receipt now?`)) {
+        window.print();
+      }
+    }
+
+    // ==================== BATCH MANAGEMENT ====================
+    function openBatchManagerModal() {
+      renderBatchList();
+      openModal('batchManagerModal');
+    }
+
+    function renderBatchList() {
+      const container = document.getElementById('batchListContainer');
+      document.getElementById('batchCountBadge').innerText = batches.length;
+      container.innerHTML = '';
+
+      batches.forEach(b => {
+        const studentCount = students.filter(s => s.class === b).length;
+        const item = document.createElement('div');
+        item.className = "flex items-center justify-between bg-white px-3 py-2 rounded-lg border border-slate-200 text-xs";
+        item.innerHTML = `
+          <div>
+            <span class="font-bold text-slate-800">${b}</span>
+            <span class="ml-2 text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">${studentCount} students</span>
+          </div>
+          <button onclick="deleteBatch('${b.replace(/'/g, "\\'")}')" class="text-rose-500 hover:text-rose-700 p-1 rounded hover:bg-rose-50 transition" title="Delete Batch">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        `;
+        container.appendChild(item);
+      });
+      lucide.createIcons();
+    }
+
+    function addNewBatch() {
+      const input = document.getElementById('newBatchInput');
+      const val = input.value.trim();
+      if (!val) {
+        alert('Please enter a valid batch name.');
+        return;
+      }
+      if (batches.some(b => b.toLowerCase() === val.toLowerCase())) {
+        alert('A batch with this name already exists.');
+        return;
+      }
+      batches.push(val);
+      input.value = '';
+      saveToStorage();
+      populateBatchDropdowns();
+      renderBatchList();
+    }
+
+    function deleteBatch(batchName) {
+      const count = students.filter(s => s.class === batchName).length;
+      if (count > 0) {
+        alert(`Cannot delete batch "${batchName}" because it currently has ${count} enrolled student(s). Reassign students first.`);
+        return;
+      }
+      if (confirm(`Are you sure you want to delete batch "${batchName}"?`)) {
+        batches = batches.filter(b => b !== batchName);
+        saveToStorage();
+        populateBatchDropdowns();
+        renderBatchList();
+      }
+    }
+
+    function populateBatchDropdowns() {
+      const filterSelect = document.getElementById('filterClass');
+      const addSelect = document.getElementById('mClass');
+      const currentFilter = filterSelect.value || "ALL";
+
+      filterSelect.innerHTML = `<option value="ALL">All Batches (${batches.length})</option>`;
+      addSelect.innerHTML = '';
+
+      batches.forEach(b => {
+        filterSelect.innerHTML += `<option value="${b}">${b}</option>`;
+        addSelect.innerHTML += `<option value="${b}">${b}</option>`;
+      });
+
+      if (batches.includes(currentFilter)) {
+        filterSelect.value = currentFilter;
+      } else {
+        filterSelect.value = "ALL";
+      }
+    }
+
+    // ==================== NEW ADMISSION ====================
+    function openAddStudentModal() {
+      document.getElementById('studentForm').reset();
+      populateBatchDropdowns();
+      
+      const todayStr = new Date().toISOString().slice(0, 10);
+      document.getElementById('mAdmissionDate').value = todayStr;
+      document.getElementById('mDueDay').value = new Date().getDate();
+
+      openModal('addStudentModal');
+    }
+
+    function syncDueDayFromAdmission() {
+      const dateVal = document.getElementById('mAdmissionDate').value;
+      if (dateVal) {
+        const d = new Date(dateVal);
+        document.getElementById('mDueDay').value = d.getDate();
+      }
+    }
+
+    function saveNewStudent(e) {
+      e.preventDefault();
+      const roll = document.getElementById('mRoll').value.trim();
+      const name = document.getElementById('mName').value.trim();
+      const cls = document.getElementById('mClass').value;
+      const monthlyFee = parseFloat(document.getElementById('mMonthlyFee').value) || 0;
+      const phone = document.getElementById('mPhone').value.trim().replace(/\D/g, '');
+      const admissionDate = document.getElementById('mAdmissionDate').value || new Date().toISOString().slice(0, 10);
+      const dueDay = parseInt(document.getElementById('mDueDay').value, 10) || new Date(admissionDate).getDate();
+      const initialAdvance = parseFloat(document.getElementById('mInitialAdvance').value) || 0;
+
+      if (students.some(s => s.roll.toLowerCase() === roll.toLowerCase())) {
+        alert('A student with this Roll Number is already registered!');
+        return;
+      }
+
+      const newStudent = {
+        id: 'S' + Date.now(),
+        roll,
+        name,
+        class: cls,
+        monthlyFee,
+        phone,
+        admissionDate,
+        dueDay,
+        advanceBalance: initialAdvance,
+        paidMonths: [],
+        exemptedMonths: [],
+        history: []
+      };
+
+      students.unshift(newStudent);
+      saveToStorage();
+      closeModal('addStudentModal');
+      viewStudentProfile(newStudent.id);
+    }
+
+    // ==================== WHATSAPP NOTICE ====================
+    function sendWhatsAppReminder(id) {
+      const s = students.find(item => item.id === id);
+      if (!s) return;
+
+      if (!s.phone || s.phone.length < 10) {
+        alert('Please update guardian WhatsApp number in student profile.');
+        return;
+      }
+
+      const cleanPhone = s.phone.length === 10 ? '91' + s.phone : s.phone;
+      const dueInfo = getStudentCalculatedDue(s);
+      const todayFormatted = new Date().toLocaleDateString('en-IN');
+
+      let dueLine = `*Outstanding Due Today (${todayFormatted}): ₹${dueInfo.netDueToday}*`;
+      if (!dueInfo.isCleared) {
+        dueLine += `\n*Breakdown: ${dueInfo.breakdownText}*`;
+      }
+      if (s.advanceBalance > 0) {
+        dueLine += `\n*Advance Wallet Balance: ₹${s.advanceBalance}*`;
+      }
+
+      const message = `Dear Guardian, this is an official fee reminder for *${s.name}* (Roll: ${s.roll}, Batch: ${s.class}).\n\n${dueLine}\nMonthly Fee: ₹${s.monthlyFee} (Billed every ${s.dueDay || 1}th of month).\n\nPlease clear the balance at your earliest convenience. Thank you!`;
+      const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+      window.open(url, '_blank');
+    }
+
+    // ==================== QR SCANNER ====================
+    function openQRScanner() {
+      openModal('qrScannerModal');
+      html5QrScanner = new Html5Qrcode("qr-reader");
+      html5QrScanner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 220, height: 220 } },
+        (decodedText) => {
+          let clean = decodedText.startsWith("STU:") ? decodedText.replace("STU:", "") : decodedText;
+          closeQRScanner();
+          const found = students.find(s => s.roll.toLowerCase() === clean.toLowerCase());
+          if (found) {
+            viewStudentProfile(found.id);
+          } else {
+            document.getElementById('searchInput').value = clean;
+            renderStudents();
+          }
+        },
+        () => {}
+      ).catch(() => {
+        alert("Camera permission denied or camera not found.");
+        closeQRScanner();
+      });
+    }
+
+    function closeQRScanner() {
+      if (html5QrScanner) {
+        html5QrScanner.stop().then(() => {
+          html5QrScanner.clear();
+          closeModal('qrScannerModal');
+        }).catch(() => closeModal('qrScannerModal'));
+      } else {
+        closeModal('qrScannerModal');
+      }
+    }
+
+    // ==================== DASHBOARD & REVENUE FILTERS ====================
+    function updateCollectionMetrics() {
+      const period = document.getElementById('collectionPeriodFilter').value;
+      const labelEl = document.getElementById('kpiCollectionLabel');
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+
+      let filteredTotal = 0;
+      let txnCount = 0;
+
+      const allReceipts = [];
+      students.forEach(s => {
+        (s.history || []).forEach(h => {
+          if (h.type !== "Exemption") allReceipts.push(h);
+        });
+      });
+
+      allReceipts.forEach(h => {
+        const txDate = new Date(h.date);
+        const txYear = txDate.getFullYear();
+        const txMonth = txDate.getMonth();
+
+        let matches = false;
+        if (period === 'ALL') {
+          matches = true;
+        } else if (period === 'YEAR') {
+          matches = (txYear === currentYear);
+        } else if (period === 'MONTH') {
+          matches = (txYear === currentYear && txMonth === currentMonth);
+        }
+
+        if (matches) {
+          filteredTotal += (h.amount || 0);
+          txnCount++;
+        }
+      });
+
+      if (period === 'ALL') labelEl.innerText = "All-Time Revenue";
+      else if (period === 'YEAR') labelEl.innerText = `Year ${currentYear} Total`;
+      else if (period === 'MONTH') labelEl.innerText = `${SHORT_MONTHS[currentMonth]} ${currentYear} Total`;
+
+      document.getElementById('kpiFilteredCollection').innerText = '₹' + filteredTotal.toLocaleString('en-IN');
+      document.getElementById('kpiTxnCount').innerText = `${txnCount} Receipts`;
+    }
+
+    function updateMetrics() {
+      const totalStudents = students.length;
+      let totalDueToday = 0;
+      let dueStudentsCount = 0;
+      let totalAdvanceHeld = 0;
+      let advanceStudentsCount = 0;
+
+      students.forEach(s => {
+        const dueInfo = getStudentCalculatedDue(s);
+        totalDueToday += dueInfo.netDueToday;
+        if (dueInfo.netDueToday > 0) dueStudentsCount++;
+        
+        const adv = s.advanceBalance || 0;
+        totalAdvanceHeld += adv;
+        if (adv > 0) advanceStudentsCount++;
+      });
+
+      document.getElementById('kpiTotalStudents').innerText = totalStudents;
+      document.getElementById('kpiActiveBatchesCount').innerText = `${batches.length} Active Batches`;
+      document.getElementById('kpiTotalDue').innerText = '₹' + totalDueToday.toLocaleString('en-IN');
+      document.getElementById('kpiDueStudents').innerText = dueStudentsCount;
+      document.getElementById('kpiTotalAdvance').innerText = '₹' + totalAdvanceHeld.toLocaleString('en-IN');
+      document.getElementById('kpiAdvanceStudents').innerText = advanceStudentsCount;
+
+      updateCollectionMetrics();
+    }
+
+    // ==================== TABLE RENDERING ====================
+    function renderStudents() {
+      const search = document.getElementById('searchInput').value.toLowerCase().trim();
+      const filterClass = document.getElementById('filterClass').value;
+      const filterStatus = document.getElementById('filterStatus').value;
+      const tbody = document.getElementById('studentTableBody');
+      tbody.innerHTML = '';
+
+      const filtered = students.filter(s => {
+        const matchesSearch = s.name.toLowerCase().includes(search) || 
+                              s.roll.toLowerCase().includes(search) || 
+                              (s.phone && s.phone.includes(search));
+        const matchesClass = filterClass === 'ALL' || s.class === filterClass;
+        
+        const dueInfo = getStudentCalculatedDue(s);
+        const hasAdvance = (s.advanceBalance || 0) > 0;
+
+        let matchesStatus = true;
+        if (filterStatus === 'DUE') matchesStatus = (dueInfo.netDueToday > 0);
+        else if (filterStatus === 'ADVANCE') matchesStatus = hasAdvance;
+        else if (filterStatus === 'PAID') matchesStatus = (dueInfo.netDueToday === 0);
+
+        return matchesSearch && matchesClass && matchesStatus;
+      });
+
+      if (filtered.length === 0) {
+        document.getElementById('noDataMessage').classList.remove('hidden');
+      } else {
+        document.getElementById('noDataMessage').classList.add('hidden');
+      }
+
+      filtered.forEach(s => {
+        const dueInfo = getStudentCalculatedDue(s);
+        const hasAdvance = (s.advanceBalance || 0) > 0;
+
+        let statusBadgesHtml = '';
+        const paidCount = (s.paidMonths || []).length;
+        const exemptCount = (s.exemptedMonths || []).length;
+
+        if (paidCount > 0) {
+          statusBadgesHtml += `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1.5 py-0.5 rounded">${paidCount} Paid</span> `;
+        }
+        if (exemptCount > 0) {
+          statusBadgesHtml += `<span class="bg-violet-100 text-violet-800 text-[10px] font-bold px-1.5 py-0.5 rounded">${exemptCount} Exempt</span> `;
+        }
+        if (dueInfo.netDueToday > 0) {
+          statusBadgesHtml += `<span class="bg-rose-100 text-rose-800 text-[10px] font-bold px-1.5 py-0.5 rounded">Due Today</span>`;
+        } else if (hasAdvance) {
+          statusBadgesHtml += `<span class="bg-cyan-100 text-cyan-800 text-[10px] font-bold px-1.5 py-0.5 rounded">Adv: ₹${s.advanceBalance}</span>`;
+        } else {
+          statusBadgesHtml += `<span class="bg-slate-100 text-slate-600 text-[10px] font-semibold px-1.5 py-0.5 rounded">Clear</span>`;
+        }
+
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-indigo-50/40 transition border-b border-slate-100";
+        tr.innerHTML = `
+          <td class="py-3 px-4 font-mono font-bold text-indigo-900">#${s.roll}</td>
+          <td class="py-3 px-4">
+            <button onclick="viewStudentProfile('${s.id}')" class="font-bold text-slate-900 hover:text-indigo-600 text-left transition flex items-center gap-1.5">
+              ${s.name} <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400"></i>
+            </button>
+            <div class="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+              <i data-lucide="phone" class="w-3 h-3 text-slate-400"></i> ${s.phone || 'No phone'}
+            </div>
+          </td>
+          <td class="py-3 px-4">
+            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-800 border border-indigo-100">${s.class}</span>
+          </td>
+          <td class="py-3 px-4">
+            <div class="font-bold text-slate-800">₹${s.monthlyFee}</div>
+            <div class="text-[11px] text-indigo-600 font-medium">Every ${s.dueDay || 1}th</div>
+          </td>
+          <td class="py-3 px-4">
+            <div class="space-y-0.5">
+              <div class="flex items-center gap-2">
+                <span class="font-black text-sm ${dueInfo.netDueToday > 0 ? 'text-rose-600' : 'text-emerald-600'}">
+                  ₹${dueInfo.netDueToday}
+                </span>
+                ${hasAdvance ? `<span class="bg-cyan-100 text-cyan-900 text-[10px] font-black px-1.5 py-0.5 rounded-full">Adv: ₹${s.advanceBalance}</span>` : ''}
+              </div>
+              <div class="text-[11px] font-medium ${dueInfo.netDueToday > 0 ? 'text-amber-700' : 'text-slate-400'}">
+                ${dueInfo.breakdownText}
+              </div>
+            </div>
+          </td>
+          <td class="py-3 px-4">
+            <div class="flex items-center gap-1 flex-wrap">${statusBadgesHtml}</div>
+          </td>
+          <td class="py-3 px-4 text-center">
+            <div class="flex items-center justify-center gap-1.5">
+              <button onclick="viewStudentProfile('${s.id}')" title="Student Profile & Calendar" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 p-1.5 rounded-lg transition">
+                <i data-lucide="user" class="w-4 h-4"></i>
+              </button>
+              <button onclick="openGeneralPaymentModal('${s.id}')" title="Pay / Add Advance" class="bg-emerald-600 hover:bg-emerald-700 text-white p-1.5 rounded-lg transition shadow-sm">
+                <i data-lucide="credit-card" class="w-4 h-4"></i>
+              </button>
+              <button onclick="sendWhatsAppReminder('${s.id}')" title="WhatsApp Due Alert" class="bg-green-500 hover:bg-green-600 text-white p-1.5 rounded-lg transition shadow-sm">
+                <i data-lucide="message-circle" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      lucide.createIcons();
+    }
+
+    // ==================== EXPORTS (EXCEL & PDF) ====================
+    function exportToExcel() {
+      const wb = XLSX.utils.book_new();
+
+      const studentsData = students.map(s => {
+        const dueInfo = getStudentCalculatedDue(s);
+        const totalPaid = (s.history || []).filter(h => h.type !== "Exemption").reduce((sum, h) => sum + (h.amount || 0), 0);
+        return {
+          "Roll Number": s.roll,
+          "Full Name": s.name,
+          "Batch / Class": s.class,
+          "Admission Date": s.admissionDate || "",
+          "Monthly Billing Cycle": `Every ${s.dueDay || 1}th`,
+          "Monthly Fee (₹)": s.monthlyFee,
+          "Matured Due Today (₹)": dueInfo.netDueToday,
+          "Advance Balance in Wallet (₹)": s.advanceBalance || 0,
+          "Status Breakdown": dueInfo.breakdownText,
+          "Paid Months": (s.paidMonths || []).join(", "),
+          "Exempted Months": (s.exemptedMonths || []).join(", "),
+          "Lifetime Total Paid (₹)": totalPaid,
+          "Guardian Mobile": s.phone || ""
+        };
+      });
+      const wsStudents = XLSX.utils.json_to_sheet(studentsData);
+      XLSX.utils.book_append_sheet(wb, wsStudents, "Students & Advance Summary");
+
+      const ledgerData = [];
+      students.forEach(s => {
+        (s.history || []).forEach(h => {
+          ledgerData.push({
+            "Receipt/Ref ID": h.recId,
+            "Date": h.date,
+            "Roll No": s.roll,
+            "Student Name": s.name,
+            "Batch": s.class,
+            "Amount Paid (₹)": h.amount,
+            "Type": h.type || "Payment",
+            "Mode": h.mode,
+            "Remarks": h.note || ""
+          });
+        });
+      });
+      const wsLedger = XLSX.utils.json_to_sheet(ledgerData);
+      XLSX.utils.book_append_sheet(wb, wsLedger, "Payment Ledger");
+
+      XLSX.writeFile(wb, `Tuition_Fee_Master_Report_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    }
+
+    function exportToPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
+
+      const totalStudents = students.length;
+      let totalDueToday = 0;
+      let totalAdvance = 0;
+      students.forEach(s => { 
+        totalDueToday += getStudentCalculatedDue(s).netDueToday; 
+        totalAdvance += (s.advanceBalance || 0);
+      });
+
+      doc.setFontSize(15);
+      doc.setTextColor(30, 41, 59);
+      doc.text("TUITION FEE & CYCLE DUES REPORT", 40, 40);
+      doc.setFontSize(9);
+      doc.setTextColor(100, 116, 139);
+      doc.text(`Official Academic Report • Generated: ${new Date().toLocaleDateString('en-IN')}`, 40, 54);
+
+      doc.setFillColor(241, 245, 249);
+      doc.roundedRect(40, 68, 515, 38, 6, 6, "F");
+
+      doc.setFontSize(9);
+      doc.setTextColor(71, 85, 105);
+      doc.text(`Students: ${totalStudents}`, 55, 91);
+      doc.text(`Dues Today: Rs. ${totalDueToday.toLocaleString('en-IN')}`, 160, 91);
+      doc.text(`Total Advance Held: Rs. ${totalAdvance.toLocaleString('en-IN')}`, 320, 91);
+
+      const tableRows = students.map(s => {
+        const dueInfo = getStudentCalculatedDue(s);
+        return [
+          s.roll,
+          s.name,
+          s.class,
+          `Rs.${s.monthlyFee} (${s.dueDay || 1}th)`,
+          `Due: Rs.${dueInfo.netDueToday}\nAdv: Rs.${s.advanceBalance || 0}`,
+          dueInfo.breakdownText,
+          s.phone || "-"
+        ];
+      });
+
+      doc.autoTable({
+        startY: 120,
+        head: [['Roll', 'Student Name', 'Batch', 'Fee (Cycle)', 'Balance & Advance', 'Status Summary', 'Contact']],
+        body: tableRows,
+        theme: 'striped',
+        headStyles: { fillColor: [67, 56, 202], textColor: 255, fontSize: 8, fontStyle: 'bold' },
+        bodyStyles: { fontSize: 8, textColor: [30, 41, 59] },
+        columnStyles: {
+          0: { cellWidth: 35 },
+          1: { cellWidth: 95, fontStyle: 'bold' },
+          2: { cellWidth: 75 },
+          3: { cellWidth: 75 },
+          4: { cellWidth: 95 },
+          5: { cellWidth: 100 },
+          6: { cellWidth: 40 }
+        },
+        margin: { left: 40, right: 40 }
+      });
+
+      doc.save(`Tuition_Fee_Report_${new Date().toISOString().slice(0, 10)}.pdf`);
+    }
+
+    // Startup Initialization
+    window.addEventListener('DOMContentLoaded', () => {
+      populateBatchDropdowns();
+      updateMetrics();
+      renderStudents();
+    });
+  </script>
+</body>
+</html>
