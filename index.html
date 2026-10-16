@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tuition Fee Management System (Cloud Synced)</title>
+  <title>Tuition Fee Management System</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
@@ -29,171 +29,218 @@
 </head>
 <body class="bg-slate-50 text-slate-900 font-sans min-h-screen">
 
-  <!-- Header -->
-  <header class="bg-indigo-700 text-white shadow-md sticky top-0 z-30">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-wrap justify-between items-center gap-3">
-      <div class="flex items-center space-x-3">
-        <div class="bg-indigo-600 p-2 rounded-xl text-amber-300 shadow-inner">
-          <i data-lucide="graduation-cap" class="w-6 h-6"></i>
+  <!-- ==================== LOGIN SCREEN OVERLAY ==================== -->
+  <div id="loginScreen" class="fixed inset-0 bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-950 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden border border-slate-100">
+      <div class="bg-indigo-700 p-6 text-center text-white">
+        <div class="inline-flex p-3 bg-indigo-600 rounded-2xl text-amber-300 shadow-inner mb-3">
+          <i data-lucide="graduation-cap" class="w-8 h-8"></i>
         </div>
+        <h2 class="text-xl font-bold tracking-tight">Tuition Fee Portal</h2>
+        <p class="text-xs text-indigo-200 mt-1">Authorized Staff & Admin Login</p>
+      </div>
+
+      <form onsubmit="handleLogin(event)" class="p-6 space-y-4 text-sm">
+        <div id="loginErrorMsg" class="hidden p-2.5 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-lg text-center">
+          Invalid username or password!
+        </div>
+
         <div>
-          <div class="flex items-center gap-2">
-            <h1 class="text-lg font-bold tracking-tight">Tuition Fee Portal</h1>
-            <!-- Cloud Connection Status Indicator -->
-            <button onclick="openCloudConfigModal()" id="cloudStatusBadge" class="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-indigo-950 shadow-sm transition hover:opacity-90">
-              <span class="w-2 h-2 rounded-full bg-amber-600 animate-ping"></span>
-              <span id="cloudStatusText">Setup Cloud</span>
-            </button>
+          <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Username</label>
+          <div class="relative">
+            <i data-lucide="user" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
+            <input type="text" id="loginUsername" required placeholder="miraj / moyna / abida" class="w-full pl-9 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-800">
           </div>
-          <p class="text-xs text-indigo-200">Realtime Cloud Sync Across All Devices</p>
         </div>
-      </div>
-      
-      <!-- Action Toolbar -->
-      <div class="flex items-center gap-2 flex-wrap">
-        <button onclick="openBatchManagerModal()" class="bg-indigo-800 hover:bg-indigo-900 text-indigo-100 hover:text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition border border-indigo-600">
-          <i data-lucide="layers" class="w-4 h-4 text-amber-300"></i> Batches
-        </button>
-        <button onclick="openQRScanner()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
-          <i data-lucide="scan" class="w-4 h-4 text-amber-300"></i> Scan QR
-        </button>
-        <button onclick="openAddStudentModal()" class="bg-amber-400 hover:bg-amber-300 text-indigo-950 px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 transition shadow">
-          <i data-lucide="user-plus" class="w-4 h-4"></i> New Admission
+
+        <div>
+          <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Password</label>
+          <div class="relative">
+            <i data-lucide="lock" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
+            <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full pl-9 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-800">
+          </div>
+        </div>
+
+        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg text-sm transition shadow flex items-center justify-center gap-1.5 mt-2">
+          <i data-lucide="log-in" class="w-4 h-4"></i> Sign In to Portal
         </button>
 
-        <!-- Export Dropdown -->
-        <div class="relative inline-block text-left">
-          <button onclick="toggleExportMenu()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 transition shadow">
-            <i data-lucide="download" class="w-4 h-4"></i> Export <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
-          </button>
-          <div id="exportDropdownMenu" class="hidden absolute right-0 mt-2 w-48 rounded-xl shadow-xl bg-white border border-slate-200 z-50 py-1 text-xs">
-            <button onclick="exportToExcel(); toggleExportMenu();" class="w-full text-left px-4 py-2.5 text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium">
-              <i data-lucide="sheet" class="w-4 h-4 text-emerald-600"></i> Export to Excel (.xlsx)
-            </button>
-            <button onclick="exportToPDF(); toggleExportMenu();" class="w-full text-left px-4 py-2.5 text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium border-t border-slate-100">
-              <i data-lucide="file-text" class="w-4 h-4 text-rose-600"></i> Export to PDF (.pdf)
-            </button>
-          </div>
+        <div class="pt-3 border-t border-slate-100 text-center">
+          <p class="text-[11px] text-slate-400">Authorized Accounts: Miraj, Moyna, Abida</p>
         </div>
-      </div>
+      </form>
     </div>
-  </header>
-
-  <!-- Cloud Alert Banner (Shows only if database keys are missing) -->
-  <div id="cloudSetupNotice" class="hidden bg-amber-500 text-indigo-950 px-4 py-2.5 text-xs font-bold text-center border-b border-amber-600 flex items-center justify-center gap-2 shadow-sm">
-    <i data-lucide="cloud-off" class="w-4 h-4"></i>
-    <span>Running in local mode. Click here to connect your Supabase Cloud Database to sync across all your phones & PCs.</span>
-    <button onclick="openCloudConfigModal()" class="bg-indigo-950 text-white px-2.5 py-1 rounded-md text-[11px] ml-2 font-semibold">Connect Cloud</button>
   </div>
 
-  <!-- Main Container -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
-
-    <!-- KPI Metric Cards -->
-    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-        <div>
-          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Enrolled</p>
-          <h3 class="text-2xl font-bold text-slate-800 mt-1" id="kpiTotalStudents">0</h3>
-          <p class="text-[11px] text-indigo-600 mt-0.5 font-medium" id="kpiActiveBatchesCount">0 Active Batches</p>
-        </div>
-        <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl"><i data-lucide="users" class="w-5 h-5"></i></div>
-      </div>
-
-      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-        <div>
-          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Dues Matured Today</p>
-          <h3 class="text-2xl font-bold text-rose-600 mt-1" id="kpiTotalDue">₹0</h3>
-          <p class="text-[11px] text-rose-500 mt-0.5 font-medium"><span id="kpiDueStudents">0</span> students pending</p>
-        </div>
-        <div class="p-3 bg-rose-50 text-rose-600 rounded-xl"><i data-lucide="alert-triangle" class="w-5 h-5"></i></div>
-      </div>
-
-      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-        <div>
-          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Advance Held</p>
-          <h3 class="text-2xl font-bold text-cyan-600 mt-1" id="kpiTotalAdvance">₹0</h3>
-          <p class="text-[11px] text-cyan-700 mt-0.5 font-medium"><span id="kpiAdvanceStudents">0</span> in advance</p>
-        </div>
-        <div class="p-3 bg-cyan-50 text-cyan-600 rounded-xl"><i data-lucide="wallet-cards" class="w-5 h-5"></i></div>
-      </div>
-
-      <!-- Fees Collection Card with Date Filter -->
-      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
-        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
-          <div class="flex items-center gap-1.5">
-            <div class="p-1 bg-emerald-50 text-emerald-600 rounded"><i data-lucide="wallet" class="w-3.5 h-3.5"></i></div>
-            <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider">Collections</span>
+  <!-- ==================== MAIN APPLICATION ==================== -->
+  <div id="appContainer" class="hidden">
+    <!-- Header -->
+    <header class="bg-indigo-700 text-white shadow-md sticky top-0 z-30">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap justify-between items-center gap-3">
+        <div class="flex items-center space-x-3">
+          <div class="bg-indigo-600 p-2 rounded-xl text-amber-300 shadow-inner">
+            <i data-lucide="graduation-cap" class="w-6 h-6"></i>
           </div>
-          <select id="collectionPeriodFilter" onchange="updateCollectionMetrics()" class="text-[11px] border border-slate-200 rounded px-1.5 py-0.5 bg-slate-50 font-semibold text-slate-700 focus:outline-none">
-            <option value="ALL">All Time</option>
-            <option value="YEAR">Current Year</option>
-            <option value="MONTH" selected>This Month</option>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-lg font-bold tracking-tight">Tuition Fee Portal</h1>
+              <button onclick="openCloudConfigModal()" id="cloudStatusBadge" class="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-indigo-950 shadow-sm transition hover:opacity-90">
+                <span class="w-2 h-2 rounded-full bg-amber-600 animate-ping"></span>
+                <span id="cloudStatusText">Setup Cloud</span>
+              </button>
+            </div>
+            <!-- Current Active Collector Badge -->
+            <p class="text-xs text-indigo-200 flex items-center gap-1.5 mt-0.5">
+              <span>Collector Logged In:</span>
+              <span id="activeUserBadge" class="font-bold text-amber-300 bg-indigo-800 px-2 py-0.5 rounded text-[11px] shadow-sm">Admin</span>
+            </p>
+          </div>
+        </div>
+        
+        <!-- Action Toolbar -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <button onclick="openBatchManagerModal()" class="bg-indigo-800 hover:bg-indigo-900 text-indigo-100 hover:text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition border border-indigo-600">
+            <i data-lucide="layers" class="w-4 h-4 text-amber-300"></i> Batches
+          </button>
+          <button onclick="openQRScanner()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+            <i data-lucide="scan" class="w-4 h-4 text-amber-300"></i> Scan QR
+          </button>
+          <button onclick="openAddStudentModal()" class="bg-amber-400 hover:bg-amber-300 text-indigo-950 px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 transition shadow">
+            <i data-lucide="user-plus" class="w-4 h-4"></i> New Admission
+          </button>
+
+          <!-- Export Dropdown -->
+          <div class="relative inline-block text-left">
+            <button onclick="toggleExportMenu()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 transition shadow">
+              <i data-lucide="download" class="w-4 h-4"></i> Export <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+            </button>
+            <div id="exportDropdownMenu" class="hidden absolute right-0 mt-2 w-48 rounded-xl shadow-xl bg-white border border-slate-200 z-50 py-1 text-xs">
+              <button onclick="exportToExcel(); toggleExportMenu();" class="w-full text-left px-4 py-2.5 text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium">
+                <i data-lucide="sheet" class="w-4 h-4 text-emerald-600"></i> Export to Excel (.xlsx)
+              </button>
+              <button onclick="exportToPDF(); toggleExportMenu();" class="w-full text-left px-4 py-2.5 text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium border-t border-slate-100">
+                <i data-lucide="file-text" class="w-4 h-4 text-rose-600"></i> Export to PDF (.pdf)
+              </button>
+            </div>
+          </div>
+
+          <!-- Logout Button -->
+          <button onclick="handleLogout()" title="Sign Out" class="bg-rose-600 hover:bg-rose-700 text-white p-2 rounded-lg transition shadow flex items-center justify-center">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+
+      <!-- KPI Metric Cards -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Enrolled</p>
+            <h3 class="text-2xl font-bold text-slate-800 mt-1" id="kpiTotalStudents">0</h3>
+            <p class="text-[11px] text-indigo-600 mt-0.5 font-medium" id="kpiActiveBatchesCount">0 Active Batches</p>
+          </div>
+          <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl"><i data-lucide="users" class="w-5 h-5"></i></div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Dues Matured Today</p>
+            <h3 class="text-2xl font-bold text-rose-600 mt-1" id="kpiTotalDue">₹0</h3>
+            <p class="text-[11px] text-rose-500 mt-0.5 font-medium"><span id="kpiDueStudents">0</span> students pending</p>
+          </div>
+          <div class="p-3 bg-rose-50 text-rose-600 rounded-xl"><i data-lucide="alert-triangle" class="w-5 h-5"></i></div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div>
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Advance Held</p>
+            <h3 class="text-2xl font-bold text-cyan-600 mt-1" id="kpiTotalAdvance">₹0</h3>
+            <p class="text-[11px] text-cyan-700 mt-0.5 font-medium"><span id="kpiAdvanceStudents">0</span> in advance</p>
+          </div>
+          <div class="p-3 bg-cyan-50 text-cyan-600 rounded-xl"><i data-lucide="wallet-cards" class="w-5 h-5"></i></div>
+        </div>
+
+        <!-- Fees Collection Card with Date Filter -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
+            <div class="flex items-center gap-1.5">
+              <div class="p-1 bg-emerald-50 text-emerald-600 rounded"><i data-lucide="wallet" class="w-3.5 h-3.5"></i></div>
+              <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider">Collections</span>
+            </div>
+            <select id="collectionPeriodFilter" onchange="updateCollectionMetrics()" class="text-[11px] border border-slate-200 rounded px-1.5 py-0.5 bg-slate-50 font-semibold text-slate-700 focus:outline-none">
+              <option value="ALL">All Time</option>
+              <option value="YEAR">Current Year</option>
+              <option value="MONTH" selected>This Month</option>
+            </select>
+          </div>
+          <div class="pt-2 flex items-baseline justify-between">
+            <div>
+              <h3 class="text-xl font-black text-emerald-600 tracking-tight" id="kpiFilteredCollection">₹0</h3>
+              <p class="text-[11px] text-slate-400 mt-0.5" id="kpiCollectionLabel">Filtered Collection</p>
+            </div>
+            <span class="text-[11px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full" id="kpiTxnCount">0 Receipts</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Filters & Search Toolbar -->
+      <section class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
+        <div class="relative w-full md:w-96">
+          <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-slate-400"></i>
+          <input 
+            type="text" 
+            id="searchInput" 
+            oninput="renderStudents()" 
+            placeholder="Search by Name, Roll No, or Mobile..." 
+            class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+          />
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+          <select id="filterClass" onchange="renderStudents()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium">
+            <!-- Dynamic Batches -->
+          </select>
+
+          <select id="filterStatus" onchange="renderStudents()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium">
+            <option value="ALL">All Status</option>
+            <option value="DUE">Pending Due Today</option>
+            <option value="ADVANCE">With Advance Balance</option>
+            <option value="PAID">All Dues Cleared</option>
           </select>
         </div>
-        <div class="pt-2 flex items-baseline justify-between">
-          <div>
-            <h3 class="text-xl font-black text-emerald-600 tracking-tight" id="kpiFilteredCollection">₹0</h3>
-            <p class="text-[11px] text-slate-400 mt-0.5" id="kpiCollectionLabel">Filtered Collection</p>
-          </div>
-          <span class="text-[11px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full" id="kpiTxnCount">0 Receipts</span>
+      </section>
+
+      <!-- Students Table -->
+      <section class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse" id="mainStudentsTable">
+            <thead>
+              <tr class="bg-slate-100 text-slate-600 text-xs font-semibold uppercase tracking-wider border-b border-slate-200">
+                <th class="py-3 px-4">Roll</th>
+                <th class="py-3 px-4">Student & Contact</th>
+                <th class="py-3 px-4">Batch</th>
+                <th class="py-3 px-4">Monthly Fee & Cycle</th>
+                <th class="py-3 px-4">Dues & Advance Balance</th>
+                <th class="py-3 px-4">Calendar Status</th>
+                <th class="py-3 px-4 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="studentTableBody" class="divide-y divide-slate-100 text-sm">
+              <!-- Dynamic Rows -->
+            </tbody>
+          </table>
         </div>
-      </div>
-    </section>
-
-    <!-- Filters & Search Toolbar -->
-    <section class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
-      <div class="relative w-full md:w-96">
-        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-slate-400"></i>
-        <input 
-          type="text" 
-          id="searchInput" 
-          oninput="renderStudents()" 
-          placeholder="Search by Name, Roll No, or Mobile..." 
-          class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-        />
-      </div>
-
-      <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-        <select id="filterClass" onchange="renderStudents()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium">
-          <!-- Batches populated dynamically -->
-        </select>
-
-        <select id="filterStatus" onchange="renderStudents()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium">
-          <option value="ALL">All Status</option>
-          <option value="DUE">Pending Due Today</option>
-          <option value="ADVANCE">With Advance Balance</option>
-          <option value="PAID">All Dues Cleared</option>
-        </select>
-      </div>
-    </section>
-
-    <!-- Students Table -->
-    <section class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse" id="mainStudentsTable">
-          <thead>
-            <tr class="bg-slate-100 text-slate-600 text-xs font-semibold uppercase tracking-wider border-b border-slate-200">
-              <th class="py-3 px-4">Roll</th>
-              <th class="py-3 px-4">Student & Contact</th>
-              <th class="py-3 px-4">Batch</th>
-              <th class="py-3 px-4">Monthly Fee & Cycle</th>
-              <th class="py-3 px-4">Dues & Advance Balance</th>
-              <th class="py-3 px-4">Calendar Status</th>
-              <th class="py-3 px-4 text-center">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="studentTableBody" class="divide-y divide-slate-100 text-sm">
-            <!-- Dynamic Rows -->
-          </tbody>
-        </table>
-      </div>
-      <div id="noDataMessage" class="hidden text-center py-12 text-slate-400">
-        <i data-lucide="user-x" class="w-12 h-12 mx-auto stroke-1 mb-2"></i>
-        <p class="text-sm">No students found matching your criteria.</p>
-      </div>
-    </section>
-  </main>
+        <div id="noDataMessage" class="hidden text-center py-12 text-slate-400">
+          <i data-lucide="user-x" class="w-12 h-12 mx-auto stroke-1 mb-2"></i>
+          <p class="text-sm">No students found matching your criteria.</p>
+        </div>
+      </section>
+    </main>
+  </div>
 
   <!-- ==================== MODAL: CLOUD DATABASE SETUP ==================== -->
   <div id="cloudConfigModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -203,7 +250,7 @@
         <button onclick="closeModal('cloudConfigModal')" class="text-indigo-200 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
       <form onsubmit="saveCloudCredentials(event)" class="p-6 space-y-4 text-sm">
-        <p class="text-xs text-slate-600">Enter your free Supabase credentials to synchronize this app across your phone, tablet, and computer in real time.</p>
+        <p class="text-xs text-slate-600">Enter your free Supabase credentials to synchronize data across phones and computers in real time.</p>
         <div>
           <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Supabase Project URL</label>
           <input type="url" id="cfgSupabaseUrl" required placeholder="https://yourproject.supabase.co" class="w-full px-3 py-2 border rounded-lg text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none">
@@ -332,7 +379,7 @@
           </div>
         </div>
 
-        <!-- Payment History Table -->
+        <!-- Payment History Table (With Collector Info) -->
         <div>
           <h4 class="text-xs font-bold uppercase text-slate-600 mb-2 flex items-center gap-1.5">
             <i data-lucide="history" class="w-4 h-4 text-indigo-600"></i> Payment & Exemption Ledger
@@ -344,6 +391,7 @@
                   <th class="py-2.5 px-3">Date</th>
                   <th class="py-2.5 px-3">Ref ID</th>
                   <th class="py-2.5 px-3">Amount</th>
+                  <th class="py-2.5 px-3">Collected By</th>
                   <th class="py-2.5 px-3">Mode</th>
                   <th class="py-2.5 px-3">Remarks & Month Covered</th>
                 </tr>
@@ -368,7 +416,7 @@
 
   <!-- ==================== MODAL: CLICK-TO-PAY TARGET MONTH ==================== -->
   <div id="clickMonthPayModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden animate-fade-in">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
       <div class="bg-emerald-600 px-6 py-4 flex justify-between items-center text-white">
         <h3 class="font-bold text-base flex items-center gap-2">
           <i data-lucide="calendar-check-2" class="w-5 h-5 text-amber-300"></i>
@@ -393,6 +441,10 @@
           <div class="flex justify-between items-center text-xs text-cyan-800 font-semibold">
             <span>Available Advance Wallet:</span>
             <span id="targetMonthAvailAdvance">₹0</span>
+          </div>
+          <div class="flex justify-between items-center text-xs text-indigo-900 font-semibold pt-1 border-t border-emerald-200">
+            <span>Payment Collector:</span>
+            <span id="targetMonthCollectorDisplay" class="font-bold text-indigo-700">-</span>
           </div>
         </div>
 
@@ -429,7 +481,7 @@
           <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg text-xs transition shadow flex items-center justify-center gap-1.5">
             <i data-lucide="check" class="w-4 h-4"></i> Confirm Payment
           </button>
-          <button type="button" onclick="exemptTargetMonthDirect()" class="bg-violet-100 hover:bg-violet-200 text-violet-800 font-bold px-3 py-2.5 rounded-lg text-xs transition flex items-center gap-1" title="Waive this month without paying">
+          <button type="button" onclick="exemptTargetMonthDirect()" class="bg-violet-100 hover:bg-violet-200 text-violet-800 font-bold px-3 py-2.5 rounded-lg text-xs transition flex items-center gap-1">
             <i data-lucide="shield-check" class="w-4 h-4 text-violet-600"></i> Exempt Month
           </button>
         </div>
@@ -458,6 +510,9 @@
           <div class="flex items-center justify-between mt-2 pt-2 border-t border-emerald-100 text-xs">
             <span class="text-rose-700 font-bold" id="payStudentDueBadge">Due Today: ₹0</span>
             <span class="text-cyan-800 font-bold" id="payStudentAdvBadge">Current Advance: ₹0</span>
+          </div>
+          <div class="text-xs text-indigo-900 font-semibold pt-1">
+            <span>Collector: </span><span id="genPaymentCollectorDisplay" class="font-bold text-indigo-700">Miraj</span>
           </div>
         </div>
 
@@ -617,7 +672,7 @@
     </div>
   </div>
 
-  <!-- Printable Fee Receipt -->
+  <!-- Printable Fee Receipt Layout -->
   <div id="printableReceipt" class="hidden p-6 max-w-sm mx-auto bg-white border border-slate-400 font-mono text-xs">
     <div class="text-center pb-2 border-b border-dashed border-slate-400">
       <h2 class="text-sm font-bold tracking-tight">TUITION FEE RECEIPT</h2>
@@ -629,6 +684,7 @@
       <div class="flex justify-between"><span>Student:</span> <span id="recName" class="font-bold">-</span></div>
       <div class="flex justify-between"><span>Roll / Batch:</span> <span id="recRollClass">-</span></div>
       <div class="flex justify-between"><span>Payment Mode:</span> <span id="recMode">-</span></div>
+      <div class="flex justify-between"><span>Collected By:</span> <span id="recCollector" class="font-bold text-slate-900">-</span></div>
       <div class="flex justify-between"><span>Remarks:</span> <span id="recNote">-</span></div>
     </div>
     <div class="py-2 border-t border-b border-dashed border-slate-400 flex justify-between font-bold text-sm">
@@ -640,14 +696,25 @@
       <div class="flex justify-between text-cyan-800 font-black"><span>Advance Wallet Balance:</span> <span id="recAdvanceBalance">₹0</span></div>
       <div class="flex justify-between text-[11px] text-slate-500 font-sans"><span>Status:</span> <span id="recDueBreakdown">-</span></div>
     </div>
-    <p class="text-center text-[10px] text-slate-400 mt-4">Thank you for your study dedication!</p>
+    <div class="pt-4 border-t border-dashed border-slate-300 text-center">
+      <p class="text-[10px] text-slate-400">Received with thanks • Signature: <span id="recSignatureName" class="font-bold text-slate-600">Admin</span></p>
+    </div>
   </div>
 
-  <!-- Application Logic & Cloud Engine -->
+  <!-- Application Logic -->
   <script>
-    // OPTIONAL: Hardcode your Supabase URL & Key here so all devices auto-connect without entering credentials
-    const DEFAULT_SUPABASE_URL = "https://qlmrbaadqshccqzswwzr.supabase.co"; 
-    const DEFAULT_SUPABASE_KEY = "sb_publishable_ZUjzXyMzKTdKR1ZquFjRYg_Skb6o4nv";
+    // 3 Authorized Admin Accounts
+    const ADMIN_ACCOUNTS = [
+      { username: "miraj", password: "mir159", displayName: "Miraj" },
+      { username: "moyna", password: "moyna786", displayName: "Moyna" },
+      { username: "abida", password: "abida321", displayName: "Abida" }
+    ];
+
+    let currentLoggedInAdmin = null;
+
+    // Optional hardcoded Supabase keys
+    const DEFAULT_SUPABASE_URL = ""; 
+    const DEFAULT_SUPABASE_KEY = "";
 
     const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const SHORT_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -664,10 +731,62 @@
     let activePaymentStudent = null;
     let html5QrScanner = null;
 
-    // Helper functions for Modals
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
     function toggleExportMenu() { document.getElementById('exportDropdownMenu').classList.toggle('hidden'); }
+
+    // ==================== AUTHENTICATION GATE ====================
+    function checkAuthSession() {
+      const stored = localStorage.getItem('tuition_current_admin');
+      if (stored) {
+        try {
+          currentLoggedInAdmin = JSON.parse(stored);
+          document.getElementById('loginScreen').classList.add('hidden');
+          document.getElementById('appContainer').classList.remove('hidden');
+          document.getElementById('activeUserBadge').innerText = currentLoggedInAdmin.displayName;
+          initSupabase();
+          return;
+        } catch(e) {}
+      }
+      document.getElementById('loginScreen').classList.remove('hidden');
+      document.getElementById('appContainer').classList.add('hidden');
+      lucide.createIcons();
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const u = document.getElementById('loginUsername').value.trim().toLowerCase();
+      const p = document.getElementById('loginPassword').value.trim();
+      const errEl = document.getElementById('loginErrorMsg');
+
+      const found = ADMIN_ACCOUNTS.find(acc => acc.username.toLowerCase() === u && acc.password === p);
+      if (found) {
+        currentLoggedInAdmin = { username: found.username, displayName: found.displayName };
+        localStorage.setItem('tuition_current_admin', JSON.stringify(currentLoggedInAdmin));
+        errEl.classList.add('hidden');
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('appContainer').classList.remove('hidden');
+        document.getElementById('activeUserBadge').innerText = currentLoggedInAdmin.displayName;
+        initSupabase();
+      } else {
+        errEl.classList.remove('hidden');
+      }
+    }
+
+    function handleLogout() {
+      if (confirm('Are you sure you want to log out?')) {
+        localStorage.removeItem('tuition_current_admin');
+        currentLoggedInAdmin = null;
+        document.getElementById('loginUsername').value = '';
+        document.getElementById('loginPassword').value = '';
+        checkAuthSession();
+      }
+    }
+
+    // Current collector name helper
+    function getCurrentCollectorName() {
+      return currentLoggedInAdmin ? currentLoggedInAdmin.displayName : "Miraj";
+    }
 
     // ==================== SUPABASE INITIALIZATION & REALTIME ====================
     function initSupabase() {
@@ -676,13 +795,10 @@
 
       const statusBadge = document.getElementById('cloudStatusBadge');
       const statusText = document.getElementById('cloudStatusText');
-      const setupNotice = document.getElementById('cloudSetupNotice');
 
       if (!url || !key) {
-        statusBadge.className = "flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-indigo-950 shadow-sm transition hover:opacity-90";
+        statusBadge.className = "flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-indigo-950 shadow-sm transition hover:opacity-90";
         statusText.innerText = "Setup Cloud DB";
-        setupNotice.classList.remove('hidden');
-        // Load fallback memory or demo
         students = JSON.parse(localStorage.getItem('cached_students_backup')) || [];
         batches = JSON.parse(localStorage.getItem('cached_batches_backup')) || batches;
         populateBatchDropdowns();
@@ -693,29 +809,24 @@
 
       try {
         supabaseClient = window.supabase.createClient(url, key);
-        statusBadge.className = "flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-400 text-emerald-950 shadow-sm transition hover:opacity-90";
+        statusBadge.className = "flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-400 text-emerald-950 shadow-sm transition hover:opacity-90";
         statusText.innerText = "Cloud Synced";
-        setupNotice.classList.add('hidden');
 
         fetchCloudData();
         subscribeToCloudRealtime();
       } catch (err) {
         console.error("Supabase init error:", err);
-        statusBadge.className = "bg-rose-400 text-rose-950";
-        statusText.innerText = "Cloud Error";
       }
     }
 
     async function fetchCloudData() {
       if (!supabaseClient) return;
 
-      // 1. Fetch Batches
       const { data: bData, error: bErr } = await supabaseClient.from('batches').select('name');
       if (!bErr && bData && bData.length > 0) {
         batches = bData.map(b => b.name);
       }
 
-      // 2. Fetch Students
       const { data: sData, error: sErr } = await supabaseClient.from('students').select('*').order('created_at', { ascending: false });
       if (!sErr && sData) {
         students = sData.map(s => ({
@@ -732,11 +843,8 @@
           advanceBalance: parseFloat(s.advance_balance) || 0,
           history: s.history || []
         }));
-        // Cache locally as offline backup
         localStorage.setItem('cached_students_backup', JSON.stringify(students));
         localStorage.setItem('cached_batches_backup', JSON.stringify(batches));
-      } else if (sErr) {
-        console.warn("Could not query students table. Ensure you ran the SQL snippet in Supabase SQL Editor:", sErr);
       }
 
       populateBatchDropdowns();
@@ -748,11 +856,10 @@
       }
     }
 
-    // Realtime Postgres Changes Subscription
     function subscribeToCloudRealtime() {
       if (!supabaseClient) return;
       supabaseClient
-        .channel('public-tuition-sync')
+        .channel('public-tuition-sync-auth')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'students' }, () => {
           fetchCloudData();
         })
@@ -763,7 +870,7 @@
     }
 
     function openCloudConfigModal() {
-      document.getElementById('cfgSupabaseUrl').value = hqlmrbaadqshccqzswwzr.supabase.co || localStorage.getItem('supabase_cloud_url') || '';
+      document.getElementById('cfgSupabaseUrl').value = DEFAULT_SUPABASE_URL || localStorage.getItem('supabase_cloud_url') || '';
       document.getElementById('cfgSupabaseKey').value = DEFAULT_SUPABASE_KEY || localStorage.getItem('supabase_cloud_key') || '';
       openModal('cloudConfigModal');
     }
@@ -788,7 +895,6 @@
       }
     }
 
-    // Save helper to persist changes directly to Supabase Cloud
     async function syncStudentToCloud(student) {
       if (!supabaseClient) {
         localStorage.setItem('cached_students_backup', JSON.stringify(students));
@@ -815,7 +921,7 @@
       renderStudents();
     }
 
-    // ==================== CYCLE & DUES CALCULATION ====================
+    // ==================== DUES & CYCLE LOGIC ====================
     function getMonthStatus(student, monthIndex, year) {
       const monthName = MONTH_NAMES[monthIndex];
       const key = formatMonthKey(monthName, year);
@@ -935,7 +1041,7 @@
       };
     }
 
-    // ==================== CLICK-TO-PAY ON CALENDAR ====================
+    // ==================== CLICK-TO-PAY MONTH ====================
     function handleCalendarTileClick(studentId, monthIndex, year) {
       const s = students.find(item => item.id === studentId);
       if (!s) return;
@@ -945,7 +1051,7 @@
       const monthKey = formatMonthKey(targetMonthName, year);
 
       if (info.status === 'PAID' || info.status === 'PAID_ADVANCE') {
-        const choice = confirm(`Month: ${monthKey} is currently marked as ${info.label}.\n\nClick OK to keep, or CANCEL to refund/unmark this month in the Cloud Database.`);
+        const choice = confirm(`Month: ${monthKey} is marked as ${info.label}.\n\nClick CANCEL if you want to unmark/refund this month.`);
         if (!choice) {
           s.paidMonths = s.paidMonths.filter(k => k !== monthKey);
           syncStudentToCloud(s);
@@ -974,6 +1080,7 @@
       document.getElementById('targetMonthStudentName').innerText = `${s.name} (Roll: ${s.roll})`;
       document.getElementById('targetMonthStandardFee').innerText = `₹${s.monthlyFee}`;
       document.getElementById('targetMonthAvailAdvance').innerText = `₹${s.advanceBalance || 0}`;
+      document.getElementById('targetMonthCollectorDisplay').innerText = getCurrentCollectorName();
 
       const availAdvance = s.advanceBalance || 0;
       const suggestedAmount = Math.max(0, s.monthlyFee - availAdvance);
@@ -1010,6 +1117,7 @@
       const amount = parseFloat(document.getElementById('targetMonthAmount').value) || 0;
       const mode = document.getElementById('targetMonthMode').value;
       const note = document.getElementById('targetMonthNote').value.trim() || `Fee payment for ${monthKey}`;
+      const collector = getCurrentCollectorName();
 
       const s = students.find(item => item.id === studentId);
       if (!s) return;
@@ -1032,6 +1140,7 @@
         note,
         date: new Date().toISOString().slice(0, 10),
         monthCovered: monthKey,
+        collectedBy: collector, // Track collector
         type: 'Payment'
       };
       if (!s.history) s.history = [];
@@ -1046,6 +1155,8 @@
       document.getElementById('recName').innerText = s.name;
       document.getElementById('recRollClass').innerText = `${s.roll} (${s.class})`;
       document.getElementById('recMode').innerText = mode;
+      document.getElementById('recCollector').innerText = collector;
+      document.getElementById('recSignatureName').innerText = collector;
       document.getElementById('recNote').innerText = note;
       document.getElementById('recAmount').innerText = '₹' + amount;
       document.getElementById('recBalanceDue').innerText = '₹' + dueInfo.netDueToday;
@@ -1056,7 +1167,7 @@
         viewStudentProfile(s.id);
       }
 
-      if (confirm(`Payment of ₹${amount} saved to Cloud for ${monthKey}!\nRemaining due today: ₹${dueInfo.netDueToday} • Advance: ₹${s.advanceBalance}.\n\nPrint receipt now?`)) {
+      if (confirm(`Payment of ₹${amount} collected by ${collector} for ${monthKey}!\nRemaining due today: ₹${dueInfo.netDueToday} • Advance: ₹${s.advanceBalance}.\n\nPrint official receipt now?`)) {
         window.print();
       }
     }
@@ -1064,6 +1175,7 @@
     async function exemptTargetMonthDirect() {
       const studentId = document.getElementById('targetMonthStudentId').value;
       const monthKey = document.getElementById('targetMonthKey').value;
+      const collector = getCurrentCollectorName();
       const s = students.find(item => item.id === studentId);
       if (!s) return;
 
@@ -1079,6 +1191,7 @@
         amount: 0,
         mode: 'Fee Exemption',
         note: `Exemption for ${monthKey} (${reason})`,
+        collectedBy: collector,
         date: new Date().toISOString().slice(0, 10),
         type: 'Exemption'
       };
@@ -1088,7 +1201,7 @@
       await syncStudentToCloud(s);
       closeModal('clickMonthPayModal');
       if (selectedStudentIdForProfile === s.id) viewStudentProfile(s.id);
-      alert(`Month ${monthKey} exempted in cloud for ${s.name}.`);
+      alert(`Month ${monthKey} exempted in cloud by ${collector} for ${s.name}.`);
     }
 
     // ==================== PROFILE DRAWER & CALENDAR ====================
@@ -1154,16 +1267,22 @@
       const historyTbody = document.getElementById('profHistoryTable');
       historyTbody.innerHTML = '';
       if (!s.history || s.history.length === 0) {
-        historyTbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-400">No payment records yet.</td></tr>`;
+        historyTbody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-slate-400">No payment records yet.</td></tr>`;
       } else {
         s.history.forEach(h => {
           const isExempt = h.type === "Exemption";
+          const collector = h.collectedBy || "Miraj";
           const row = document.createElement('tr');
           row.className = isExempt ? "bg-violet-50/50 hover:bg-violet-50" : "hover:bg-slate-50";
           row.innerHTML = `
             <td class="py-2 px-3 text-slate-600 font-medium">${h.date}</td>
             <td class="py-2 px-3 font-mono text-slate-700 font-semibold">${h.recId}</td>
             <td class="py-2 px-3 font-bold ${isExempt ? 'text-violet-700' : 'text-emerald-700'}">${isExempt ? 'WAIVED' : '₹' + h.amount}</td>
+            <td class="py-2 px-3">
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-100 text-indigo-800">
+                ${collector}
+              </span>
+            </td>
             <td class="py-2 px-3 text-slate-600">${h.mode}</td>
             <td class="py-2 px-3 text-slate-500">${h.note || '-'}</td>
           `;
@@ -1265,12 +1384,14 @@
       activePaymentStudent = s;
 
       const dueInfo = getStudentCalculatedDue(s);
+      const collector = getCurrentCollectorName();
 
       document.getElementById('payStudentId').value = s.id;
       document.getElementById('payStudentDetails').innerText = `${s.name} (Roll: ${s.roll} • ${s.class})`;
       document.getElementById('payStudentFeeRate').innerText = `Cycle: ${s.dueDay}th • ₹${s.monthlyFee}`;
       document.getElementById('payStudentDueBadge').innerText = `Due Today: ₹${dueInfo.netDueToday}`;
       document.getElementById('payStudentAdvBadge').innerText = `Advance: ₹${dueInfo.advanceInWallet}`;
+      document.getElementById('genPaymentCollectorDisplay').innerText = collector;
       document.getElementById('payCustomDate').value = new Date().toISOString().slice(0, 10);
       
       document.getElementById('payAmount').value = dueInfo.netDueToday > 0 ? dueInfo.netDueToday : s.monthlyFee;
@@ -1304,7 +1425,7 @@
 
       const textEl = document.getElementById('genBreakdownText');
       if (remainingDue === 0 && advanceAdded > 0) {
-        textEl.innerHTML = `🌟 Matured due cleared! <span class="font-bold text-cyan-800">₹${totalNewAdvance} in Advance Wallet</span> to offset future months.`;
+        textEl.innerHTML = `🌟 Matured due cleared! <span class="font-bold text-cyan-800">₹${totalNewAdvance} stored in Advance</span>.`;
       } else if (remainingDue === 0 && advanceAdded === 0) {
         textEl.innerText = "Exact amount to clear all dues matured up to today.";
       } else {
@@ -1321,6 +1442,7 @@
       const mode = document.getElementById('payMode').value;
       const payDate = document.getElementById('payCustomDate').value || new Date().toISOString().slice(0, 10);
       let note = document.getElementById('payNote').value.trim();
+      const collector = getCurrentCollectorName();
 
       if (amount <= 0) {
         alert('Please enter a valid positive payment amount.');
@@ -1350,6 +1472,7 @@
         mode,
         note,
         date: payDate,
+        collectedBy: collector, // Track collector
         type: 'Payment'
       };
       if (!s.history) s.history = [];
@@ -1364,6 +1487,8 @@
       document.getElementById('recName').innerText = s.name;
       document.getElementById('recRollClass').innerText = `${s.roll} (${s.class})`;
       document.getElementById('recMode').innerText = mode;
+      document.getElementById('recCollector').innerText = collector;
+      document.getElementById('recSignatureName').innerText = collector;
       document.getElementById('recNote').innerText = note;
       document.getElementById('recAmount').innerText = '₹' + amount;
       document.getElementById('recBalanceDue').innerText = '₹' + afterDue.netDueToday;
@@ -1374,7 +1499,7 @@
         viewStudentProfile(s.id);
       }
 
-      if (confirm(`Payment of ₹${amount} saved to Cloud!\nDue: ₹${afterDue.netDueToday} • Advance: ₹${s.advanceBalance}.\n\nPrint receipt now?`)) {
+      if (confirm(`Payment of ₹${amount} collected by ${collector}!\nDue: ₹${afterDue.netDueToday} • Advance: ₹${s.advanceBalance}.\n\nPrint receipt now?`)) {
         window.print();
       }
     }
@@ -1530,6 +1655,7 @@
       const cleanPhone = s.phone.length === 10 ? '91' + s.phone : s.phone;
       const dueInfo = getStudentCalculatedDue(s);
       const todayFormatted = new Date().toLocaleDateString('en-IN');
+      const collector = getCurrentCollectorName();
 
       let dueLine = `*Outstanding Due Today (${todayFormatted}): ₹${dueInfo.netDueToday}*`;
       if (!dueInfo.isCleared) {
@@ -1539,7 +1665,7 @@
         dueLine += `\n*Advance Wallet Balance: ₹${s.advanceBalance}*`;
       }
 
-      const message = `Dear Guardian, this is an official fee reminder for *${s.name}* (Roll: ${s.roll}, Batch: ${s.class}).\n\n${dueLine}\nMonthly Fee: ₹${s.monthlyFee} (Billed every ${s.dueDay || 1}th of month).\n\nPlease clear the balance at your earliest convenience. Thank you!`;
+      const message = `Dear Guardian, this is an official fee reminder for *${s.name}* (Roll: ${s.roll}, Batch: ${s.class}).\n\n${dueLine}\nMonthly Fee: ₹${s.monthlyFee} (Billed every ${s.dueDay || 1}th of month).\n\nAuthorized Collector: *${collector}*\nPlease clear the balance at your earliest convenience. Thank you!`;
       const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
       window.open(url, '_blank');
     }
@@ -1781,7 +1907,7 @@
         };
       });
       const wsStudents = XLSX.utils.json_to_sheet(studentsData);
-      XLSX.utils.book_append_sheet(wb, wsStudents, "Students & Advance Summary");
+      XLSX.utils.book_append_sheet(wb, wsStudents, "Students Summary");
 
       const ledgerData = [];
       students.forEach(s => {
@@ -1793,6 +1919,7 @@
             "Student Name": s.name,
             "Batch": s.class,
             "Amount Paid (₹)": h.amount,
+            "Collected By": h.collectedBy || "Miraj", // Export collector
             "Type": h.type || "Payment",
             "Mode": h.mode,
             "Remarks": h.note || ""
@@ -1822,7 +1949,7 @@
       doc.text("TUITION FEE, CYCLE DUES & CLOUD REPORT", 40, 40);
       doc.setFontSize(9);
       doc.setTextColor(100, 116, 139);
-      doc.text(`Official Academic Report • Generated: ${new Date().toLocaleDateString('en-IN')}`, 40, 54);
+      doc.text(`Official Academic Report • Generated: ${new Date().toLocaleDateString('en-IN')} by ${getCurrentCollectorName()}`, 40, 54);
 
       doc.setFillColor(241, 245, 249);
       doc.roundedRect(40, 68, 515, 38, 6, 6, "F");
@@ -1865,12 +1992,12 @@
         margin: { left: 40, right: 40 }
       });
 
-      doc.save(`Tuition_Fee_Cloud_Report_${new Date().toISOString().slice(0, 10)}.pdf`);
+      doc.save(`Tuition_Fee_Report_${new Date().toISOString().slice(0, 10)}.pdf`);
     }
 
-    // Startup Initialization
+    // Startup
     window.addEventListener('DOMContentLoaded', () => {
-      initSupabase();
+      checkAuthSession();
     });
   </script>
 </body>
