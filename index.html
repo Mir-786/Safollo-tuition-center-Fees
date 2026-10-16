@@ -646,8 +646,8 @@
   <!-- Application Logic & Cloud Engine -->
   <script>
     // OPTIONAL: Hardcode your Supabase URL & Key here so all devices auto-connect without entering credentials
-    const DEFAULT_SUPABASE_URL = ""; 
-    const DEFAULT_SUPABASE_KEY = "";
+    const DEFAULT_SUPABASE_URL = "https://qlmrbaadqshccqzswwzr.supabase.co"; 
+    const DEFAULT_SUPABASE_KEY = "sb_publishable_ZUjzXyMzKTdKR1ZquFjRYg_Skb6o4nv";
 
     const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const SHORT_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -763,7 +763,7 @@
     }
 
     function openCloudConfigModal() {
-      document.getElementById('cfgSupabaseUrl').value = DEFAULT_SUPABASE_URL || localStorage.getItem('supabase_cloud_url') || '';
+      document.getElementById('cfgSupabaseUrl').value = hqlmrbaadqshccqzswwzr.supabase.co || localStorage.getItem('supabase_cloud_url') || '';
       document.getElementById('cfgSupabaseKey').value = DEFAULT_SUPABASE_KEY || localStorage.getItem('supabase_cloud_key') || '';
       openModal('cloudConfigModal');
     }
