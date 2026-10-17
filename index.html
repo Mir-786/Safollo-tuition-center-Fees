@@ -2,17 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Tuition Fee Management System</title>
-
-  <!-- PWA Meta Tags -->
-  <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#4338ca">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Tuition Portal">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Safollo Tuition Fee Management System</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
@@ -36,7 +27,7 @@
     }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-900 font-sans min-h-screen select-none">
+<body class="bg-slate-100 text-slate-900 font-sans min-h-screen">
 
   <!-- ==================== LOGIN SCREEN OVERLAY ==================== -->
   <div id="loginScreen" class="fixed inset-0 bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-950 z-50 flex items-center justify-center p-4">
@@ -45,7 +36,7 @@
         <div class="inline-flex p-3 bg-indigo-600 rounded-2xl text-amber-300 shadow-inner mb-3">
           <i data-lucide="graduation-cap" class="w-8 h-8"></i>
         </div>
-        <h2 class="text-xl font-bold tracking-tight">Tuition Fee Portal</h2>
+        <h2 class="text-xl font-bold tracking-tight">Safollo Tuition Fee Portal</h2>
         <p class="text-xs text-indigo-200 mt-1">Authorized Staff & Admin Login</p>
       </div>
 
@@ -75,216 +66,402 @@
         </button>
 
         <div class="pt-3 border-t border-slate-100 text-center">
-          <p class="text-[11px] text-slate-400">Staff Accounts: Miraj, Moyna, Abida</p>
+          <p class="text-[11px] text-slate-400">Accounts: Miraj, Moyna, Abida</p>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- ==================== MAIN APPLICATION ==================== -->
-  <div id="appContainer" class="hidden">
-    <!-- Header -->
-    <header class="bg-indigo-700 text-white shadow-md sticky top-0 z-30">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap justify-between items-center gap-3">
-        <div class="flex items-center space-x-3">
-          <div class="bg-indigo-600 p-2 rounded-xl text-amber-300 shadow-inner">
-            <i data-lucide="graduation-cap" class="w-6 h-6"></i>
-          </div>
-          <div>
-            <div class="flex items-center gap-2">
-              <h1 class="text-lg font-bold tracking-tight">Tuition Fee Portal</h1>
-              <button onclick="openCloudConfigModal()" id="cloudStatusBadge" class="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-indigo-950 shadow-sm transition hover:opacity-90">
-                <span class="w-2 h-2 rounded-full bg-amber-600 animate-ping"></span>
-                <span id="cloudStatusText">Setup Cloud</span>
-              </button>
-            </div>
-            <p class="text-xs text-indigo-200 flex items-center gap-1.5 mt-0.5">
-              <span>Collector Logged In:</span>
-              <span id="activeUserBadge" class="font-bold text-amber-300 bg-indigo-800 px-2 py-0.5 rounded text-[11px] shadow-sm">Admin</span>
-            </p>
-          </div>
-        </div>
+  <!-- ==================== MAIN DASHBOARD WITH LEFT SIDEBAR ==================== -->
+  <div id="appContainer" class="hidden min-h-screen flex flex-col md:flex-row">
+    
+    <!-- Mobile Backdrop Overlay -->
+    <div id="mobileSidebarBackdrop" onclick="toggleMobileSidebar()" class="hidden fixed inset-0 bg-slate-900/60 z-40 md:hidden backdrop-blur-sm"></div>
+
+    <!-- ==================== LEFT SIDE MENU BAR ==================== -->
+    <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-300 flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out shadow-2xl md:shadow-none shrink-0">
+      
+      <!-- Top Section: Brand & Collector Profile -->
+      <div class="p-5 space-y-6">
         
-        <!-- Action Toolbar -->
-        <div class="flex items-center gap-2 flex-wrap">
-          <!-- PWA Native Install Button (Appears when installable) -->
-          <button id="pwaInstallBtn" onclick="triggerPWAInstall()" class="hidden bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-2 rounded-lg text-xs font-bold items-center gap-1.5 transition shadow animate-pulse">
-            <i data-lucide="smartphone" class="w-4 h-4"></i> Install App
+        <!-- Branding -->
+        <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+          <div class="flex items-center space-x-2.5">
+            <div class="bg-indigo-600 p-2 rounded-xl text-amber-300 shadow">
+              <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h1 class="text-sm font-bold text-white tracking-wide">Tuition Portal</h1>
+              <p class="text-[10px] text-slate-400">Fees & Student System</p>
+            </div>
+          </div>
+          <button onclick="toggleMobileSidebar()" class="md:hidden text-slate-400 hover:text-white p-1">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <!-- Collector Profile Card with Round Shape Photo -->
+        <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/60 text-center relative overflow-hidden shadow-inner">
+          <div class="relative mx-auto w-16 h-16 mb-2.5">
+            <img id="sidebarCollectorPhoto" src="" alt="Collector Avatar" class="w-16 h-16 rounded-full object-cover border-2 border-amber-400 shadow-md mx-auto">
+            <span class="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-emerald-500 border-2 border-slate-900"></span>
+          </div>
+          <h3 id="sidebarCollectorName" class="font-bold text-sm text-white capitalize">-</h3>
+          <p class="text-[11px] text-indigo-300 font-medium">Authorized Fee Collector</p>
+          <div class="mt-2 pt-2 border-t border-slate-700/50 flex items-center justify-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="text-[10px] font-semibold text-emerald-400" id="sidebarCloudText">Cloud Synced</span>
+          </div>
+        </div>
+
+        <!-- Navigation Menu Links -->
+        <nav class="space-y-1.5 text-xs font-semibold">
+          <a href="#" onclick="focusStudentsTable()" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-indigo-600 text-white shadow-sm transition">
+            <i data-lucide="users" class="w-4 h-4 text-amber-300"></i>
+            <span>Students Directory</span>
+          </a>
+
+          <!-- Payment History in Menu Bar -->
+          <button onclick="openGlobalPaymentHistoryModal()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white transition text-left">
+            <i data-lucide="history" class="w-4 h-4 text-emerald-400"></i>
+            <span>Payment History</span>
           </button>
 
-          <button onclick="openBatchManagerModal()" class="bg-indigo-800 hover:bg-indigo-900 text-indigo-100 hover:text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition border border-indigo-600">
-            <i data-lucide="layers" class="w-4 h-4 text-amber-300"></i> Batches
-          </button>
-          <button onclick="openQRScanner()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
-            <i data-lucide="scan" class="w-4 h-4 text-amber-300"></i> Scan QR
-          </button>
-          <button onclick="openAddStudentModal()" class="bg-amber-400 hover:bg-amber-300 text-indigo-950 px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 transition shadow">
-            <i data-lucide="user-plus" class="w-4 h-4"></i> New Admission
-          </button>
-
-          <!-- Export Dropdown -->
-          <div class="relative inline-block text-left">
-            <button onclick="toggleExportMenu()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 transition shadow">
-              <i data-lucide="download" class="w-4 h-4"></i> Export <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+          <!-- Export Option in Menu Bar -->
+          <div class="space-y-1 pt-1">
+            <p class="px-3 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Export Records</p>
+            <button onclick="exportToExcel()" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white transition text-left">
+              <i data-lucide="sheet" class="w-4 h-4 text-emerald-500"></i>
+              <span>Export to Excel (.xlsx)</span>
             </button>
-            <div id="exportDropdownMenu" class="hidden absolute right-0 mt-2 w-48 rounded-xl shadow-xl bg-white border border-slate-200 z-50 py-1 text-xs">
-              <button onclick="exportToExcel(); toggleExportMenu();" class="w-full text-left px-4 py-2.5 text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium">
-                <i data-lucide="sheet" class="w-4 h-4 text-emerald-600"></i> Export to Excel (.xlsx)
-              </button>
-              <button onclick="exportToPDF(); toggleExportMenu();" class="w-full text-left px-4 py-2.5 text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium border-t border-slate-100">
-                <i data-lucide="file-text" class="w-4 h-4 text-rose-600"></i> Export to PDF (.pdf)
-              </button>
-            </div>
+            <button onclick="exportToPDF()" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white transition text-left">
+              <i data-lucide="file-text" class="w-4 h-4 text-rose-400"></i>
+              <span>Export to PDF (.pdf)</span>
+            </button>
           </div>
 
-          <!-- Logout Button -->
-          <button onclick="handleLogout()" title="Sign Out" class="bg-rose-600 hover:bg-rose-700 text-white p-2 rounded-lg transition shadow flex items-center justify-center">
-            <i data-lucide="log-out" class="w-4 h-4"></i>
+          <div class="space-y-1 pt-2">
+            <p class="px-3 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Batch & Settings</p>
+            <button onclick="openBatchManagerModal()" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-800 text-purple-300 hover:text-purple-200 transition text-left">
+              <i data-lucide="layers" class="w-4 h-4"></i>
+              <span>Batches & Class Fees</span>
+            </button>
+            <button onclick="openCloudConfigModal()" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white transition text-left">
+              <i data-lucide="cloud" class="w-4 h-4 text-sky-400"></i>
+              <span>Cloud Database Config</span>
+            </button>
+          </div>
+        </nav>
+      </div>
+
+      <!-- Bottom Section: Logout Button -->
+      <div class="p-4 border-t border-slate-800">
+        <button onclick="handleLogout()" class="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white text-xs font-bold transition">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+          <span>Logout Portal</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ==================== MAIN CONTENT AREA ==================== -->
+    <div class="flex-1 min-w-0 flex flex-col min-h-screen">
+      
+      <!-- TOP BAR: Icon-Only Action Buttons & No Admin Name/Photo -->
+      <header class="bg-indigo-700 text-white shadow-md sticky top-0 z-30 px-4 md:px-8 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <!-- Mobile Menu Hamburger Button -->
+          <button onclick="toggleMobileSidebar()" class="md:hidden p-2 rounded-lg bg-indigo-800 hover:bg-indigo-900 text-white transition focus:outline-none">
+            <i data-lucide="menu" class="w-5 h-5"></i>
+          </button>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base font-bold tracking-tight">Safollo Tuition Fee Portal</h1>
+            <!---
+            <button onclick="openCloudConfigModal()" id="cloudStatusBadge" class="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-indigo-950 shadow-sm transition hover:opacity-90">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-ping"></span>
+              <span id="cloudStatusText">Cloud</span>
+            </button>
+            --->
+          </div>
+        </div>
+
+        <!-- Right Side: Icon-Only Action Buttons (No text, no admin photo/name) -->
+        <div class="flex items-center gap-2">
+          <!-- Scan Student QR (Icon Only) -->
+          <button onclick="openQRScanner()" title="Scan Student QR Code" class="w-10 h-10 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition shadow flex items-center justify-center border border-indigo-500/50 focus:outline-none">
+            <i data-lucide="scan" class="w-5 h-5 text-amber-300"></i>
+          </button>
+          
+          <!-- New Admission (Icon Only) -->
+          <button onclick="openAddStudentModal()" title="New Student Admission" class="w-10 h-10 rounded-xl bg-amber-400 hover:bg-amber-300 text-indigo-950 transition shadow flex items-center justify-center font-black focus:outline-none">
+            <i data-lucide="user-plus" class="w-5 h-5"></i>
           </button>
         </div>
-      </div>
-    </header>
+      </header>
 
-    <!-- Main Container -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+      <!-- Main Body Container -->
+      <main class="flex-1 p-4 md:p-8 space-y-6 max-w-7xl w-full mx-auto">
 
-      <!-- KPI Metric Cards -->
-      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Enrolled</p>
-            <h3 class="text-2xl font-bold text-slate-800 mt-1" id="kpiTotalStudents">0</h3>
-            <p class="text-[11px] text-indigo-600 mt-0.5 font-medium" id="kpiActiveBatchesCount">0 Active Batches</p>
-          </div>
-          <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl"><i data-lucide="users" class="w-5 h-5"></i></div>
-        </div>
-
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Dues Matured Today</p>
-            <h3 class="text-2xl font-bold text-rose-600 mt-1" id="kpiTotalDue">₹0</h3>
-            <p class="text-[11px] text-rose-500 mt-0.5 font-medium"><span id="kpiDueStudents">0</span> students pending</p>
-          </div>
-          <div class="p-3 bg-rose-50 text-rose-600 rounded-xl"><i data-lucide="alert-triangle" class="w-5 h-5"></i></div>
-        </div>
-
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-          <div>
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Advance Held</p>
-            <h3 class="text-2xl font-bold text-cyan-600 mt-1" id="kpiTotalAdvance">₹0</h3>
-            <p class="text-[11px] text-cyan-700 mt-0.5 font-medium"><span id="kpiAdvanceStudents">0</span> in advance</p>
-          </div>
-          <div class="p-3 bg-cyan-50 text-cyan-600 rounded-xl"><i data-lucide="wallet-cards" class="w-5 h-5"></i></div>
-        </div>
-
-        <!-- Fees Collection Card with Date Filter -->
-        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
-            <div class="flex items-center gap-1.5">
-              <div class="p-1 bg-emerald-50 text-emerald-600 rounded"><i data-lucide="wallet" class="w-3.5 h-3.5"></i></div>
-              <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider">Collections</span>
+        <!-- KPI Metric Cards -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Enrolled</p>
+              <h3 class="text-2xl font-bold text-slate-800 mt-1" id="kpiTotalStudents">0</h3>
+              <p class="text-[11px] text-indigo-600 mt-0.5 font-medium" id="kpiActiveBatchesCount">0 Active Batches</p>
             </div>
-            <select id="collectionPeriodFilter" onchange="updateCollectionMetrics()" class="text-[11px] border border-slate-200 rounded px-1.5 py-0.5 bg-slate-50 font-semibold text-slate-700 focus:outline-none">
-              <option value="ALL">All Time</option>
-              <option value="YEAR">Current Year</option>
-              <option value="MONTH" selected>This Month</option>
+            <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl"><i data-lucide="users" class="w-5 h-5"></i></div>
+          </div>
+
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Dues Matured Today</p>
+              <h3 class="text-2xl font-bold text-rose-600 mt-1" id="kpiTotalDue">₹0</h3>
+              <p class="text-[11px] text-rose-500 mt-0.5 font-medium"><span id="kpiDueStudents">0</span> students pending</p>
+            </div>
+            <div class="p-3 bg-rose-50 text-rose-600 rounded-xl"><i data-lucide="alert-triangle" class="w-5 h-5"></i></div>
+          </div>
+
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Advance Held</p>
+              <h3 class="text-2xl font-bold text-cyan-600 mt-1" id="kpiTotalAdvance">₹0</h3>
+              <p class="text-[11px] text-cyan-700 mt-0.5 font-medium"><span id="kpiAdvanceStudents">0</span> in advance</p>
+            </div>
+            <div class="p-3 bg-cyan-50 text-cyan-600 rounded-xl"><i data-lucide="wallet-cards" class="w-5 h-5"></i></div>
+          </div>
+
+          <!-- Fees Collection Card with Filter -->
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
+              <div class="flex items-center gap-1.5">
+                <div class="p-1 bg-emerald-50 text-emerald-600 rounded"><i data-lucide="wallet" class="w-3.5 h-3.5"></i></div>
+                <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider">Collections</span>
+              </div>
+              <select id="collectionPeriodFilter" onchange="updateCollectionMetrics()" class="text-[11px] border border-slate-200 rounded px-1.5 py-0.5 bg-slate-50 font-semibold text-slate-700 focus:outline-none">
+                <option value="ALL">All Time</option>
+                <option value="YEAR">Current Year</option>
+                <option value="MONTH" selected>This Month</option>
+              </select>
+            </div>
+            <div class="pt-2 flex items-baseline justify-between">
+              <div>
+                <h3 class="text-xl font-black text-emerald-600 tracking-tight" id="kpiFilteredCollection">₹0</h3>
+                <p class="text-[11px] text-slate-400 mt-0.5" id="kpiCollectionLabel">Filtered Collection</p>
+              </div>
+              <span class="text-[11px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full" id="kpiTxnCount">0 Receipts</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Filters & Search Toolbar -->
+        <section class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
+          <div class="relative w-full md:w-96">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-slate-400"></i>
+            <input 
+              type="text" 
+              id="searchInput" 
+              oninput="renderStudents()" 
+              placeholder="Search by Name, Roll No, or Mobile..." 
+              class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            />
+          </div>
+
+          <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            <select id="filterClass" onchange="renderStudents()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium">
+              <!-- Batches populated dynamically -->
+            </select>
+
+            <select id="filterStatus" onchange="renderStudents()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium">
+              <option value="ALL">All Status</option>
+              <option value="DUE">Pending Due Today</option>
+              <option value="ADVANCE">With Advance Balance</option>
+              <option value="PAID">All Dues Cleared</option>
             </select>
           </div>
-          <div class="pt-2 flex items-baseline justify-between">
-            <div>
-              <h3 class="text-xl font-black text-emerald-600 tracking-tight" id="kpiFilteredCollection">₹0</h3>
-              <p class="text-[11px] text-slate-400 mt-0.5" id="kpiCollectionLabel">Filtered Collection</p>
-            </div>
-            <span class="text-[11px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full" id="kpiTxnCount">0 Receipts</span>
+        </section>
+
+        <!-- Students Table -->
+        <section id="studentsTableSection" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse" id="mainStudentsTable">
+              <thead>
+                <tr class="bg-slate-100 text-slate-600 text-xs font-semibold uppercase tracking-wider border-b border-slate-200">
+                  <th class="py-3 px-4">Roll</th>
+                  <th class="py-3 px-4">Student & Contact</th>
+                  <th class="py-3 px-4">Batch</th>
+                  <th class="py-3 px-4">Monthly Fee & Cycle</th>
+                  <th class="py-3 px-4">Dues & Advance Balance</th>
+                  <th class="py-3 px-4">Calendar Status</th>
+                  <th class="py-3 px-4 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="studentTableBody" class="divide-y divide-slate-100 text-sm">
+                <!-- Dynamic Rows -->
+              </tbody>
+            </table>
           </div>
-        </div>
-      </section>
-
-      <!-- Filters & Search Toolbar -->
-      <section class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
-        <div class="relative w-full md:w-96">
-          <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-slate-400"></i>
-          <input 
-            type="text" 
-            id="searchInput" 
-            oninput="renderStudents()" 
-            placeholder="Search by Name, Roll No, or Mobile..." 
-            class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-          />
-        </div>
-
-        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          <select id="filterClass" onchange="renderStudents()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium">
-            <!-- Dynamic Batches -->
-          </select>
-
-          <select id="filterStatus" onchange="renderStudents()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium">
-            <option value="ALL">All Status</option>
-            <option value="DUE">Pending Due Today</option>
-            <option value="ADVANCE">With Advance Balance</option>
-            <option value="PAID">All Dues Cleared</option>
-          </select>
-        </div>
-      </section>
-
-      <!-- Students Table -->
-      <section class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse" id="mainStudentsTable">
-            <thead>
-              <tr class="bg-slate-100 text-slate-600 text-xs font-semibold uppercase tracking-wider border-b border-slate-200">
-                <th class="py-3 px-4">Roll</th>
-                <th class="py-3 px-4">Student & Contact</th>
-                <th class="py-3 px-4">Batch</th>
-                <th class="py-3 px-4">Monthly Fee & Cycle</th>
-                <th class="py-3 px-4">Dues & Advance Balance</th>
-                <th class="py-3 px-4">Calendar Status</th>
-                <th class="py-3 px-4 text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="studentTableBody" class="divide-y divide-slate-100 text-sm">
-              <!-- Dynamic Rows -->
-            </tbody>
-          </table>
-        </div>
-        <div id="noDataMessage" class="hidden text-center py-12 text-slate-400">
-          <i data-lucide="user-x" class="w-12 h-12 mx-auto stroke-1 mb-2"></i>
-          <p class="text-sm">No students found matching your criteria.</p>
-        </div>
-      </section>
-    </main>
+          <div id="noDataMessage" class="hidden text-center py-12 text-slate-400">
+            <i data-lucide="user-x" class="w-12 h-12 mx-auto stroke-1 mb-2"></i>
+            <p class="text-sm">No students found matching your criteria.</p>
+          </div>
+        </section>
+      </main>
+    </div>
   </div>
 
-  <!-- ==================== MODAL: CLOUD DATABASE SETUP ==================== -->
-  <div id="cloudConfigModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden">
-      <div class="bg-indigo-800 px-6 py-4 flex justify-between items-center text-white">
-        <h3 class="font-bold text-base flex items-center gap-2"><i data-lucide="cloud" class="w-5 h-5 text-amber-300"></i> Connect Supabase Cloud Database</h3>
-        <button onclick="closeModal('cloudConfigModal')" class="text-indigo-200 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+  <!-- ==================== MODAL: ALL PAYMENT HISTORY ==================== -->
+  <div id="globalPaymentHistoryModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-4xl w-full shadow-2xl overflow-hidden my-auto max-h-[90vh] flex flex-col">
+      <div class="bg-slate-900 px-6 py-4 flex justify-between items-center text-white">
+        <div class="flex items-center gap-2">
+          <i data-lucide="history" class="w-5 h-5 text-emerald-400"></i>
+          <div>
+            <h3 class="font-bold text-base">Global Payment History & Ledger</h3>
+            <p class="text-xs text-slate-400">All student transactions recorded across all devices</p>
+          </div>
+        </div>
+        <button onclick="closeModal('globalPaymentHistoryModal')" class="text-slate-400 hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
       </div>
-      <form onsubmit="saveCloudCredentials(event)" class="p-6 space-y-4 text-sm">
-        <p class="text-xs text-slate-600">Enter your free Supabase credentials to synchronize data across phones and computers in real time.</p>
-        <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Supabase Project URL</label>
-          <input type="url" id="cfgSupabaseUrl" required placeholder="https://yourproject.supabase.co" class="w-full px-3 py-2 border rounded-lg text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+
+      <div class="p-6 overflow-y-auto space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div class="flex items-center gap-2">
+            <label class="font-bold text-slate-600">Filter Collector:</label>
+            <select id="historyCollectorFilter" onchange="renderGlobalPaymentHistory()" class="border rounded-lg px-2.5 py-1.5 bg-slate-50 font-semibold focus:outline-none">
+              <option value="ALL">All Collectors</option>
+              <option value="Miraj">Miraj Only</option>
+              <option value="Moyna">Moyna Only</option>
+              <option value="Abida">Abida Only</option>
+            </select>
+          </div>
+          <span id="historyTotalSumText" class="font-black text-sm text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">Total: ₹0</span>
         </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Supabase Anon Public API Key</label>
-          <textarea id="cfgSupabaseKey" required rows="3" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6..." class="w-full px-3 py-2 border rounded-lg text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+
+        <div class="border border-slate-200 rounded-xl overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-100 text-slate-600 font-semibold border-b border-slate-200">
+                <tr>
+                  <th class="py-2.5 px-3">Date (DD/MM/YYYY)</th>
+                  <th class="py-2.5 px-3">Student Name</th>
+                  <th class="py-2.5 px-3">Roll & Batch</th>
+                  <th class="py-2.5 px-3">Amount</th>
+                  <th class="py-2.5 px-3">Collected By</th>
+                  <th class="py-2.5 px-3">Mode</th>
+                  <th class="py-2.5 px-3">Remarks / Month Covered</th>
+                </tr>
+              </thead>
+              <tbody id="globalHistoryTableBody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
         </div>
-        <div class="pt-2 flex gap-2">
-          <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg text-xs transition shadow flex items-center justify-center gap-1.5">
-            <i data-lucide="save" class="w-4 h-4"></i> Save & Connect Cloud
+      </div>
+
+      <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-end">
+        <button onclick="closeModal('globalPaymentHistoryModal')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-4 py-2 rounded-lg text-xs transition">
+          Close Ledger
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: BATCH MANAGER & CLASS-WISE FEES ==================== -->
+  <div id="batchManagerModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
+      <div class="bg-indigo-800 px-6 py-4 flex justify-between items-center text-white">
+        <h3 class="font-bold text-base flex items-center gap-2"><i data-lucide="layers" class="w-5 h-5 text-amber-300"></i> Manage Batches & Class Fees</h3>
+        <button onclick="closeModal('batchManagerModal')" class="text-indigo-200 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <div class="p-6 space-y-5">
+        <!-- Add New Batch with Class-Wise Fee -->
+        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3">
+          <label class="block text-xs font-bold uppercase text-slate-700">Add New Batch with Default Fee</label>
+          <div class="grid grid-cols-3 gap-2">
+            <input type="text" id="newBatchNameInput" placeholder="Batch Name (e.g. Class 10)" class="col-span-2 px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+            <input type="number" id="newBatchFeeInput" placeholder="Fee (₹)" class="px-3 py-2 border rounded-lg text-xs font-bold focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+          </div>
+          <button onclick="addNewBatch()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded-lg text-xs transition flex items-center justify-center gap-1.5 shadow-sm">
+            <i data-lucide="plus" class="w-4 h-4"></i> Save Batch & Fee
           </button>
-          <button type="button" onclick="disconnectCloud()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-4 py-2.5 rounded-lg text-xs transition">
-            Disconnect
-          </button>
         </div>
+
+        <!-- Active Batches List -->
+        <div>
+          <label class="block text-xs font-bold uppercase text-slate-600 mb-2">Active Batches (<span id="batchCountBadge">0</span>)</label>
+          <div class="max-h-60 overflow-y-auto space-y-2 border border-slate-200 rounded-xl p-2 bg-slate-50" id="batchListContainer"></div>
+          <p class="text-[11px] text-slate-400 mt-2">New admissions will automatically fetch this default fee when the batch is chosen.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: ADD STUDENT (AUTO-FETCHES BATCH FEE) ==================== -->
+  <div id="addStudentModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
+      <div class="bg-indigo-700 px-6 py-4 flex justify-between items-center text-white">
+        <h3 class="font-bold text-base flex items-center gap-2"><i data-lucide="user-plus" class="w-5 h-5"></i> Enroll New Student</h3>
+        <button onclick="closeModal('addStudentModal')" class="text-indigo-200 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <form id="studentForm" onsubmit="saveNewStudent(event)" class="p-6 space-y-3.5 text-sm">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Roll Number</label>
+          <input type="text" id="mRoll" required placeholder="e.g. 106" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Student Full Name</label>
+          <input type="text" id="mName" required placeholder="Full Name" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Batch / Class</label>
+            <!-- Auto-fetches fee onchange -->
+            <select id="mClass" onchange="handleAdmissionBatchChange()" class="w-full px-3 py-2 border rounded-lg bg-white focus:ring-2 focus:ring-indigo-500"></select>
+          </div>
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="block text-xs font-semibold text-slate-600 uppercase">Monthly Fee (₹)</label>
+              <span class="text-[10px] text-indigo-600 font-bold">Editable</span>
+            </div>
+            <!-- Auto-fetched but freely editable -->
+            <input type="number" id="mMonthlyFee" required placeholder="500" class="w-full px-3 py-2 border rounded-lg font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">WhatsApp Phone (Guardian)</label>
+          <input type="tel" id="mPhone" required placeholder="10-digit number" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 bg-indigo-50/60 p-3 rounded-xl border border-indigo-100">
+          <div>
+            <label class="block text-xs font-bold text-indigo-900 uppercase mb-1">Admission Date</label>
+            <input type="date" id="mAdmissionDate" required onchange="syncDueDayFromAdmission()" class="w-full px-2.5 py-1.5 border rounded-lg bg-white text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-indigo-900 uppercase mb-1">Monthly Due Day</label>
+            <div class="flex items-center gap-1">
+              <span class="text-xs text-slate-500">Every</span>
+              <input type="number" id="mDueDay" min="1" max="31" required class="w-16 px-2 py-1.5 border rounded-lg bg-white text-xs font-bold text-center focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+              <span class="text-xs text-slate-500">th</span>
+            </div>
+          </div>
+          <p class="text-[10px] text-indigo-700 col-span-2">Fees mature after next month's payment date.</p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-cyan-800 uppercase mb-1">Initial Advance Deposit (Optional ₹)</label>
+          <input type="number" id="mInitialAdvance" value="0" placeholder="0" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-cyan-500 focus:outline-none font-bold text-cyan-900">
+        </div>
+
+        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg text-sm transition mt-2">
+          Save Admission to Cloud
+        </button>
       </form>
     </div>
   </div>
 
-  <!-- ==================== MODAL: STUDENT PROFILE & MULTI-YEAR CALENDAR ==================== -->
+  <!-- ==================== MODAL: STUDENT PROFILE & CALENDAR ==================== -->
   <div id="profileModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col">
       <div class="bg-gradient-to-r from-indigo-700 to-indigo-900 px-6 py-5 text-white flex justify-between items-start">
@@ -392,10 +569,10 @@
           </div>
         </div>
 
-        <!-- Payment History Table (Clean without Ref ID) -->
+        <!-- Payment History Table -->
         <div>
           <h4 class="text-xs font-bold uppercase text-slate-600 mb-2 flex items-center gap-1.5">
-            <i data-lucide="history" class="w-4 h-4 text-indigo-600"></i> Payment & Exemption Ledger
+            <i data-lucide="history" class="w-4 h-4 text-indigo-600"></i> Individual Student Ledger
           </h4>
           <div class="border border-slate-200 rounded-xl overflow-hidden">
             <table class="w-full text-left text-xs">
@@ -624,87 +801,31 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL: BATCH MANAGER ==================== -->
-  <div id="batchManagerModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
+  <!-- ==================== MODAL: CLOUD CONFIG ==================== -->
+  <div id="cloudConfigModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden">
       <div class="bg-indigo-800 px-6 py-4 flex justify-between items-center text-white">
-        <h3 class="font-bold text-base flex items-center gap-2"><i data-lucide="layers" class="w-5 h-5 text-amber-300"></i> Manage Batches</h3>
-        <button onclick="closeModal('batchManagerModal')" class="text-indigo-200 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+        <h3 class="font-bold text-base flex items-center gap-2"><i data-lucide="cloud" class="w-5 h-5 text-amber-300"></i> Connect Supabase Cloud Database</h3>
+        <button onclick="closeModal('cloudConfigModal')" class="text-indigo-200 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
-      <div class="p-6 space-y-5">
+      <form onsubmit="saveCloudCredentials(event)" class="p-6 space-y-4 text-sm">
+        <p class="text-xs text-slate-600">Enter your free Supabase credentials to synchronize data across phones and computers in real time.</p>
         <div>
-          <label class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Add New Batch</label>
-          <div class="flex gap-2">
-            <input type="text" id="newBatchInput" placeholder="e.g. Class 10 Science, WBP Mock" class="flex-1 px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-            <button onclick="addNewBatch()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-lg text-sm transition flex items-center gap-1">
-              <i data-lucide="plus" class="w-4 h-4"></i> Add
-            </button>
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold uppercase text-slate-600 mb-2">Active Batches (<span id="batchCountBadge">0</span>)</label>
-          <div class="max-h-60 overflow-y-auto space-y-2 border border-slate-200 rounded-xl p-2 bg-slate-50" id="batchListContainer"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ==================== MODAL: ADD STUDENT ==================== -->
-  <div id="addStudentModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
-      <div class="bg-indigo-700 px-6 py-4 flex justify-between items-center text-white">
-        <h3 class="font-bold text-base flex items-center gap-2"><i data-lucide="user-plus" class="w-5 h-5"></i> Enroll New Student</h3>
-        <button onclick="closeModal('addStudentModal')" class="text-indigo-200 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
-      </div>
-      <form id="studentForm" onsubmit="saveNewStudent(event)" class="p-6 space-y-3.5 text-sm">
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Roll Number</label>
-          <input type="text" id="mRoll" required placeholder="e.g. 106" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Supabase Project URL</label>
+          <input type="url" id="cfgSupabaseUrl" required placeholder="https://yourproject.supabase.co" class="w-full px-3 py-2 border rounded-lg text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none">
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Student Full Name</label>
-          <input type="text" id="mName" required placeholder="Full Name" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Supabase Anon Public API Key</label>
+          <textarea id="cfgSupabaseKey" required rows="3" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6..." class="w-full px-3 py-2 border rounded-lg text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
         </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Batch / Class</label>
-            <select id="mClass" class="w-full px-3 py-2 border rounded-lg bg-white focus:ring-2 focus:ring-indigo-500"></select>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Monthly Fee (₹)</label>
-            <input type="number" id="mMonthlyFee" required placeholder="500" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-          </div>
+        <div class="pt-2 flex gap-2">
+          <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg text-xs transition shadow flex items-center justify-center gap-1.5">
+            <i data-lucide="save" class="w-4 h-4"></i> Save & Connect Cloud
+          </button>
+          <button type="button" onclick="disconnectCloud()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-4 py-2.5 rounded-lg text-xs transition">
+            Disconnect
+          </button>
         </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">WhatsApp Phone (Guardian)</label>
-          <input type="tel" id="mPhone" required placeholder="10-digit number" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-        </div>
-
-        <div class="grid grid-cols-2 gap-3 bg-indigo-50/60 p-3 rounded-xl border border-indigo-100">
-          <div>
-            <label class="block text-xs font-bold text-indigo-900 uppercase mb-1">Admission Date</label>
-            <input type="date" id="mAdmissionDate" required onchange="syncDueDayFromAdmission()" class="w-full px-2.5 py-1.5 border rounded-lg bg-white text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-indigo-900 uppercase mb-1">Monthly Due Day</label>
-            <div class="flex items-center gap-1">
-              <span class="text-xs text-slate-500">Every</span>
-              <input type="number" id="mDueDay" min="1" max="31" required class="w-16 px-2 py-1.5 border rounded-lg bg-white text-xs font-bold text-center focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-              <span class="text-xs text-slate-500">th</span>
-            </div>
-          </div>
-          <p class="text-[10px] text-indigo-700 col-span-2">Fees mature after next month's payment date.</p>
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-cyan-800 uppercase mb-1">Initial Advance Deposit (Optional ₹)</label>
-          <input type="number" id="mInitialAdvance" value="0" placeholder="0" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-cyan-500 focus:outline-none font-bold text-cyan-900">
-        </div>
-
-        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg text-sm transition mt-2">
-          Save Admission to Cloud
-        </button>
       </form>
     </div>
   </div>
@@ -723,7 +844,7 @@
     </div>
   </div>
 
-  <!-- Printable Fee Receipt Layout (Clean without Ref ID) -->
+  <!-- Printable Fee Receipt Layout -->
   <div id="printableReceipt" class="hidden p-6 max-w-sm mx-auto bg-white border border-slate-400 font-mono text-xs">
     <div class="text-center pb-2 border-b border-dashed border-slate-400">
       <h2 class="text-sm font-bold tracking-tight">TUITION FEE RECEIPT</h2>
@@ -753,11 +874,26 @@
 
   <!-- Application Logic -->
   <script>
-    // 3 Authorized Admin Accounts
+    // 3 Authorized Admin Accounts with Round Avatars
     const ADMIN_ACCOUNTS = [
-      { username: "miraj", password: "mir159", displayName: "Miraj" },
-      { username: "moyna", password: "moyna786", displayName: "Moyna" },
-      { username: "abida", password: "abida321", displayName: "Abida" }
+      { 
+        username: "miraj", 
+        password: "mir159", 
+        displayName: "Miraj", 
+        photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" 
+      },
+      { 
+        username: "moyna", 
+        password: "moyna786", 
+        displayName: "Moyna", 
+        photo: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80" 
+      },
+      { 
+        username: "abida", 
+        password: "abida321", 
+        displayName: "Abida", 
+        photo: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80" 
+      }
     ];
 
     let currentLoggedInAdmin = null;
@@ -795,50 +931,37 @@
 
     let supabaseClient = null;
     let students = [];
-    let batches = ["Class 8", "Class 9", "Class 10", "Class 11", "Class 12", "Competitive (WBP/SSC)"];
+    
+    // Batches storing class-wise default fee
+    let batches = [
+      { name: "Class 8", defaultFee: 500 },
+      { name: "Class 9", defaultFee: 550 },
+      { name: "Class 10", defaultFee: 600 },
+      { name: "Class 11", defaultFee: 700 },
+      { name: "Class 12", defaultFee: 800 },
+      { name: "Competitive (WBP/SSC)", defaultFee: 750 }
+    ];
+
     let selectedStudentIdForProfile = null;
     let activeProfileCalendarYear = new Date().getFullYear();
     let activePaymentStudent = null;
     let html5QrScanner = null;
     let activeManageMonthData = null;
-    let deferredPrompt = null; // PWA installation event
 
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-    function toggleExportMenu() { document.getElementById('exportDropdownMenu').classList.toggle('hidden'); }
-
-    // ==================== PWA INSTALL PROMPT & SERVICE WORKER ====================
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      const btn = document.getElementById('pwaInstallBtn');
-      if (btn) btn.classList.remove('hidden');
-    });
-
-    function triggerPWAInstall() {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult) => {
-          if (choiceResult.outcome === 'accepted') {
-            document.getElementById('pwaInstallBtn').classList.add('hidden');
-          }
-          deferredPrompt = null;
-        });
-      }
+    
+    function toggleMobileSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const backdrop = document.getElementById('mobileSidebarBackdrop');
+      sidebar.classList.toggle('-translate-x-full');
+      backdrop.classList.toggle('hidden');
     }
 
-    window.addEventListener('appinstalled', () => {
-      document.getElementById('pwaInstallBtn').classList.add('hidden');
-      deferredPrompt = null;
-    });
-
-    function registerServiceWorker() {
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js').then((reg) => {
-          console.log('PWA Service Worker registered:', reg.scope);
-        }).catch((err) => {
-          console.warn('PWA Service Worker registration failed:', err);
-        });
+    function focusStudentsTable() {
+      document.getElementById('studentsTableSection').scrollIntoView({ behavior: 'smooth' });
+      if (window.innerWidth < 768) {
+        toggleMobileSidebar();
       }
     }
 
@@ -848,9 +971,9 @@
       if (stored) {
         try {
           currentLoggedInAdmin = JSON.parse(stored);
+          applyAdminProfileUI(currentLoggedInAdmin);
           document.getElementById('loginScreen').classList.add('hidden');
           document.getElementById('appContainer').classList.remove('hidden');
-          document.getElementById('activeUserBadge').innerText = currentLoggedInAdmin.displayName;
           initSupabase();
           return;
         } catch(e) {}
@@ -858,6 +981,13 @@
       document.getElementById('loginScreen').classList.remove('hidden');
       document.getElementById('appContainer').classList.add('hidden');
       lucide.createIcons();
+    }
+
+    function applyAdminProfileUI(admin) {
+      const photoEl = document.getElementById('sidebarCollectorPhoto');
+      const nameEl = document.getElementById('sidebarCollectorName');
+      if (photoEl) photoEl.src = admin.photo;
+      if (nameEl) nameEl.innerText = admin.displayName;
     }
 
     function handleLogin(e) {
@@ -868,12 +998,16 @@
 
       const found = ADMIN_ACCOUNTS.find(acc => acc.username.toLowerCase() === u && acc.password === p);
       if (found) {
-        currentLoggedInAdmin = { username: found.username, displayName: found.displayName };
+        currentLoggedInAdmin = { 
+          username: found.username, 
+          displayName: found.displayName,
+          photo: found.photo
+        };
         localStorage.setItem('tuition_current_admin', JSON.stringify(currentLoggedInAdmin));
         errEl.classList.add('hidden');
+        applyAdminProfileUI(currentLoggedInAdmin);
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('appContainer').classList.remove('hidden');
-        document.getElementById('activeUserBadge').innerText = currentLoggedInAdmin.displayName;
         initSupabase();
       } else {
         errEl.classList.remove('hidden');
@@ -881,7 +1015,7 @@
     }
 
     function handleLogout() {
-      if (confirm('Are you sure you want to log out?')) {
+      if (confirm('Are you sure you want to sign out?')) {
         localStorage.removeItem('tuition_current_admin');
         currentLoggedInAdmin = null;
         document.getElementById('loginUsername').value = '';
@@ -894,19 +1028,26 @@
       return currentLoggedInAdmin ? currentLoggedInAdmin.displayName : "Miraj";
     }
 
-    // ==================== SUPABASE INITIALIZATION & REALTIME ====================
+    // ==================== SUPABASE & BATCH DATA MIGRATION ====================
     function initSupabase() {
       const url = DEFAULT_SUPABASE_URL || localStorage.getItem('supabase_cloud_url');
       const key = DEFAULT_SUPABASE_KEY || localStorage.getItem('supabase_cloud_key');
 
-      const statusBadge = document.getElementById('cloudStatusBadge');
-      const statusText = document.getElementById('cloudStatusText');
+      const sidebarCloudText = document.getElementById('sidebarCloudText');
+
+      // Load batches cache with backward compatibility
+      const rawBatches = JSON.parse(localStorage.getItem('cached_batches_v8'));
+      if (rawBatches && rawBatches.length > 0) {
+        if (typeof rawBatches[0] === 'string') {
+          batches = rawBatches.map(b => ({ name: b, defaultFee: 500 }));
+        } else {
+          batches = rawBatches;
+        }
+      }
 
       if (!url || !key) {
-        statusBadge.className = "flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-indigo-950 shadow-sm transition hover:opacity-90";
-        statusText.innerText = "Setup Cloud DB";
+        if (sidebarCloudText) sidebarCloudText.innerText = "Local Mode";
         students = JSON.parse(localStorage.getItem('cached_students_backup')) || [];
-        batches = JSON.parse(localStorage.getItem('cached_batches_backup')) || batches;
         populateBatchDropdowns();
         updateMetrics();
         renderStudents();
@@ -915,9 +1056,7 @@
 
       try {
         supabaseClient = window.supabase.createClient(url, key);
-        statusBadge.className = "flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-400 text-emerald-950 shadow-sm transition hover:opacity-90";
-        statusText.innerText = "Cloud Synced";
-
+        if (sidebarCloudText) sidebarCloudText.innerText = "Cloud Synced";
         fetchCloudData();
         subscribeToCloudRealtime();
       } catch (err) {
@@ -928,9 +1067,13 @@
     async function fetchCloudData() {
       if (!supabaseClient) return;
 
-      const { data: bData, error: bErr } = await supabaseClient.from('batches').select('name');
+      const { data: bData, error: bErr } = await supabaseClient.from('batches').select('*');
       if (!bErr && bData && bData.length > 0) {
-        batches = bData.map(b => b.name);
+        batches = bData.map(b => ({
+          name: b.name,
+          defaultFee: parseFloat(b.default_fee) || 500
+        }));
+        localStorage.setItem('cached_batches_v8', JSON.stringify(batches));
       }
 
       const { data: sData, error: sErr } = await supabaseClient.from('students').select('*').order('created_at', { ascending: false });
@@ -950,7 +1093,6 @@
           history: s.history || []
         }));
         localStorage.setItem('cached_students_backup', JSON.stringify(students));
-        localStorage.setItem('cached_batches_backup', JSON.stringify(batches));
       }
 
       populateBatchDropdowns();
@@ -1027,6 +1169,202 @@
       renderStudents();
     }
 
+    // ==================== BATCH MANAGER & CLASS-WISE FEES ====================
+    function openBatchManagerModal() {
+      renderBatchList();
+      openModal('batchManagerModal');
+      if (window.innerWidth < 768) {
+        toggleMobileSidebar();
+      }
+    }
+
+    function renderBatchList() {
+      const container = document.getElementById('batchListContainer');
+      document.getElementById('batchCountBadge').innerText = batches.length;
+      container.innerHTML = '';
+
+      batches.forEach((b, index) => {
+        const studentCount = students.filter(s => s.class === b.name).length;
+        const item = document.createElement('div');
+        item.className = "flex items-center justify-between bg-white px-3 py-2.5 rounded-lg border border-slate-200 text-xs shadow-sm";
+        item.innerHTML = `
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-slate-800">${b.name}</span>
+              <span class="text-[11px] font-black text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-md">₹${b.defaultFee} / mo</span>
+            </div>
+            <span class="text-[10px] text-slate-400 mt-0.5 block">${studentCount} students enrolled</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <button onclick="editBatchFee(${index})" class="text-indigo-600 hover:text-indigo-800 p-1.5 rounded hover:bg-indigo-50 transition" title="Edit Default Fee">
+              <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+            </button>
+            <button onclick="deleteBatch('${b.name.replace(/'/g, "\\'")}')" class="text-rose-500 hover:text-rose-700 p-1.5 rounded hover:bg-rose-50 transition" title="Delete Batch">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+      lucide.createIcons();
+    }
+
+    async function addNewBatch() {
+      const nameInput = document.getElementById('newBatchNameInput');
+      const feeInput = document.getElementById('newBatchFeeInput');
+
+      const nameVal = nameInput.value.trim();
+      const feeVal = parseFloat(feeInput.value) || 500;
+
+      if (!nameVal) {
+        alert('Please enter a batch or class name.');
+        return;
+      }
+      if (batches.some(b => b.name.toLowerCase() === nameVal.toLowerCase())) {
+        alert('A batch with this name already exists.');
+        return;
+      }
+
+      const newBatchObj = { name: nameVal, defaultFee: feeVal };
+      batches.push(newBatchObj);
+      localStorage.setItem('cached_batches_v8', JSON.stringify(batches));
+
+      if (supabaseClient) {
+        await supabaseClient.from('batches').upsert([{ name: nameVal, default_fee: feeVal }]);
+      }
+
+      nameInput.value = '';
+      feeInput.value = '';
+      populateBatchDropdowns();
+      renderBatchList();
+      updateMetrics();
+    }
+
+    async function editBatchFee(index) {
+      const b = batches[index];
+      const newFeeStr = prompt(`Enter new default monthly fee for "${b.name}":`, b.defaultFee);
+      if (newFeeStr === null) return;
+      const newFee = parseFloat(newFeeStr);
+      if (isNaN(newFee) || newFee < 0) {
+        alert('Please enter a valid numeric fee.');
+        return;
+      }
+
+      b.defaultFee = newFee;
+      localStorage.setItem('cached_batches_v8', JSON.stringify(batches));
+
+      if (supabaseClient) {
+        await supabaseClient.from('batches').upsert([{ name: b.name, default_fee: newFee }]);
+      }
+
+      populateBatchDropdowns();
+      renderBatchList();
+    }
+
+    async function deleteBatch(batchName) {
+      const count = students.filter(s => s.class === batchName).length;
+      if (count > 0) {
+        alert(`Cannot delete batch "${batchName}" because it has ${count} student(s) enrolled.`);
+        return;
+      }
+      if (confirm(`Delete batch "${batchName}"?`)) {
+        batches = batches.filter(b => b.name !== batchName);
+        localStorage.setItem('cached_batches_v8', JSON.stringify(batches));
+        if (supabaseClient) {
+          await supabaseClient.from('batches').delete().eq('name', batchName);
+        }
+        populateBatchDropdowns();
+        renderBatchList();
+        updateMetrics();
+      }
+    }
+
+    function populateBatchDropdowns() {
+      const filterSelect = document.getElementById('filterClass');
+      const addSelect = document.getElementById('mClass');
+      const currentFilter = filterSelect.value || "ALL";
+
+      filterSelect.innerHTML = `<option value="ALL">All Batches (${batches.length})</option>`;
+      addSelect.innerHTML = '';
+
+      batches.forEach(b => {
+        filterSelect.innerHTML += `<option value="${b.name}">${b.name}</option>`;
+        addSelect.innerHTML += `<option value="${b.name}">${b.name} (₹${b.defaultFee}/mo)</option>`;
+      });
+
+      if (batches.some(b => b.name === currentFilter)) filterSelect.value = currentFilter;
+      else filterSelect.value = "ALL";
+    }
+
+    // ==================== NEW ADMISSION (AUTO-FETCH & EDITABLE FEE) ====================
+    function openAddStudentModal() {
+      document.getElementById('studentForm').reset();
+      populateBatchDropdowns();
+      
+      const todayStr = new Date().toISOString().slice(0, 10);
+      document.getElementById('mAdmissionDate').value = todayStr;
+      document.getElementById('mDueDay').value = new Date().getDate();
+
+      // Automatically fetch and set the default fee for the first batch
+      handleAdmissionBatchChange();
+
+      openModal('addStudentModal');
+    }
+
+    // When student batch changes -> auto-populate fee (still editable)
+    function handleAdmissionBatchChange() {
+      const selectedBatchName = document.getElementById('mClass').value;
+      const found = batches.find(b => b.name === selectedBatchName);
+      if (found) {
+        document.getElementById('mMonthlyFee').value = found.defaultFee || 0;
+      }
+    }
+
+    function syncDueDayFromAdmission() {
+      const dateVal = document.getElementById('mAdmissionDate').value;
+      if (dateVal) {
+        const d = new Date(dateVal);
+        document.getElementById('mDueDay').value = d.getDate();
+      }
+    }
+
+    async function saveNewStudent(e) {
+      e.preventDefault();
+      const roll = document.getElementById('mRoll').value.trim();
+      const name = document.getElementById('mName').value.trim();
+      const cls = document.getElementById('mClass').value;
+      const monthlyFee = parseFloat(document.getElementById('mMonthlyFee').value) || 0;
+      const phone = document.getElementById('mPhone').value.trim().replace(/\D/g, '');
+      const admissionDate = document.getElementById('mAdmissionDate').value || new Date().toISOString().slice(0, 10);
+      const dueDay = parseInt(document.getElementById('mDueDay').value, 10) || new Date(admissionDate).getDate();
+      const initialAdvance = parseFloat(document.getElementById('mInitialAdvance').value) || 0;
+
+      if (students.some(s => s.roll.toLowerCase() === roll.toLowerCase())) {
+        alert('A student with this Roll Number is already registered!');
+        return;
+      }
+
+      const newStudent = {
+        id: 'S' + Date.now(),
+        roll,
+        name,
+        class: cls,
+        monthlyFee,
+        phone,
+        admissionDate,
+        dueDay,
+        advanceBalance: initialAdvance,
+        paidMonths: [],
+        exemptedMonths: [],
+        history: []
+      };
+
+      students.unshift(newStudent);
+      await syncStudentToCloud(newStudent);
+      closeModal('addStudentModal');
+      viewStudentProfile(newStudent.id);
+    }
+
     // ==================== MATURITY & DUES CALCULATION ====================
     function getMonthStatus(student, monthIndex, year) {
       const monthName = MONTH_NAMES[monthIndex];
@@ -1036,6 +1374,7 @@
       const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const dueDay = student.dueDay || 1;
 
+      // Maturity date is in the NEXT calendar month on the cycle dueDay
       const maturityDate = new Date(year, monthIndex + 1, dueDay);
 
       if ((student.paidMonths || []).includes(key)) {
@@ -1152,7 +1491,7 @@
       };
     }
 
-    // ==================== CALENDAR TILE CLICK ====================
+    // ==================== CALENDAR TILE CLICK (PAY / UNPAY) ====================
     function handleCalendarTileClick(studentId, monthIndex, year) {
       const s = students.find(item => item.id === studentId);
       if (!s) return;
@@ -1383,6 +1722,72 @@
       alert(`Month ${monthKey} exempted in cloud by ${collector} for ${s.name}.`);
     }
 
+    // ==================== GLOBAL PAYMENT HISTORY ====================
+    function openGlobalPaymentHistoryModal() {
+      renderGlobalPaymentHistory();
+      openModal('globalPaymentHistoryModal');
+      if (window.innerWidth < 768) {
+        toggleMobileSidebar();
+      }
+    }
+
+    function renderGlobalPaymentHistory() {
+      const tbody = document.getElementById('globalHistoryTableBody');
+      const selectedCollector = document.getElementById('historyCollectorFilter').value;
+      tbody.innerHTML = '';
+
+      const allTxns = [];
+      students.forEach(s => {
+        (s.history || []).forEach(h => {
+          allTxns.push({
+            studentName: s.name,
+            roll: s.roll,
+            class: s.class,
+            date: h.date,
+            amount: h.amount || 0,
+            mode: h.mode,
+            collectedBy: h.collectedBy || "Miraj",
+            note: h.note || '-',
+            monthCovered: h.monthCovered || '',
+            type: h.type || 'Payment'
+          });
+        });
+      });
+
+      allTxns.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      let totalSum = 0;
+      const filtered = allTxns.filter(t => {
+        return selectedCollector === 'ALL' || t.collectedBy.toLowerCase() === selectedCollector.toLowerCase();
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-400">No payment records found for this selection.</td></tr>`;
+      } else {
+        filtered.forEach(t => {
+          totalSum += t.amount;
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
+          tr.innerHTML = `
+            <td class="py-2.5 px-3 font-medium text-slate-700">${formatDateDMY(t.date)}</td>
+            <td class="py-2.5 px-3 font-bold text-slate-900">${t.studentName}</td>
+            <td class="py-2.5 px-3 font-mono text-slate-600">#${t.roll} (${t.class})</td>
+            <td class="py-2.5 px-3 font-bold text-emerald-700">₹${t.amount}</td>
+            <td class="py-2.5 px-3">
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-100 text-indigo-800">
+                ${t.collectedBy}
+              </span>
+            </td>
+            <td class="py-2.5 px-3 text-slate-600">${t.mode}</td>
+            <td class="py-2.5 px-3 text-slate-500">${t.note}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      document.getElementById('historyTotalSumText').innerText = `Total Collected: ₹${totalSum.toLocaleString('en-IN')}`;
+    }
+
     // ==================== PROFILE DRAWER & CALENDAR ====================
     function changeProfileCalendarYear(delta) {
       activeProfileCalendarYear += delta;
@@ -1442,6 +1847,7 @@
 
       renderProfileCalendar(s, activeProfileCalendarYear);
 
+      // Ledger Table
       const historyTbody = document.getElementById('profHistoryTable');
       historyTbody.innerHTML = '';
       if (!s.history || s.history.length === 0) {
@@ -1679,145 +2085,7 @@
       }
     }
 
-    // ==================== BATCH MANAGEMENT ====================
-    function openBatchManagerModal() {
-      renderBatchList();
-      openModal('batchManagerModal');
-    }
-
-    function renderBatchList() {
-      const container = document.getElementById('batchListContainer');
-      document.getElementById('batchCountBadge').innerText = batches.length;
-      container.innerHTML = '';
-
-      batches.forEach(b => {
-        const studentCount = students.filter(s => s.class === b).length;
-        const item = document.createElement('div');
-        item.className = "flex items-center justify-between bg-white px-3 py-2 rounded-lg border border-slate-200 text-xs";
-        item.innerHTML = `
-          <div>
-            <span class="font-bold text-slate-800">${b}</span>
-            <span class="ml-2 text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">${studentCount} students</span>
-          </div>
-          <button onclick="deleteBatch('${b.replace(/'/g, "\\'")}')" class="text-rose-500 hover:text-rose-700 p-1 rounded hover:bg-rose-50 transition" title="Delete Batch">
-            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-          </button>
-        `;
-        container.appendChild(item);
-      });
-      lucide.createIcons();
-    }
-
-    async function addNewBatch() {
-      const input = document.getElementById('newBatchInput');
-      const val = input.value.trim();
-      if (!val) return;
-      if (batches.some(b => b.toLowerCase() === val.toLowerCase())) {
-        alert('A batch with this name already exists.');
-        return;
-      }
-      batches.push(val);
-      if (supabaseClient) {
-        await supabaseClient.from('batches').insert([{ name: val }]);
-      }
-      input.value = '';
-      populateBatchDropdowns();
-      renderBatchList();
-      updateMetrics();
-    }
-
-    async function deleteBatch(batchName) {
-      const count = students.filter(s => s.class === batchName).length;
-      if (count > 0) {
-        alert(`Cannot delete batch "${batchName}" because it has ${count} student(s) enrolled.`);
-        return;
-      }
-      if (confirm(`Delete batch "${batchName}" from cloud?`)) {
-        batches = batches.filter(b => b !== batchName);
-        if (supabaseClient) {
-          await supabaseClient.from('batches').delete().eq('name', batchName);
-        }
-        populateBatchDropdowns();
-        renderBatchList();
-        updateMetrics();
-      }
-    }
-
-    function populateBatchDropdowns() {
-      const filterSelect = document.getElementById('filterClass');
-      const addSelect = document.getElementById('mClass');
-      const currentFilter = filterSelect.value || "ALL";
-
-      filterSelect.innerHTML = `<option value="ALL">All Batches (${batches.length})</option>`;
-      addSelect.innerHTML = '';
-
-      batches.forEach(b => {
-        filterSelect.innerHTML += `<option value="${b}">${b}</option>`;
-        addSelect.innerHTML += `<option value="${b}">${b}</option>`;
-      });
-
-      if (batches.includes(currentFilter)) filterSelect.value = currentFilter;
-      else filterSelect.value = "ALL";
-    }
-
-    // ==================== NEW ADMISSION ====================
-    function openAddStudentModal() {
-      document.getElementById('studentForm').reset();
-      populateBatchDropdowns();
-      
-      const todayStr = new Date().toISOString().slice(0, 10);
-      document.getElementById('mAdmissionDate').value = todayStr;
-      document.getElementById('mDueDay').value = new Date().getDate();
-
-      openModal('addStudentModal');
-    }
-
-    function syncDueDayFromAdmission() {
-      const dateVal = document.getElementById('mAdmissionDate').value;
-      if (dateVal) {
-        const d = new Date(dateVal);
-        document.getElementById('mDueDay').value = d.getDate();
-      }
-    }
-
-    async function saveNewStudent(e) {
-      e.preventDefault();
-      const roll = document.getElementById('mRoll').value.trim();
-      const name = document.getElementById('mName').value.trim();
-      const cls = document.getElementById('mClass').value;
-      const monthlyFee = parseFloat(document.getElementById('mMonthlyFee').value) || 0;
-      const phone = document.getElementById('mPhone').value.trim().replace(/\D/g, '');
-      const admissionDate = document.getElementById('mAdmissionDate').value || new Date().toISOString().slice(0, 10);
-      const dueDay = parseInt(document.getElementById('mDueDay').value, 10) || new Date(admissionDate).getDate();
-      const initialAdvance = parseFloat(document.getElementById('mInitialAdvance').value) || 0;
-
-      if (students.some(s => s.roll.toLowerCase() === roll.toLowerCase())) {
-        alert('A student with this Roll Number is already registered!');
-        return;
-      }
-
-      const newStudent = {
-        id: 'S' + Date.now(),
-        roll,
-        name,
-        class: cls,
-        monthlyFee,
-        phone,
-        admissionDate,
-        dueDay,
-        advanceBalance: initialAdvance,
-        paidMonths: [],
-        exemptedMonths: [],
-        history: []
-      };
-
-      students.unshift(newStudent);
-      await syncStudentToCloud(newStudent);
-      closeModal('addStudentModal');
-      viewStudentProfile(newStudent.id);
-    }
-
-    // ==================== WHATSAPP NOTICE ====================
+    // ==================== WHATSAPP NOTICE (DD/MM/YYYY) ====================
     function sendWhatsAppReminder(id) {
       const s = students.find(item => item.id === id);
       if (!s) return;
@@ -2059,7 +2327,7 @@
       lucide.createIcons();
     }
 
-    // ==================== EXPORTS (CLEAN WITHOUT REF ID) ====================
+    // ==================== EXPORTS (DD/MM/YYYY) ====================
     function exportToExcel() {
       const wb = XLSX.utils.book_new();
 
@@ -2172,7 +2440,6 @@
 
     // Startup
     window.addEventListener('DOMContentLoaded', () => {
-      registerServiceWorker();
       checkAuthSession();
     });
   </script>
