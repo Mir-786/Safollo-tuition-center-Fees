@@ -2,8 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Tuition Fee Management System</title>
+
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#4338ca">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Tuition Portal">
+
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
@@ -27,7 +36,7 @@
     }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-900 font-sans min-h-screen">
+<body class="bg-slate-50 text-slate-900 font-sans min-h-screen select-none">
 
   <!-- ==================== LOGIN SCREEN OVERLAY ==================== -->
   <div id="loginScreen" class="fixed inset-0 bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-950 z-50 flex items-center justify-center p-4">
@@ -36,7 +45,7 @@
         <div class="inline-flex p-3 bg-indigo-600 rounded-2xl text-amber-300 shadow-inner mb-3">
           <i data-lucide="graduation-cap" class="w-8 h-8"></i>
         </div>
-        <h2 class="text-xl font-bold tracking-tight">Safollo Tuition Fee Portal</h2>
+        <h2 class="text-xl font-bold tracking-tight">Tuition Fee Portal</h2>
         <p class="text-xs text-indigo-200 mt-1">Authorized Staff & Admin Login</p>
       </div>
 
@@ -49,7 +58,7 @@
           <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Username</label>
           <div class="relative">
             <i data-lucide="user" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
-            <input type="text" id="loginUsername" required placeholder="User Name" class="w-full pl-9 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-800">
+            <input type="text" id="loginUsername" required placeholder="miraj / moyna / abida" class="w-full pl-9 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-800">
           </div>
         </div>
 
@@ -66,7 +75,7 @@
         </button>
 
         <div class="pt-3 border-t border-slate-100 text-center">
-          <p class="text-[11px] text-slate-400">Authorized Accounts</p>
+          <p class="text-[11px] text-slate-400">Staff Accounts: Miraj, Moyna, Abida</p>
         </div>
       </form>
     </div>
@@ -83,7 +92,7 @@
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <h1 class="text-lg font-bold tracking-tight">Safollo Tuition Fee Portal</h1>
+              <h1 class="text-lg font-bold tracking-tight">Tuition Fee Portal</h1>
               <button onclick="openCloudConfigModal()" id="cloudStatusBadge" class="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-indigo-950 shadow-sm transition hover:opacity-90">
                 <span class="w-2 h-2 rounded-full bg-amber-600 animate-ping"></span>
                 <span id="cloudStatusText">Setup Cloud</span>
@@ -98,6 +107,11 @@
         
         <!-- Action Toolbar -->
         <div class="flex items-center gap-2 flex-wrap">
+          <!-- PWA Native Install Button (Appears when installable) -->
+          <button id="pwaInstallBtn" onclick="triggerPWAInstall()" class="hidden bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-2 rounded-lg text-xs font-bold items-center gap-1.5 transition shadow animate-pulse">
+            <i data-lucide="smartphone" class="w-4 h-4"></i> Install App
+          </button>
+
           <button onclick="openBatchManagerModal()" class="bg-indigo-800 hover:bg-indigo-900 text-indigo-100 hover:text-white px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition border border-indigo-600">
             <i data-lucide="layers" class="w-4 h-4 text-amber-300"></i> Batches
           </button>
@@ -412,7 +426,7 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL: MANAGE PAID / ADVANCE MONTH (UNPAID / UNADVANCE) ==================== -->
+  <!-- ==================== MODAL: MANAGE PAID / ADVANCE MONTH ==================== -->
   <div id="managePaidMonthModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden animate-fade-in">
       <div class="bg-slate-800 px-5 py-4 flex justify-between items-center text-white">
@@ -755,7 +769,6 @@
     const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const SHORT_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-    // Date/Month/Year Format Engine (DD/MM/YYYY)
     function formatDateDMY(dateInput) {
       if (!dateInput) return "-";
       let d;
@@ -782,16 +795,52 @@
 
     let supabaseClient = null;
     let students = [];
-    let batches = ["Class 8", "Class 9", "Class 10", "Class 11", "Class 12"];
+    let batches = ["Class 8", "Class 9", "Class 10", "Class 11", "Class 12", "Competitive (WBP/SSC)"];
     let selectedStudentIdForProfile = null;
     let activeProfileCalendarYear = new Date().getFullYear();
     let activePaymentStudent = null;
     let html5QrScanner = null;
-    let activeManageMonthData = null; // Holds student & month clicked for Unpay/Unadvance
+    let activeManageMonthData = null;
+    let deferredPrompt = null; // PWA installation event
 
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
     function toggleExportMenu() { document.getElementById('exportDropdownMenu').classList.toggle('hidden'); }
+
+    // ==================== PWA INSTALL PROMPT & SERVICE WORKER ====================
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const btn = document.getElementById('pwaInstallBtn');
+      if (btn) btn.classList.remove('hidden');
+    });
+
+    function triggerPWAInstall() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            document.getElementById('pwaInstallBtn').classList.add('hidden');
+          }
+          deferredPrompt = null;
+        });
+      }
+    }
+
+    window.addEventListener('appinstalled', () => {
+      document.getElementById('pwaInstallBtn').classList.add('hidden');
+      deferredPrompt = null;
+    });
+
+    function registerServiceWorker() {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').then((reg) => {
+          console.log('PWA Service Worker registered:', reg.scope);
+        }).catch((err) => {
+          console.warn('PWA Service Worker registration failed:', err);
+        });
+      }
+    }
 
     // ==================== AUTHENTICATION GATE ====================
     function checkAuthSession() {
@@ -987,7 +1036,6 @@
       const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const dueDay = student.dueDay || 1;
 
-      // Maturity date is in the NEXT calendar month on the cycle dueDay
       const maturityDate = new Date(year, monthIndex + 1, dueDay);
 
       if ((student.paidMonths || []).includes(key)) {
@@ -1104,7 +1152,7 @@
       };
     }
 
-    // ==================== CALENDAR TILE CLICK (PAY / UNPAY / UNADVANCE) ====================
+    // ==================== CALENDAR TILE CLICK ====================
     function handleCalendarTileClick(studentId, monthIndex, year) {
       const s = students.find(item => item.id === studentId);
       if (!s) return;
@@ -1113,7 +1161,6 @@
       const targetMonthName = MONTH_NAMES[monthIndex];
       const monthKey = formatMonthKey(targetMonthName, year);
 
-      // If already paid or advance paid -> Open Manage Paid Month Modal (Unpay / Unadvance)
       if (info.status === 'PAID' || info.status === 'PAID_ADVANCE') {
         activeManageMonthData = {
           studentId: s.id,
@@ -1151,7 +1198,6 @@
         return;
       }
 
-      // If Due or Upcoming -> Open Click to Pay Modal
       document.getElementById('targetMonthStudentId').value = s.id;
       document.getElementById('targetMonthKey').value = monthKey;
       document.getElementById('targetMonthTitle').innerText = monthKey;
@@ -1169,7 +1215,6 @@
       openModal('clickMonthPayModal');
     }
 
-    // Unpay / Unadvance execution
     async function executeUnpayMonth() {
       if (!activeManageMonthData) return;
       const { studentId, monthKey, isAdvance } = activeManageMonthData;
@@ -1397,7 +1442,6 @@
 
       renderProfileCalendar(s, activeProfileCalendarYear);
 
-      // Ledger Table (Clean without Ref ID)
       const historyTbody = document.getElementById('profHistoryTable');
       historyTbody.innerHTML = '';
       if (!s.history || s.history.length === 0) {
@@ -1773,7 +1817,7 @@
       viewStudentProfile(newStudent.id);
     }
 
-    // ==================== WHATSAPP NOTICE (DD/MM/YYYY) ====================
+    // ==================== WHATSAPP NOTICE ====================
     function sendWhatsAppReminder(id) {
       const s = students.find(item => item.id === id);
       if (!s) return;
@@ -2128,6 +2172,7 @@
 
     // Startup
     window.addEventListener('DOMContentLoaded', () => {
+      registerServiceWorker();
       checkAuthSession();
     });
   </script>
