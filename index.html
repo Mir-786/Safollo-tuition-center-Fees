@@ -240,12 +240,12 @@
             <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl"><i data-lucide="users" class="w-5 h-5"></i></div>
           </div>
 
-          <!-- DUES CARD WITH MONTH / YEAR FILTER & CLICK TO INSPECT -->
-          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <!-- DUES CARD (DIRECTLY FILTERS DIRECTORY ON CHANGE) -->
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between cursor-pointer hover:border-rose-300 transition" onclick="applyDueCardFilter()">
             <div>
               <div class="flex items-center justify-between gap-1 mb-2">
                 <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Outstanding Dues</p>
-                <select id="dueFilterPeriod" onchange="updateMetrics()" class="text-[10px] font-bold border border-slate-200 rounded px-1.5 py-0.5 bg-slate-50 focus:outline-none">
+                <select id="dueFilterPeriod" onclick="event.stopPropagation()" onchange="onDueFilterChange()" class="text-[10px] font-bold border border-slate-200 rounded px-1.5 py-0.5 bg-slate-50 focus:outline-none">
                   <option value="MATURED_TODAY" selected>Matured Today</option>
                   <option value="THIS_MONTH">This Month</option>
                   <option value="CUSTOM_MONTH">Select Month</option>
@@ -255,9 +255,9 @@
               </div>
 
               <!-- Secondary Selectors for Due Month/Year -->
-              <div id="dueCustomPickers" class="hidden flex items-center gap-1 mb-2">
-                <select id="dueMonthSelect" onchange="updateMetrics()" class="text-[10px] border border-slate-200 rounded px-1 py-0.5 bg-slate-50"></select>
-                <select id="dueYearSelect" onchange="updateMetrics()" class="text-[10px] border border-slate-200 rounded px-1 py-0.5 bg-slate-50"></select>
+              <div id="dueCustomPickers" class="hidden flex items-center gap-1 mb-2" onclick="event.stopPropagation()">
+                <select id="dueMonthSelect" onchange="onDueFilterChange()" class="text-[10px] border border-slate-200 rounded px-1 py-0.5 bg-slate-50"></select>
+                <select id="dueYearSelect" onchange="onDueFilterChange()" class="text-[10px] border border-slate-200 rounded px-1 py-0.5 bg-slate-50"></select>
               </div>
 
               <div class="flex items-baseline justify-between">
@@ -270,13 +270,13 @@
             </div>
 
             <!-- CLICK TO INSPECT DUE STUDENTS BUTTON -->
-            <button onclick="openDueBreakdownModal()" class="w-full mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-rose-700 hover:text-rose-900 transition group">
-              <span>View Due Student List</span>
+            <button onclick="event.stopPropagation(); openDueBreakdownModal()" class="w-full mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-rose-700 hover:text-rose-900 transition group">
+              <span>Inspect Due Students List</span>
               <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-0.5 transition-transform"></i>
             </button>
           </div>
 
-          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:border-cyan-300 transition" onclick="applyAdvanceCardFilter()">
             <div>
               <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Advance Held</p>
               <h3 class="text-2xl font-bold text-cyan-600 mt-1" id="kpiTotalAdvance">₹0</h3>
@@ -285,12 +285,12 @@
             <div class="p-3 bg-cyan-50 text-cyan-600 rounded-xl"><i data-lucide="wallet-cards" class="w-5 h-5"></i></div>
           </div>
 
-          <!-- FEES COLLECTION CARD (FILTERABLE) -->
-          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <!-- FEES COLLECTION CARD (DIRECTLY FILTERS DIRECTORY ON CHANGE) -->
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between cursor-pointer hover:border-emerald-300 transition" onclick="applyCollectionCardFilter()">
             <div>
               <div class="flex items-center justify-between gap-1 mb-2">
                 <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Collections</span>
-                <select id="collectionPeriodFilter" onchange="updateCollectionMetrics()" class="text-[10px] font-bold border border-slate-200 rounded px-1.5 py-0.5 bg-slate-50 focus:outline-none">
+                <select id="collectionPeriodFilter" onclick="event.stopPropagation()" onchange="onCollectionFilterChange()" class="text-[10px] font-bold border border-slate-200 rounded px-1.5 py-0.5 bg-slate-50 focus:outline-none">
                   <option value="TODAY">Today</option>
                   <option value="MONTH" selected>This Month</option>
                   <option value="CUSTOM_MONTH">Select Month</option>
@@ -300,9 +300,9 @@
               </div>
 
               <!-- Secondary Selectors for Collection Month/Year -->
-              <div id="collectionCustomPickers" class="hidden flex items-center gap-1 mb-2">
-                <select id="colMonthSelect" onchange="updateCollectionMetrics()" class="text-[10px] border border-slate-200 rounded px-1 py-0.5 bg-slate-50"></select>
-                <select id="colYearSelect" onchange="updateCollectionMetrics()" class="text-[10px] border border-slate-200 rounded px-1 py-0.5 bg-slate-50"></select>
+              <div id="collectionCustomPickers" class="hidden flex items-center gap-1 mb-2" onclick="event.stopPropagation()">
+                <select id="colMonthSelect" onchange="onCollectionFilterChange()" class="text-[10px] border border-slate-200 rounded px-1 py-0.5 bg-slate-50"></select>
+                <select id="colYearSelect" onchange="onCollectionFilterChange()" class="text-[10px] border border-slate-200 rounded px-1 py-0.5 bg-slate-50"></select>
               </div>
 
               <div class="flex items-baseline justify-between">
@@ -339,11 +339,13 @@
               <!-- Batches populated dynamically -->
             </select>
 
+            <!-- DIRECTORY FILTER STATUS LINKED TO ACTIVE DUE & COLLECTION FILTERS -->
             <select id="filterStatus" onchange="renderStudents()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium">
               <option value="ALL">All Status</option>
-              <option value="DUE">Pending Due Today</option>
+              <option value="DUE">Pending Due (Active Due Filter)</option>
+              <option value="COLLECTED">Collected / Paid (Active Collection Filter)</option>
               <option value="ADVANCE">With Advance Balance</option>
-              <option value="PAID">All Dues Cleared</option>
+              <option value="PAID">All Dues Cleared (Zero Due)</option>
             </select>
           </div>
         </section>
@@ -358,8 +360,8 @@
                   <th class="py-3 px-4 whitespace-nowrap">Student & Contact</th>
                   <th class="py-3 px-4 whitespace-nowrap">Batch</th>
                   <th class="py-3 px-4 whitespace-nowrap">Monthly Fee & Cycle</th>
-                  <th class="py-3 px-4 whitespace-nowrap">Dues & Advance Balance</th>
-                  <th class="py-3 px-4 whitespace-nowrap">Calendar Status</th>
+                  <th class="py-3 px-4 whitespace-nowrap" id="tableDueHeaderCol">Dues (Matured) & Advance</th>
+                  <th class="py-3 px-4 whitespace-nowrap">Calendar / Payment Status</th>
                   <th class="py-3 px-4 text-center whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
@@ -548,8 +550,8 @@
             <label class="block text-xs font-bold text-indigo-900 uppercase mb-1">Monthly Due Day</label>
             <div class="flex items-center gap-1">
               <span class="text-xs text-slate-500">Every</span>
-              <input type="number" id="editDueDay" min="1" max="31" required class="w-16 px-2 py-1.5 border rounded-lg bg-white text-xs font-bold text-center focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-              <span class="text-xs text-slate-500">th</span>
+              <input type="number" id="editDueDay" min="1" max="31" required class="w-16 px-2 py-1.5 border rounded-lg bg-white text-xs font-bold text-center focus:ring-2 focus:ring-indigo-500 focus:outline-none" oninput="updateDueDaySuffix('editDueDay', 'editDueDaySuffix')">
+              <span class="text-xs text-slate-700 font-bold" id="editDueDaySuffix">th</span>
             </div>
           </div>
         </div>
@@ -632,8 +634,8 @@
             <label class="block text-xs font-bold text-indigo-900 uppercase mb-1">Monthly Due Day</label>
             <div class="flex items-center gap-1">
               <span class="text-xs text-slate-500">Every</span>
-              <input type="number" id="mDueDay" min="1" max="31" required class="w-16 px-2 py-1.5 border rounded-lg bg-white text-xs font-bold text-center focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-              <span class="text-xs text-slate-500">th</span>
+              <input type="number" id="mDueDay" min="1" max="31" required class="w-16 px-2 py-1.5 border rounded-lg bg-white text-xs font-bold text-center focus:ring-2 focus:ring-indigo-500 focus:outline-none" oninput="updateDueDaySuffix('mDueDay', 'mDueDaySuffix')">
+              <span class="text-xs text-slate-700 font-bold" id="mDueDaySuffix">th</span>
             </div>
           </div>
           <p class="text-[10px] text-indigo-700 col-span-2">Fees mature after next month's payment date.</p>
@@ -1101,6 +1103,32 @@
     const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const SHORT_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
+    // ==================== ENGLISH ORDINAL SUFFIX ENGINE ====================
+    function getOrdinalSuffix(day) {
+      const d = parseInt(day, 10);
+      if (isNaN(d)) return "";
+      if (d % 100 >= 11 && d % 100 <= 13) return "th";
+      switch (d % 10) {
+        case 1: return "st";
+        case 2: return "nd";
+        case 3: return "rd";
+        default: return "th";
+      }
+    }
+
+    function formatDayOrdinal(day) {
+      const d = parseInt(day, 10) || 1;
+      return `${d}${getOrdinalSuffix(d)}`;
+    }
+
+    function updateDueDaySuffix(inputId, suffixId) {
+      const val = document.getElementById(inputId).value;
+      const suf = getOrdinalSuffix(val);
+      const el = document.getElementById(suffixId);
+      if (el) el.innerText = suf;
+    }
+
+    // Date/Month/Year Format Engine (DD/MM/YYYY)
     function formatDateDMY(dateInput) {
       if (!dateInput) return "-";
       let d;
@@ -1144,7 +1172,12 @@
     let activeManageMonthData = null;
 
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+    function closeModal(id) { 
+      if (id === 'profileModal') {
+        selectedStudentIdForProfile = null;
+      }
+      document.getElementById(id).classList.add('hidden'); 
+    }
 
     // PROPER PROFILE MODAL CLOSE TO PREVENT POP-UP LOOP
     function closeProfileModal() {
@@ -1164,6 +1197,79 @@
       if (window.innerWidth < 768) {
         toggleMobileSidebar();
       }
+    }
+
+    // ==================== KPI CARD CLICK TO FILTER DIRECTORY ====================
+    function applyDueCardFilter() {
+      const filterSelect = document.getElementById('filterStatus');
+      filterSelect.value = 'DUE';
+      renderStudents();
+      focusStudentsTable();
+    }
+
+    function applyCollectionCardFilter() {
+      const filterSelect = document.getElementById('filterStatus');
+      filterSelect.value = 'COLLECTED';
+      renderStudents();
+      focusStudentsTable();
+    }
+
+    function applyAdvanceCardFilter() {
+      const filterSelect = document.getElementById('filterStatus');
+      filterSelect.value = 'ADVANCE';
+      renderStudents();
+      focusStudentsTable();
+    }
+
+    // ==================== FILTER CHANGE HANDLERS ====================
+    function onDueFilterChange() {
+      updateMetrics();
+      renderStudents();
+    }
+
+    function onCollectionFilterChange() {
+      updateCollectionMetrics();
+      renderStudents();
+    }
+
+    // Calculate collection made by student in the active collection period
+    function getStudentPeriodCollection(student) {
+      const period = document.getElementById('collectionPeriodFilter').value;
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+      const todayISO = now.toISOString().slice(0, 10);
+      
+      let collectedInPeriod = 0;
+      let txCount = 0;
+      
+      (student.history || []).forEach(h => {
+        if (h.type === 'Exemption') return;
+        const txDate = new Date(h.date);
+        const txYear = txDate.getFullYear();
+        const txMonth = txDate.getMonth();
+        const txISO = typeof h.date === 'string' ? h.date.slice(0, 10) : '';
+        
+        let matches = false;
+        if (period === 'ALL') matches = true;
+        else if (period === 'TODAY') matches = (txISO === todayISO);
+        else if (period === 'MONTH') matches = (txYear === currentYear && txMonth === currentMonth);
+        else if (period === 'CUSTOM_MONTH') {
+          const selMonth = parseInt(document.getElementById('colMonthSelect').value, 10);
+          const selYear = parseInt(document.getElementById('colYearSelect').value, 10);
+          matches = (txYear === selYear && txMonth === selMonth);
+        } else if (period === 'YEAR') {
+          const selYear = parseInt(document.getElementById('colYearSelect').value, 10);
+          matches = (txYear === selYear);
+        }
+
+        if (matches) {
+          collectedInPeriod += (h.amount || 0);
+          txCount++;
+        }
+      });
+
+      return { collectedInPeriod, txCount };
     }
 
     // ==================== PHONE CALL TRIGGER ====================
@@ -1232,6 +1338,7 @@
       document.getElementById('editPhone').value = s.phone || '';
       document.getElementById('editAdmissionDate').value = s.admissionDate || '';
       document.getElementById('editDueDay').value = s.dueDay || 1;
+      updateDueDaySuffix('editDueDay', 'editDueDaySuffix');
 
       const editClassSelect = document.getElementById('editClass');
       editClassSelect.innerHTML = '';
@@ -1726,6 +1833,7 @@
       const todayStr = new Date().toISOString().slice(0, 10);
       document.getElementById('mAdmissionDate').value = todayStr;
       document.getElementById('mDueDay').value = new Date().getDate();
+      updateDueDaySuffix('mDueDay', 'mDueDaySuffix');
 
       handleAdmissionBatchChange();
       openModal('addStudentModal');
@@ -1744,6 +1852,7 @@
       if (dateVal) {
         const d = new Date(dateVal);
         document.getElementById('mDueDay').value = d.getDate();
+        updateDueDaySuffix('mDueDay', 'mDueDaySuffix');
       }
     }
 
@@ -2370,7 +2479,7 @@
       document.getElementById('profJoined').innerText = formatDateDMY(s.admissionDate);
       document.getElementById('profPhone').innerText = s.phone || 'Not provided';
       document.getElementById('profMonthlyFee').innerText = `₹${s.monthlyFee} / month`;
-      document.getElementById('profDueCycle').innerText = `Every ${s.dueDay || 1}th of month`;
+      document.getElementById('profDueCycle').innerText = `Every ${formatDayOrdinal(s.dueDay || 1)} of month`;
       document.getElementById('profAdvanceHeld').innerText = `₹${s.advanceBalance || 0}`;
 
       document.getElementById('profileCalendarYearDisplay').innerText = activeProfileCalendarYear;
@@ -2535,7 +2644,7 @@
 
       document.getElementById('payStudentId').value = s.id;
       document.getElementById('payStudentDetails').innerText = `${s.name} (Roll: ${s.roll} • ${s.class})`;
-      document.getElementById('payStudentFeeRate').innerText = `Cycle: ${s.dueDay}th • ₹${s.monthlyFee}`;
+      document.getElementById('payStudentFeeRate').innerText = `Cycle: ${formatDayOrdinal(s.dueDay)} • ₹${s.monthlyFee}`;
       document.getElementById('payStudentDueBadge').innerText = `Due Today: ₹${dueInfo.netDueToday}`;
       document.getElementById('payStudentAdvBadge').innerText = `Advance: ₹${dueInfo.advanceInWallet}`;
       document.getElementById('genPaymentCollectorDisplay').innerText = collector;
@@ -2674,7 +2783,7 @@
         dueLine += `\n*Advance Wallet Balance: ₹${s.advanceBalance}*`;
       }
 
-      const message = `Dear Guardian, this is an official fee reminder for *${s.name}* (Roll: ${s.roll}, Batch: ${s.class}).\n\n${dueLine}\nMonthly Fee: ₹${s.monthlyFee} (Billed every ${s.dueDay || 1}th of month, matures after next month payment date).\n\nAuthorized Collector: *${collector}*\nPlease clear the balance at your earliest convenience. Thank you!`;
+      const message = `Dear Guardian, this is an official fee reminder for *${s.name}* (Roll: ${s.roll}, Batch: ${s.class}).\n\n${dueLine}\nMonthly Fee: ₹${s.monthlyFee} (Billed every ${formatDayOrdinal(s.dueDay || 1)} of month, matures after next month payment date).\n\nAuthorized Collector: *${collector}*\nPlease clear the balance at your earliest convenience. Thank you!`;
       const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
       window.open(url, '_blank');
     }
@@ -2715,7 +2824,7 @@
       }
     }
 
-    // ==================== METRICS & DUES CALCULATION ====================
+    // ==================== DASHBOARD & REVENUE FILTERS ====================
     function updateCollectionMetrics() {
       const period = document.getElementById('collectionPeriodFilter').value;
       const customPickers = document.getElementById('collectionCustomPickers');
@@ -2837,6 +2946,24 @@
       const search = document.getElementById('searchInput').value.toLowerCase().trim();
       const filterClass = document.getElementById('filterClass').value;
       const filterStatus = document.getElementById('filterStatus').value;
+      const dueFilter = document.getElementById('dueFilterPeriod').value;
+
+      // Update table header label to visually reflect due filter
+      const headerLabelEl = document.getElementById('tableDueHeaderCol');
+      if (headerLabelEl) {
+        if (dueFilter === 'MATURED_TODAY') headerLabelEl.innerText = "Dues (Matured) & Advance";
+        else if (dueFilter === 'THIS_MONTH') headerLabelEl.innerText = "Dues (This Month) & Advance";
+        else if (dueFilter === 'CUSTOM_MONTH') {
+          const m = parseInt(document.getElementById('dueMonthSelect').value, 10);
+          headerLabelEl.innerText = `Dues (${SHORT_MONTHS[m]}) & Advance`;
+        } else if (dueFilter === 'CUSTOM_YEAR') {
+          const y = document.getElementById('dueYearSelect').value;
+          headerLabelEl.innerText = `Dues (${y}) & Advance`;
+        } else {
+          headerLabelEl.innerText = "Dues (All) & Advance";
+        }
+      }
+
       const tbody = document.getElementById('studentTableBody');
       tbody.innerHTML = '';
 
@@ -2846,13 +2973,20 @@
                               (s.phone && s.phone.includes(search));
         const matchesClass = filterClass === 'ALL' || s.class === filterClass;
         
-        const dueInfo = getStudentCalculatedDue(s);
+        const dueInfo = getStudentCalculatedDue(s, dueFilter);
         const hasAdvance = (s.advanceBalance || 0) > 0;
+        const periodCol = getStudentPeriodCollection(s);
 
         let matchesStatus = true;
-        if (filterStatus === 'DUE') matchesStatus = (dueInfo.netDueToday > 0);
-        else if (filterStatus === 'ADVANCE') matchesStatus = hasAdvance;
-        else if (filterStatus === 'PAID') matchesStatus = (dueInfo.netDueToday === 0);
+        if (filterStatus === 'DUE') {
+          matchesStatus = (dueInfo.netDueToday > 0);
+        } else if (filterStatus === 'COLLECTED') {
+          matchesStatus = (periodCol.collectedInPeriod > 0);
+        } else if (filterStatus === 'ADVANCE') {
+          matchesStatus = hasAdvance;
+        } else if (filterStatus === 'PAID') {
+          matchesStatus = (dueInfo.netDueToday === 0);
+        }
 
         return matchesSearch && matchesClass && matchesStatus;
       });
@@ -2864,8 +2998,9 @@
       }
 
       filtered.forEach(s => {
-        const dueInfo = getStudentCalculatedDue(s);
+        const dueInfo = getStudentCalculatedDue(s, dueFilter);
         const hasAdvance = (s.advanceBalance || 0) > 0;
+        const periodCol = getStudentPeriodCollection(s);
 
         let statusBadgesHtml = '';
         const paidCount = (s.paidMonths || []).length;
@@ -2877,8 +3012,11 @@
         if (exemptCount > 0) {
           statusBadgesHtml += `<span class="bg-violet-100 text-violet-800 text-[10px] font-bold px-1.5 py-0.5 rounded">${exemptCount} Exempt</span> `;
         }
+        if (periodCol.collectedInPeriod > 0) {
+          statusBadgesHtml += `<span class="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-1.5 py-0.5 rounded border border-emerald-200">Paid in Period: ₹${periodCol.collectedInPeriod}</span> `;
+        }
         if (dueInfo.netDueToday > 0) {
-          statusBadgesHtml += `<span class="bg-rose-100 text-rose-800 text-[10px] font-bold px-1.5 py-0.5 rounded">Due Today</span>`;
+          statusBadgesHtml += `<span class="bg-rose-100 text-rose-800 text-[10px] font-bold px-1.5 py-0.5 rounded">Due</span>`;
         } else if (hasAdvance) {
           statusBadgesHtml += `<span class="bg-cyan-100 text-cyan-800 text-[10px] font-bold px-1.5 py-0.5 rounded">Adv: ₹${s.advanceBalance}</span>`;
         } else {
@@ -2908,7 +3046,7 @@
           </td>
           <td class="py-3 px-4 whitespace-nowrap">
             <div class="font-bold text-slate-800">₹${s.monthlyFee}</div>
-            <div class="text-[11px] text-indigo-600 font-medium">Every ${s.dueDay || 1}th</div>
+            <div class="text-[11px] text-indigo-600 font-medium">Every ${formatDayOrdinal(s.dueDay || 1)}</div>
           </td>
           <td class="py-3 px-4 whitespace-nowrap">
             <div class="space-y-0.5">
@@ -2964,7 +3102,7 @@
           "Full Name": s.name,
           "Batch / Class": s.class,
           "Admission Date (DD/MM/YYYY)": formatDateDMY(s.admissionDate),
-          "Monthly Billing Cycle": `Every ${s.dueDay || 1}th of month`,
+          "Monthly Billing Cycle": `Every ${formatDayOrdinal(s.dueDay || 1)} of month`,
           "Monthly Fee (₹)": s.monthlyFee,
           "Matured Due Today (₹)": dueInfo.netDueToday,
           "Advance Balance in Cloud (₹)": s.advanceBalance || 0,
@@ -3034,7 +3172,7 @@
           s.roll,
           s.name,
           s.class,
-          `Rs.${s.monthlyFee} (${s.dueDay || 1}th)\nAdm: ${formatDateDMY(s.admissionDate)}`,
+          `Rs.${s.monthlyFee} (${formatDayOrdinal(s.dueDay || 1)})\nAdm: ${formatDateDMY(s.admissionDate)}`,
           `Due: Rs.${dueInfo.netDueToday}\nAdv: Rs.${s.advanceBalance || 0}`,
           dueInfo.breakdownText,
           s.phone || "-"
