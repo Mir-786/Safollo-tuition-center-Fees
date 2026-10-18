@@ -29,7 +29,7 @@
 </head>
 <body class="bg-slate-100 text-slate-900 font-sans min-h-screen">
 
-  <!-- ==================== FULL-SCREEN NO INTERNET CONNECTION SCREEN ==================== -->
+  <!-- ==================== FULL-SCREEN NO INTERNET ALERT ==================== -->
   <div id="offlineOverlay" class="hidden fixed inset-0 bg-slate-950/95 z-[100] flex flex-col items-center justify-center p-6 text-center text-white backdrop-blur-md">
     <div class="relative mb-6">
       <div class="w-24 h-24 rounded-full bg-rose-500/20 border-2 border-rose-500/40 flex items-center justify-center animate-ping absolute inset-0"></div>
@@ -128,7 +128,7 @@
           <p class="text-[11px] text-indigo-300 font-medium">Authorized Fee Collector</p>
           <div class="mt-2 pt-2 border-t border-slate-700/50 flex items-center justify-center gap-1.5">
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span class="text-[10px] font-semibold text-emerald-400" id="sidebarCloudText">Realtime Active</span>
+            <span class="text-[10px] font-semibold text-emerald-400" id="sidebarCloudText">Cloud Realtime</span>
           </div>
         </div>
 
@@ -240,13 +240,40 @@
             <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl"><i data-lucide="users" class="w-5 h-5"></i></div>
           </div>
 
-          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+          <!-- DUES CARD WITH MONTH / YEAR FILTER & CLICK TO INSPECT -->
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
             <div>
-              <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Dues Matured Today</p>
-              <h3 class="text-2xl font-bold text-rose-600 mt-1" id="kpiTotalDue">₹0</h3>
-              <p class="text-[11px] text-rose-500 mt-0.5 font-medium"><span id="kpiDueStudents">0</span> students pending</p>
+              <div class="flex items-center justify-between gap-1 mb-2">
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Outstanding Dues</p>
+                <select id="dueFilterPeriod" onchange="updateMetrics()" class="text-[10px] font-bold border border-slate-200 rounded px-1.5 py-0.5 bg-slate-50 focus:outline-none">
+                  <option value="MATURED_TODAY" selected>Matured Today</option>
+                  <option value="THIS_MONTH">This Month</option>
+                  <option value="CUSTOM_MONTH">Select Month</option>
+                  <option value="CUSTOM_YEAR">Select Year</option>
+                  <option value="ALL">All Dues</option>
+                </select>
+              </div>
+
+              <!-- Secondary Selectors for Due Month/Year -->
+              <div id="dueCustomPickers" class="hidden flex items-center gap-1 mb-2">
+                <select id="dueMonthSelect" onchange="updateMetrics()" class="text-[10px] border border-slate-200 rounded px-1 py-0.5 bg-slate-50"></select>
+                <select id="dueYearSelect" onchange="updateMetrics()" class="text-[10px] border border-slate-200 rounded px-1 py-0.5 bg-slate-50"></select>
+              </div>
+
+              <div class="flex items-baseline justify-between">
+                <div>
+                  <h3 class="text-2xl font-black text-rose-600" id="kpiTotalDue">₹0</h3>
+                  <p class="text-[11px] text-rose-500 font-medium" id="kpiDueSubtext"><span id="kpiDueStudents">0</span> students pending</p>
+                </div>
+                <div class="p-2.5 bg-rose-50 text-rose-600 rounded-xl"><i data-lucide="alert-triangle" class="w-5 h-5"></i></div>
+              </div>
             </div>
-            <div class="p-3 bg-rose-50 text-rose-600 rounded-xl"><i data-lucide="alert-triangle" class="w-5 h-5"></i></div>
+
+            <!-- CLICK TO INSPECT DUE STUDENTS BUTTON -->
+            <button onclick="openDueBreakdownModal()" class="w-full mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-rose-700 hover:text-rose-900 transition group">
+              <span>View Due Student List</span>
+              <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-0.5 transition-transform"></i>
+            </button>
           </div>
 
           <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
@@ -258,25 +285,38 @@
             <div class="p-3 bg-cyan-50 text-cyan-600 rounded-xl"><i data-lucide="wallet-cards" class="w-5 h-5"></i></div>
           </div>
 
-          <!-- Fees Collection Card with Filter -->
+          <!-- FEES COLLECTION CARD (FILTERABLE) -->
           <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
-            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
-              <div class="flex items-center gap-1.5">
-                <div class="p-1 bg-emerald-50 text-emerald-600 rounded"><i data-lucide="wallet" class="w-3.5 h-3.5"></i></div>
-                <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider">Collections</span>
+            <div>
+              <div class="flex items-center justify-between gap-1 mb-2">
+                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Collections</span>
+                <select id="collectionPeriodFilter" onchange="updateCollectionMetrics()" class="text-[10px] font-bold border border-slate-200 rounded px-1.5 py-0.5 bg-slate-50 focus:outline-none">
+                  <option value="TODAY">Today</option>
+                  <option value="MONTH" selected>This Month</option>
+                  <option value="CUSTOM_MONTH">Select Month</option>
+                  <option value="YEAR">Select Year</option>
+                  <option value="ALL">All Time</option>
+                </select>
               </div>
-              <select id="collectionPeriodFilter" onchange="updateCollectionMetrics()" class="text-[11px] border border-slate-200 rounded px-1.5 py-0.5 bg-slate-50 font-semibold text-slate-700 focus:outline-none">
-                <option value="ALL">All Time</option>
-                <option value="YEAR">Current Year</option>
-                <option value="MONTH" selected>This Month</option>
-              </select>
+
+              <!-- Secondary Selectors for Collection Month/Year -->
+              <div id="collectionCustomPickers" class="hidden flex items-center gap-1 mb-2">
+                <select id="colMonthSelect" onchange="updateCollectionMetrics()" class="text-[10px] border border-slate-200 rounded px-1 py-0.5 bg-slate-50"></select>
+                <select id="colYearSelect" onchange="updateCollectionMetrics()" class="text-[10px] border border-slate-200 rounded px-1 py-0.5 bg-slate-50"></select>
+              </div>
+
+              <div class="flex items-baseline justify-between">
+                <div>
+                  <h3 class="text-2xl font-black text-emerald-600" id="kpiFilteredCollection">₹0</h3>
+                  <p class="text-[11px] text-slate-400 font-medium" id="kpiCollectionLabel">This Month's Collections</p>
+                </div>
+                <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl"><i data-lucide="wallet" class="w-5 h-5"></i></div>
+              </div>
             </div>
-            <div class="pt-2 flex items-baseline justify-between">
-              <div>
-                <h3 class="text-xl font-black text-emerald-600 tracking-tight" id="kpiFilteredCollection">₹0</h3>
-                <p class="text-[11px] text-slate-400 mt-0.5" id="kpiCollectionLabel">Filtered Collection</p>
-              </div>
-              <span class="text-[11px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full" id="kpiTxnCount">0 Receipts</span>
+
+            <div class="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium">
+              <span>Receipts count:</span>
+              <span class="font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-full" id="kpiTxnCount">0 Receipts</span>
             </div>
           </div>
         </section>
@@ -334,6 +374,64 @@
           </div>
         </section>
       </main>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: DUE DETAILED REPORT (CLICK TO DUE) ==================== -->
+  <div id="dueBreakdownModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-4xl w-full shadow-2xl overflow-hidden my-auto max-h-[90vh] flex flex-col">
+      <div class="bg-rose-700 px-6 py-4 flex justify-between items-center text-white">
+        <div class="flex items-center gap-2">
+          <i data-lucide="alert-circle" class="w-5 h-5 text-amber-300"></i>
+          <div>
+            <h3 class="font-bold text-base">Students with Pending Dues</h3>
+            <p class="text-xs text-rose-100" id="dueModalSubtitle">Filter: Matured As of Today</p>
+          </div>
+        </div>
+        <button onclick="closeModal('dueBreakdownModal')" class="text-rose-200 hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-4">
+        <!-- Summary Strip -->
+        <div class="flex flex-wrap items-center justify-between gap-3 text-xs bg-rose-50 p-3.5 rounded-xl border border-rose-100">
+          <div>
+            <span class="text-slate-600 font-semibold">Total Pending Balance:</span>
+            <span class="font-black text-sm text-rose-700 ml-1.5" id="dueModalTotalAmount">₹0</span>
+          </div>
+          <div>
+            <span class="text-slate-600 font-semibold">Students with Dues:</span>
+            <span class="font-black text-sm text-rose-700 ml-1.5" id="dueModalStudentCount">0</span>
+          </div>
+        </div>
+
+        <div class="border border-slate-200 rounded-xl overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-100 text-slate-600 font-semibold border-b border-slate-200">
+                <tr>
+                  <th class="py-2.5 px-3">Roll</th>
+                  <th class="py-2.5 px-3">Student Name</th>
+                  <th class="py-2.5 px-3">Batch</th>
+                  <th class="py-2.5 px-3">Due Amount</th>
+                  <th class="py-2.5 px-3">Which Month(s) Due</th>
+                  <th class="py-2.5 px-3 text-center">Quick Action</th>
+                </tr>
+              </thead>
+              <tbody id="dueModalTableBody" class="divide-y divide-slate-100">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-end">
+        <button onclick="closeModal('dueBreakdownModal')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-4 py-2 rounded-lg text-xs transition">
+          Close List
+        </button>
+      </div>
     </div>
   </div>
 
@@ -463,7 +561,7 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL: BATCH MANAGER & CLASS-WISE FEES ==================== -->
+  <!-- ==================== MODAL: BATCH MANAGER & CLASS FEES ==================== -->
   <div id="batchManagerModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
       <div class="bg-indigo-800 px-6 py-4 flex justify-between items-center text-white">
@@ -491,7 +589,7 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL: ADD STUDENT (AUTO-FETCHES BATCH FEE) ==================== -->
+  <!-- ==================== MODAL: ADD STUDENT ==================== -->
   <div id="addStudentModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
       <div class="bg-indigo-700 px-6 py-4 flex justify-between items-center text-white">
@@ -575,7 +673,7 @@
             </p>
           </div>
         </div>
-        <button onclick="closeModal('profileModal')" class="text-indigo-200 hover:text-white p-1 rounded-lg">
+        <button onclick="closeProfileModal()" class="text-indigo-200 hover:text-white p-1 rounded-lg">
           <i data-lucide="x" class="w-6 h-6"></i>
         </button>
       </div>
@@ -601,7 +699,6 @@
             <button onclick="sendWhatsAppFromProfile()" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow transition">
               <i data-lucide="message-circle" class="w-4 h-4"></i> WhatsApp
             </button>
-            <!-- Call Button on Right Side of WhatsApp -->
             <button onclick="makeCallFromProfile()" title="Direct Phone Call" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow transition">
               <i data-lucide="phone-call" class="w-4 h-4"></i> Call
             </button>
@@ -695,7 +792,7 @@
         <button onclick="deleteStudentFromProfile()" class="text-rose-600 hover:text-rose-800 font-semibold flex items-center gap-1">
           <i data-lucide="trash-2" class="w-4 h-4"></i> Remove Student
         </button>
-        <button onclick="closeModal('profileModal')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-4 py-2 rounded-lg">
+        <button onclick="closeProfileModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-4 py-2 rounded-lg">
           Close Profile
         </button>
       </div>
@@ -1039,9 +1136,7 @@
       { name: "Competitive (WBP/SSC)", defaultFee: 750 }
     ];
 
-    // Server Activity Logs (stored in Supabase 'activity_logs' table)
     let systemLogs = [];
-
     let selectedStudentIdForProfile = null;
     let activeProfileCalendarYear = new Date().getFullYear();
     let activePaymentStudent = null;
@@ -1050,6 +1145,12 @@
 
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    // PROPER PROFILE MODAL CLOSE TO PREVENT POP-UP LOOP
+    function closeProfileModal() {
+      selectedStudentIdForProfile = null;
+      closeModal('profileModal');
+    }
     
     function toggleMobileSidebar() {
       const sidebar = document.getElementById('sidebar');
@@ -1096,10 +1197,7 @@
       }
     }
 
-    window.addEventListener('offline', () => {
-      checkNetworkStatus();
-    });
-
+    window.addEventListener('offline', () => checkNetworkStatus());
     window.addEventListener('online', () => {
       checkNetworkStatus();
       if (supabaseClient) {
@@ -1108,7 +1206,6 @@
       }
     });
 
-    // Invisible Auto-Sync when tab gains focus
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible' && navigator.onLine && supabaseClient) {
         fetchCloudData();
@@ -1116,7 +1213,7 @@
       }
     });
 
-    // Hands-free silent background poll (every 15s) ensuring multi-device real-time sync
+    // Realtime silent background poll
     setInterval(() => {
       if (navigator.onLine && document.visibilityState === 'visible' && supabaseClient) {
         fetchCloudData();
@@ -1136,7 +1233,6 @@
       document.getElementById('editAdmissionDate').value = s.admissionDate || '';
       document.getElementById('editDueDay').value = s.dueDay || 1;
 
-      // Populate batch options
       const editClassSelect = document.getElementById('editClass');
       editClassSelect.innerHTML = '';
       batches.forEach(b => {
@@ -1171,7 +1267,6 @@
       const newAdmDate = document.getElementById('editAdmissionDate').value;
       const newDueDay = parseInt(document.getElementById('editDueDay').value, 10) || 1;
 
-      // Duplicate roll check excluding current student
       if (students.some(item => item.id !== id && item.roll.toLowerCase() === newRoll.toLowerCase())) {
         alert('Another student already has this Roll Number!');
         return;
@@ -1185,10 +1280,7 @@
       s.admissionDate = newAdmDate;
       s.dueDay = newDueDay;
 
-      // Save directly to cloud
       await syncStudentToCloud(s);
-
-      // Log server activity
       await logSystemActivity("Edit", "Student Profile Updated", `Updated ${newName} (Roll: #${newRoll}, Batch: ${newClass}) - Fee: ₹${newFee}`);
 
       closeModal('editStudentModal');
@@ -1292,7 +1384,7 @@
       return currentLoggedInAdmin ? currentLoggedInAdmin.displayName : "Miraj";
     }
 
-    // ==================== SUPABASE & BATCH DATA MIGRATION ====================
+    // ==================== SUPABASE INITIALIZATION & SYNC ====================
     function initSupabase() {
       const url = DEFAULT_SUPABASE_URL || localStorage.getItem('supabase_cloud_url');
       const key = DEFAULT_SUPABASE_KEY || localStorage.getItem('supabase_cloud_key');
@@ -1307,6 +1399,8 @@
           batches = rawBatches;
         }
       }
+
+      initDateDropdowns();
 
       if (!url || !key) {
         if (sidebarCloudText) sidebarCloudText.innerText = "Local Mode";
@@ -1363,7 +1457,9 @@
       updateMetrics();
       renderStudents();
 
-      if (selectedStudentIdForProfile) {
+      // FIXED BUG: Only update profile if the modal is actively visible!
+      const profileModalEl = document.getElementById('profileModal');
+      if (selectedStudentIdForProfile && profileModalEl && !profileModalEl.classList.contains('hidden')) {
         viewStudentProfile(selectedStudentIdForProfile);
       }
     }
@@ -1463,7 +1559,39 @@
       renderStudents();
     }
 
-    // ==================== BATCH MANAGER & CLASS-WISE FEES ====================
+    // Populate Secondary Month/Year Dropdowns
+    function initDateDropdowns() {
+      const currentYear = new Date().getFullYear();
+      const currentMonth = new Date().getMonth();
+
+      ['dueMonthSelect', 'colMonthSelect'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = '';
+        MONTH_NAMES.forEach((m, idx) => {
+          const opt = document.createElement('option');
+          opt.value = idx;
+          opt.innerText = SHORT_MONTHS[idx];
+          if (idx === currentMonth) opt.selected = true;
+          el.appendChild(opt);
+        });
+      });
+
+      ['dueYearSelect', 'colYearSelect'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = '';
+        for (let y = currentYear - 2; y <= currentYear + 2; y++) {
+          const opt = document.createElement('option');
+          opt.value = y;
+          opt.innerText = y;
+          if (y === currentYear) opt.selected = true;
+          el.appendChild(opt);
+        }
+      });
+    }
+
+    // ==================== BATCH MANAGER & CLASS FEES ====================
     function openBatchManagerModal() {
       renderBatchList();
       openModal('batchManagerModal');
@@ -1590,7 +1718,7 @@
       else filterSelect.value = "ALL";
     }
 
-    // ==================== NEW ADMISSION (AUTO-FETCH & EDITABLE FEE) ====================
+    // ==================== NEW ADMISSION ====================
     function openAddStudentModal() {
       document.getElementById('studentForm').reset();
       populateBatchDropdowns();
@@ -1668,6 +1796,7 @@
       const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const dueDay = student.dueDay || 1;
 
+      // Fee matures AFTER next month's payment date
       const maturityDate = new Date(year, monthIndex + 1, dueDay);
 
       if ((student.paidMonths || []).includes(key)) {
@@ -1712,7 +1841,12 @@
       };
     }
 
-    function getStudentCalculatedDue(student) {
+    // Calculates dues based on user-selected due filter
+    function getStudentCalculatedDue(student, filterMode = null, targetMonth = null, targetYear = null) {
+      if (!filterMode) {
+        filterMode = document.getElementById('dueFilterPeriod') ? document.getElementById('dueFilterPeriod').value : 'MATURED_TODAY';
+      }
+
       const now = new Date();
       const currentYear = now.getFullYear();
       const currentMonth = now.getMonth();
@@ -1724,15 +1858,42 @@
       let maturedUnpaidMonthsCount = 0;
       const dueKeys = [];
 
-      for (let y = startYear; y <= currentYear; y++) {
-        const mStart = (y === startYear) ? startMonth : 0;
-        const mEnd = (y === currentYear) ? currentMonth : 11;
-
-        for (let m = mStart; m <= mEnd; m++) {
+      if (filterMode === 'CUSTOM_MONTH') {
+        const m = targetMonth !== null ? targetMonth : parseInt(document.getElementById('dueMonthSelect').value, 10);
+        const y = targetYear !== null ? targetYear : parseInt(document.getElementById('dueYearSelect').value, 10);
+        const st = getMonthStatus(student, m, y);
+        if (st.status === 'DUE' || st.status === 'UPCOMING') {
+          maturedUnpaidMonthsCount = 1;
+          dueKeys.push(st.key);
+        }
+      } else if (filterMode === 'CUSTOM_YEAR') {
+        const y = targetYear !== null ? targetYear : parseInt(document.getElementById('dueYearSelect').value, 10);
+        for (let m = 0; m < 12; m++) {
           const st = getMonthStatus(student, m, y);
-          if (st.isDueNow) {
+          if (st.status === 'DUE' || (st.status === 'UPCOMING' && m <= currentMonth)) {
             maturedUnpaidMonthsCount++;
             dueKeys.push(st.key);
+          }
+        }
+      } else if (filterMode === 'THIS_MONTH') {
+        const st = getMonthStatus(student, currentMonth, currentYear);
+        if (st.status === 'DUE' || st.status === 'UPCOMING') {
+          maturedUnpaidMonthsCount = 1;
+          dueKeys.push(st.key);
+        }
+      } else {
+        // MATURED_TODAY & ALL
+        const endYear = (filterMode === 'ALL') ? currentYear + 1 : currentYear;
+        for (let y = startYear; y <= endYear; y++) {
+          const mStart = (y === startYear) ? startMonth : 0;
+          const mEnd = (y === endYear && filterMode !== 'ALL') ? currentMonth : 11;
+
+          for (let m = mStart; m <= mEnd; m++) {
+            const st = getMonthStatus(student, m, y);
+            if (st.isDueNow || (filterMode === 'ALL' && st.status === 'UPCOMING' && y <= currentYear && m <= currentMonth)) {
+              maturedUnpaidMonthsCount++;
+              dueKeys.push(st.key);
+            }
           }
         }
       }
@@ -2024,6 +2185,85 @@
       alert(`Month ${monthKey} exempted in cloud by ${collector} for ${s.name}.`);
     }
 
+    // ==================== DUE DETAILED BREAKDOWN MODAL ====================
+    function openDueBreakdownModal() {
+      const filterMode = document.getElementById('dueFilterPeriod').value;
+      const subtitleEl = document.getElementById('dueModalSubtitle');
+      const tableBody = document.getElementById('dueModalTableBody');
+      tableBody.innerHTML = '';
+
+      let filterLabel = "Matured As of Today";
+      if (filterMode === 'THIS_MONTH') filterLabel = "This Month's Dues";
+      else if (filterMode === 'CUSTOM_MONTH') {
+        const m = parseInt(document.getElementById('dueMonthSelect').value, 10);
+        const y = document.getElementById('dueYearSelect').value;
+        filterLabel = `Month: ${SHORT_MONTHS[m]} ${y}`;
+      } else if (filterMode === 'CUSTOM_YEAR') {
+        filterLabel = `Year: ${document.getElementById('dueYearSelect').value}`;
+      } else if (filterMode === 'ALL') filterLabel = "All Pending Dues";
+
+      subtitleEl.innerText = `Active Filter: ${filterLabel}`;
+
+      let totalDueSum = 0;
+      let count = 0;
+
+      students.forEach(s => {
+        const dueInfo = getStudentCalculatedDue(s, filterMode);
+        if (dueInfo.netDueToday > 0) {
+          totalDueSum += dueInfo.netDueToday;
+          count++;
+
+          const monthBadges = dueInfo.dueKeys.map(k => 
+            `<span class="inline-block bg-rose-100 text-rose-800 text-[10px] font-bold px-1.5 py-0.5 rounded mr-1 mb-1">${k}</span>`
+          ).join('');
+
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
+          tr.innerHTML = `
+            <td class="py-2.5 px-3 font-mono font-bold text-indigo-900">#${s.roll}</td>
+            <td class="py-2.5 px-3">
+              <span class="font-bold text-slate-800 block">${s.name}</span>
+              <span class="text-[10px] text-slate-400">${s.phone || 'No phone'}</span>
+            </td>
+            <td class="py-2.5 px-3">
+              <span class="bg-indigo-50 text-indigo-800 text-[10px] font-semibold px-2 py-0.5 rounded-full">${s.class}</span>
+            </td>
+            <td class="py-2.5 px-3">
+              <span class="font-black text-rose-600 text-sm">₹${dueInfo.netDueToday}</span>
+              <span class="text-[10px] text-slate-400 block">${dueInfo.breakdownText}</span>
+            </td>
+            <td class="py-2.5 px-3">
+              <div class="flex flex-wrap items-center">${monthBadges || '<span class="text-slate-400 italic">Partial</span>'}</div>
+            </td>
+            <td class="py-2.5 px-3 text-center">
+              <div class="flex items-center justify-center gap-1.5">
+                <button onclick="closeModal('dueBreakdownModal'); openGeneralPaymentModal('${s.id}')" title="Pay Now" class="bg-emerald-600 hover:bg-emerald-700 text-white p-1.5 rounded-lg shadow-sm">
+                  <i data-lucide="credit-card" class="w-3.5 h-3.5"></i>
+                </button>
+                <button onclick="sendWhatsAppReminder('${s.id}')" title="Send WhatsApp Reminder" class="bg-green-500 hover:bg-green-600 text-white p-1.5 rounded-lg shadow-sm">
+                  <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+                </button>
+                <button onclick="makePhoneCall('${s.phone}')" title="Call Guardian" class="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded-lg shadow-sm">
+                  <i data-lucide="phone-call" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </td>
+          `;
+          tableBody.appendChild(tr);
+        }
+      });
+
+      if (count === 0) {
+        tableBody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400 font-medium">No students owe dues for this selected filter! 🎉</td></tr>`;
+      }
+
+      document.getElementById('dueModalTotalAmount').innerText = `₹${totalDueSum.toLocaleString('en-IN')}`;
+      document.getElementById('dueModalStudentCount').innerText = `${count} Students`;
+
+      openModal('dueBreakdownModal');
+      lucide.createIcons();
+    }
+
     // ==================== UNIFIED HISTORY (ALL SERVER ACTIVITIES) ====================
     async function openGlobalHistoryModal() {
       await fetchServerActivityLogs();
@@ -2272,14 +2512,13 @@
 
       if (confirm(`Permanently delete student ${s.name} (#${s.roll}) and all records?`)) {
         const delId = selectedStudentIdForProfile;
-        
         await logSystemActivity("Delete", "Student Record Deleted", `Deleted ${s.name} (Roll: #${s.roll}, Batch: ${s.class})`);
 
         if (supabaseClient) {
           await supabaseClient.from('students').delete().eq('id', delId);
         }
         students = students.filter(item => item.id !== delId);
-        closeModal('profileModal');
+        closeProfileModal();
         updateMetrics();
         renderStudents();
       }
@@ -2476,13 +2715,27 @@
       }
     }
 
-    // ==================== DASHBOARD & REVENUE FILTERS ====================
+    // ==================== METRICS & DUES CALCULATION ====================
     function updateCollectionMetrics() {
       const period = document.getElementById('collectionPeriodFilter').value;
+      const customPickers = document.getElementById('collectionCustomPickers');
       const labelEl = document.getElementById('kpiCollectionLabel');
+
+      if (period === 'CUSTOM_MONTH' || period === 'YEAR') {
+        customPickers.classList.remove('hidden');
+        if (period === 'YEAR') {
+          document.getElementById('colMonthSelect').classList.add('hidden');
+        } else {
+          document.getElementById('colMonthSelect').classList.remove('hidden');
+        }
+      } else {
+        customPickers.classList.add('hidden');
+      }
+
       const now = new Date();
       const currentYear = now.getFullYear();
       const currentMonth = now.getMonth();
+      const todayISO = now.toISOString().slice(0, 10);
 
       let filteredTotal = 0;
       let txnCount = 0;
@@ -2498,11 +2751,23 @@
         const txDate = new Date(h.date);
         const txYear = txDate.getFullYear();
         const txMonth = txDate.getMonth();
+        const txISO = typeof h.date === 'string' ? h.date.slice(0, 10) : '';
 
         let matches = false;
-        if (period === 'ALL') matches = true;
-        else if (period === 'YEAR') matches = (txYear === currentYear);
-        else if (period === 'MONTH') matches = (txYear === currentYear && txMonth === currentMonth);
+        if (period === 'ALL') {
+          matches = true;
+        } else if (period === 'TODAY') {
+          matches = (txISO === todayISO);
+        } else if (period === 'MONTH') {
+          matches = (txYear === currentYear && txMonth === currentMonth);
+        } else if (period === 'CUSTOM_MONTH') {
+          const selMonth = parseInt(document.getElementById('colMonthSelect').value, 10);
+          const selYear = parseInt(document.getElementById('colYearSelect').value, 10);
+          matches = (txYear === selYear && txMonth === selMonth);
+        } else if (period === 'YEAR') {
+          const selYear = parseInt(document.getElementById('colYearSelect').value, 10);
+          matches = (txYear === selYear);
+        }
 
         if (matches) {
           filteredTotal += (h.amount || 0);
@@ -2511,8 +2776,16 @@
       });
 
       if (period === 'ALL') labelEl.innerText = "All-Time Revenue";
-      else if (period === 'YEAR') labelEl.innerText = `Year ${currentYear} Total`;
+      else if (period === 'TODAY') labelEl.innerText = "Today's Collections";
       else if (period === 'MONTH') labelEl.innerText = `${SHORT_MONTHS[currentMonth]} ${currentYear} Total`;
+      else if (period === 'CUSTOM_MONTH') {
+        const selMonth = parseInt(document.getElementById('colMonthSelect').value, 10);
+        const selYear = document.getElementById('colYearSelect').value;
+        labelEl.innerText = `${SHORT_MONTHS[selMonth]} ${selYear} Total`;
+      } else if (period === 'YEAR') {
+        const selYear = document.getElementById('colYearSelect').value;
+        labelEl.innerText = `Year ${selYear} Total`;
+      }
 
       document.getElementById('kpiFilteredCollection').innerText = '₹' + filteredTotal.toLocaleString('en-IN');
       document.getElementById('kpiTxnCount').innerText = `${txnCount} Receipts`;
@@ -2520,14 +2793,28 @@
 
     function updateMetrics() {
       const totalStudents = students.length;
-      let totalDueToday = 0;
+      const dueFilter = document.getElementById('dueFilterPeriod').value;
+      const duePickers = document.getElementById('dueCustomPickers');
+
+      if (dueFilter === 'CUSTOM_MONTH' || dueFilter === 'CUSTOM_YEAR') {
+        duePickers.classList.remove('hidden');
+        if (dueFilter === 'CUSTOM_YEAR') {
+          document.getElementById('dueMonthSelect').classList.add('hidden');
+        } else {
+          document.getElementById('dueMonthSelect').classList.remove('hidden');
+        }
+      } else {
+        duePickers.classList.add('hidden');
+      }
+
+      let totalDueSum = 0;
       let dueStudentsCount = 0;
       let totalAdvanceHeld = 0;
       let advanceStudentsCount = 0;
 
       students.forEach(s => {
-        const dueInfo = getStudentCalculatedDue(s);
-        totalDueToday += dueInfo.netDueToday;
+        const dueInfo = getStudentCalculatedDue(s, dueFilter);
+        totalDueSum += dueInfo.netDueToday;
         if (dueInfo.netDueToday > 0) dueStudentsCount++;
         
         const adv = s.advanceBalance || 0;
@@ -2537,7 +2824,7 @@
 
       document.getElementById('kpiTotalStudents').innerText = totalStudents;
       document.getElementById('kpiActiveBatchesCount').innerText = `${batches.length} Active Batches`;
-      document.getElementById('kpiTotalDue').innerText = '₹' + totalDueToday.toLocaleString('en-IN');
+      document.getElementById('kpiTotalDue').innerText = '₹' + totalDueSum.toLocaleString('en-IN');
       document.getElementById('kpiDueStudents').innerText = dueStudentsCount;
       document.getElementById('kpiTotalAdvance').innerText = '₹' + totalAdvanceHeld.toLocaleString('en-IN');
       document.getElementById('kpiAdvanceStudents').innerText = advanceStudentsCount;
@@ -2641,27 +2928,18 @@
           </td>
           <td class="py-3 px-4 text-center whitespace-nowrap">
             <div class="flex items-center justify-center gap-1.5">
-              <!-- Edit Student Profile Button -->
               <button onclick="openEditStudentModal('${s.id}')" title="Edit Student Profile" class="bg-slate-100 hover:bg-slate-200 text-slate-700 p-1.5 rounded-lg transition shadow-sm">
                 <i data-lucide="edit-3" class="w-4 h-4"></i>
               </button>
-
-              <!-- View Profile & Calendar -->
               <button onclick="viewStudentProfile('${s.id}')" title="Student Profile & Calendar" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 p-1.5 rounded-lg transition shadow-sm">
                 <i data-lucide="user" class="w-4 h-4"></i>
               </button>
-
-              <!-- Pay Fee / Add Advance -->
               <button onclick="openGeneralPaymentModal('${s.id}')" title="Pay / Add Advance" class="bg-emerald-600 hover:bg-emerald-700 text-white p-1.5 rounded-lg transition shadow-sm">
                 <i data-lucide="credit-card" class="w-4 h-4"></i>
               </button>
-
-              <!-- WhatsApp Due Reminder -->
               <button onclick="sendWhatsAppReminder('${s.id}')" title="WhatsApp Due Alert" class="bg-green-500 hover:bg-green-600 text-white p-1.5 rounded-lg transition shadow-sm">
                 <i data-lucide="message-circle" class="w-4 h-4"></i>
               </button>
-
-              <!-- Phone Call Button (Right of WhatsApp) -->
               <button onclick="makePhoneCall('${s.phone}')" title="Direct Phone Call" class="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded-lg transition shadow-sm">
                 <i data-lucide="phone-call" class="w-4 h-4"></i>
               </button>
@@ -2787,8 +3065,8 @@
 
     // Startup
     window.addEventListener('DOMContentLoaded', () => {
-      checkNetworkStatus();
       checkAuthSession();
+      checkNetworkStatus();
     });
   </script>
 </body>
