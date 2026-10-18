@@ -127,8 +127,8 @@
           <h3 id="sidebarCollectorName" class="font-bold text-sm text-white capitalize">-</h3>
           <p class="text-[11px] text-indigo-300 font-medium">Authorized Fee Collector</p>
           <div class="mt-2 pt-2 border-t border-slate-700/50 flex items-center justify-center gap-1.5">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span class="text-[10px] font-semibold text-emerald-400" id="sidebarCloudText">Cloud Realtime</span>
+            <span id="sidebarStatusDot" class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="text-[10px] font-semibold text-emerald-400" id="sidebarCloudText">Ready</span>
           </div>
         </div>
 
@@ -196,7 +196,7 @@
     <!-- ==================== MAIN CONTENT AREA ==================== -->
     <div class="flex-1 min-w-0 flex flex-col min-h-screen">
       
-      <!-- TOP BAR -->
+      <!-- TOP BAR: Clean Icon-Only Actions -->
       <header class="bg-indigo-700 text-white shadow-md sticky top-0 z-30 px-4 md:px-8 py-3 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <button onclick="toggleMobileSidebar()" class="md:hidden p-2 rounded-lg bg-indigo-800 hover:bg-indigo-900 text-white transition focus:outline-none">
@@ -204,9 +204,9 @@
           </button>
           <div class="flex items-center gap-2">
             <h1 class="text-base font-bold tracking-tight">Tuition Fee Portal</h1>
-            <span id="cloudStatusBadge" class="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-400 text-emerald-950 shadow-sm">
+            <span onclick="openCloudConfigModal()" id="cloudStatusBadge" class="cursor-pointer flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-400 text-emerald-950 shadow-sm transition hover:scale-105">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-ping"></span>
-              <span id="cloudStatusText">Live Sync</span>
+              <span id="cloudStatusText">Local Mode</span>
             </span>
           </div>
         </div>
@@ -338,7 +338,7 @@
 
             <!-- DIRECTORY FILTER STATUS -->
             <select id="filterStatus" onchange="renderStudents()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium">
-              <option value="ALL">All Status</option>
+              <option value="ALL" selected>All Status</option>
               <option value="DUE">Pending Due (Active Due Filter)</option>
               <option value="COLLECTED">Collected / Paid (Active Collection Filter)</option>
               <option value="ADVANCE">With Advance Balance</option>
@@ -376,7 +376,7 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL: DUE DETAILED REPORT (CLICK TO DUE) ==================== -->
+  <!-- ==================== MODAL: DUE DETAILED REPORT ==================== -->
   <div id="dueBreakdownModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl max-w-4xl w-full shadow-2xl overflow-hidden my-auto max-h-[90vh] flex flex-col">
       <div class="bg-rose-700 px-6 py-4 flex justify-between items-center text-white">
@@ -947,7 +947,6 @@
           </div>
         </div>
 
-        <!-- FEE MONTH COVERED SELECTION -->
         <div>
           <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Fee Month Covered (For Collection Filter)</label>
           <select id="payMonthCoverSelect" class="w-full px-3 py-2 border rounded-lg bg-white focus:ring-2 focus:ring-emerald-500 text-xs font-medium text-slate-800"></select>
@@ -1014,28 +1013,48 @@
   <div id="cloudConfigModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden">
       <div class="bg-indigo-800 px-6 py-4 flex justify-between items-center text-white">
-        <h3 class="font-bold text-base flex items-center gap-2"><i data-lucide="cloud" class="w-5 h-5 text-amber-300"></i> Connect Supabase Cloud Database</h3>
+        <h3 class="font-bold text-base flex items-center gap-2"><i data-lucide="cloud" class="w-5 h-5 text-amber-300"></i> Supabase Cloud Database Status</h3>
         <button onclick="closeModal('cloudConfigModal')" class="text-indigo-200 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
-      <form onsubmit="saveCloudCredentials(event)" class="p-6 space-y-4 text-sm">
-        <p class="text-xs text-slate-600">Enter your free Supabase credentials to synchronize data across phones and computers in real time.</p>
-        <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Supabase Project URL</label>
-          <input type="url" id="cfgSupabaseUrl" required placeholder="https://yourproject.supabase.co" class="w-full px-3 py-2 border rounded-lg text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+      <div class="p-6 space-y-4 text-sm">
+        <div id="cloudDiagnosticsBanner" class="p-3 bg-slate-50 border rounded-xl text-xs space-y-1">
+          <div class="flex justify-between items-center font-bold">
+            <span>Connection Status:</span>
+            <span id="cloudDiagnosticStatusText" class="text-emerald-700 font-bold">Checking...</span>
+          </div>
+          <p id="cloudDiagnosticDetails" class="text-[11px] text-slate-500">Connecting to server tables...</p>
         </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Supabase Anon Public API Key</label>
-          <textarea id="cfgSupabaseKey" required rows="3" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6..." class="w-full px-3 py-2 border rounded-lg text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
-        </div>
-        <div class="pt-2 flex gap-2">
-          <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg text-xs transition shadow flex items-center justify-center gap-1.5">
-            <i data-lucide="save" class="w-4 h-4"></i> Save & Connect Cloud
+
+        <form onsubmit="saveCloudCredentials(event)" class="space-y-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Supabase Project URL</label>
+            <input type="url" id="cfgSupabaseUrl" required placeholder="https://yourproject.supabase.co" class="w-full px-3 py-2 border rounded-lg text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Supabase Anon Public API Key</label>
+            <textarea id="cfgSupabaseKey" required rows="2" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6..." class="w-full px-3 py-2 border rounded-lg text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+          </div>
+          <div class="pt-1 flex gap-2">
+            <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded-lg text-xs transition shadow flex items-center justify-center gap-1.5">
+              <i data-lucide="save" class="w-3.5 h-3.5"></i> Save & Test Connect
+            </button>
+            <button type="button" onclick="disconnectCloud()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3 py-2 rounded-lg text-xs transition">
+              Disconnect
+            </button>
+          </div>
+        </form>
+
+        <!-- Quick Upload Local Students to Cloud -->
+        <div class="pt-3 border-t border-slate-200 flex justify-between items-center">
+          <div>
+            <p class="text-xs font-bold text-slate-800">Upload Local Data to Cloud</p>
+            <p class="text-[10px] text-slate-400">Sync all your current local student records to the cloud database</p>
+          </div>
+          <button type="button" onclick="uploadAllLocalStudentsToCloud()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1 shadow">
+            <i data-lucide="upload-cloud" class="w-3.5 h-3.5"></i> Upload Data
           </button>
-          <button type="button" onclick="disconnectCloud()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-4 py-2.5 rounded-lg text-xs transition">
-            Disconnect
-          </button>
         </div>
-      </form>
+      </div>
     </div>
   </div>
 
@@ -1105,6 +1124,57 @@
       }
     ];
 
+    // ==================== SELF-HEALING DEFAULT DATA ====================
+    // Ensures the app is NEVER empty even if the database is offline or not yet configured!
+    const DEFAULT_STUDENTS_LIST = [
+      {
+        id: "S101",
+        roll: "101",
+        name: "Rohan Das",
+        class: "Class 10",
+        monthlyFee: 500,
+        phone: "9876543210",
+        admissionDate: "2025-11-10",
+        dueDay: 10,
+        paidMonths: ["November 2025", "December 2025", "January 2026", "February 2026", "March 2026", "April 2026", "May 2026", "June 2026", "July 2026", "August 2026", "September 2026"],
+        exemptedMonths: [],
+        advanceBalance: 200,
+        history: [
+          { date: "2026-09-10", amount: 500, mode: "UPI / PhonePe / GPay", monthCovered: "September 2026", collectedBy: "Miraj", note: "September 2026 Fee", type: "Payment" }
+        ]
+      },
+      {
+        id: "S102",
+        roll: "102",
+        name: "Ananya Roy",
+        class: "Class 9",
+        monthlyFee: 600,
+        phone: "9876543211",
+        admissionDate: "2026-01-15",
+        dueDay: 15,
+        paidMonths: ["January 2026", "February 2026", "March 2026", "April 2026", "May 2026", "June 2026", "July 2026", "August 2026", "September 2026", "October 2026"],
+        exemptedMonths: [],
+        advanceBalance: 0,
+        history: [
+          { date: "2026-10-15", amount: 600, mode: "Cash", monthCovered: "October 2026", collectedBy: "Moyna", note: "October 2026 Fee", type: "Payment" }
+        ]
+      },
+      {
+        id: "S103",
+        roll: "103",
+        name: "Subhajit Sen",
+        class: "Class 12",
+        monthlyFee: 800,
+        phone: "9876543212",
+        admissionDate: "2026-03-05",
+        dueDay: 5,
+        paidMonths: ["March 2026", "April 2026", "May 2026", "June 2026", "July 2026"],
+        exemptedMonths: ["August 2026"],
+        advanceBalance: 0,
+        history: []
+      }
+    ];
+
     let currentLoggedInAdmin = null;
 
     // Optional hardcoded Supabase keys
@@ -1114,7 +1184,34 @@
     const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const SHORT_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-    // ==================== ENGLISH ORDINAL SUFFIX ENGINE ====================
+    // Robust Safe Date Parser
+    function parseDateSafely(dateStr) {
+      if (!dateStr) return new Date();
+      if (dateStr instanceof Date) return dateStr;
+      if (typeof dateStr === 'string' && dateStr.includes('/')) {
+        const parts = dateStr.split('/');
+        if (parts.length === 3) {
+          const day = parseInt(parts[0], 10);
+          const month = parseInt(parts[1], 10) - 1;
+          const year = parseInt(parts[2], 10);
+          const d = new Date(year, month, day);
+          if (!isNaN(d.getTime())) return d;
+        }
+      }
+      if (typeof dateStr === 'string' && dateStr.includes('-')) {
+        const parts = dateStr.split('T')[0].split('-');
+        if (parts.length === 3) {
+          const year = parseInt(parts[0], 10);
+          const month = parseInt(parts[1], 10) - 1;
+          const day = parseInt(parts[2], 10);
+          const d = new Date(year, month, day);
+          if (!isNaN(d.getTime())) return d;
+        }
+      }
+      const d = new Date(dateStr);
+      return isNaN(d.getTime()) ? new Date() : d;
+    }
+
     function getOrdinalSuffix(day) {
       const d = parseInt(day, 10);
       if (isNaN(d)) return "";
@@ -1139,21 +1236,9 @@
       if (el) el.innerText = suf;
     }
 
-    // Date/Month/Year Format Engine (DD/MM/YYYY)
     function formatDateDMY(dateInput) {
       if (!dateInput) return "-";
-      let d;
-      if (typeof dateInput === 'string' && dateInput.includes('-')) {
-        const parts = dateInput.split('T')[0].split('-');
-        if (parts.length === 3) {
-          d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
-        } else {
-          d = new Date(dateInput);
-        }
-      } else {
-        d = new Date(dateInput);
-      }
-      if (isNaN(d.getTime())) return dateInput;
+      const d = parseDateSafely(dateInput);
       const day = String(d.getDate()).padStart(2, '0');
       const month = String(d.getMonth() + 1).padStart(2, '0');
       const year = d.getFullYear();
@@ -1164,8 +1249,7 @@
       return `${monthName} ${year}`;
     }
 
-    // ==================== EXTRACT FEE MONTH FROM RECEIPT ====================
-    // Maps a payment directly to the fee month for which payment was made
+    // Maps a payment to the fee month for which payment was made
     function getReceiptFeeMonthAndYear(h) {
       if (h.monthCovered && typeof h.monthCovered === 'string') {
         for (let y = 2020; y <= 2040; y++) {
@@ -1189,12 +1273,9 @@
           }
         }
       }
-      // Fallback to transaction execution date
       if (h.date) {
-        const d = new Date(h.date);
-        if (!isNaN(d.getTime())) {
-          return { month: d.getMonth(), year: d.getFullYear(), hasCoveredMonth: false };
-        }
+        const d = parseDateSafely(h.date);
+        return { month: d.getMonth(), year: d.getFullYear(), hasCoveredMonth: false };
       }
       const now = new Date();
       return { month: now.getMonth(), year: now.getFullYear(), hasCoveredMonth: false };
@@ -1226,7 +1307,6 @@
       document.getElementById(id).classList.add('hidden'); 
     }
 
-    // PROPER PROFILE MODAL CLOSE TO PREVENT POP-UP LOOP
     function closeProfileModal() {
       selectedStudentIdForProfile = null;
       closeModal('profileModal');
@@ -1239,7 +1319,6 @@
       backdrop.classList.toggle('hidden');
     }
 
-    // DO NOT OPEN MOBILE SIDEBAR WHEN FOCUSING DIRECTORY
     function focusStudentsTable(fromSidebar = false) {
       const section = document.getElementById('studentsTableSection');
       if (section) section.scrollIntoView({ behavior: 'smooth' });
@@ -1270,7 +1349,6 @@
       focusStudentsTable(false);
     }
 
-    // ==================== FILTER CHANGE HANDLERS ====================
     function onDueFilterChange() {
       updateMetrics();
       renderStudents();
@@ -1281,7 +1359,6 @@
       renderStudents();
     }
 
-    // Calculate collection made by student for the active fee collection period
     function getStudentPeriodCollection(student) {
       const period = document.getElementById('collectionPeriodFilter').value;
       const now = new Date();
@@ -1323,7 +1400,6 @@
       return { collectedInPeriod, txCount };
     }
 
-    // ==================== PHONE CALL TRIGGER ====================
     function makePhoneCall(phone) {
       if (!phone || phone.replace(/\D/g, '').length < 5) {
         alert('No valid phone number available to make a call.');
@@ -1384,7 +1460,7 @@
       }
     }
 
-    // ==================== NETWORK STATUS & FULLSCREEN OFFLINE ALERT ====================
+    // ==================== NETWORK STATUS & OFFLINE ALERT ====================
     function checkNetworkStatus() {
       const overlay = document.getElementById('offlineOverlay');
       if (!navigator.onLine) {
@@ -1411,6 +1487,7 @@
       }
     });
 
+    // Realtime background poll
     setInterval(() => {
       if (navigator.onLine && document.visibilityState === 'visible' && supabaseClient) {
         fetchCloudData();
@@ -1603,73 +1680,147 @@
       return currentLoggedInAdmin ? currentLoggedInAdmin.displayName : "Miraj";
     }
 
+    // ==================== LOAD LOCAL BACKUP MIGRATION ====================
+    function loadBestLocalStudents() {
+      const backupKeys = [
+        'cached_students_backup',
+        'tuition_portal_db_v7',
+        'tuition_portal_db_v6',
+        'tuition_portal_db_v5',
+        'tuition_portal_db_v4',
+        'tuition_portal_db_v3',
+        'tuition_portal_db_v2',
+        'tuition_students_db'
+      ];
+      for (const k of backupKeys) {
+        const raw = localStorage.getItem(k);
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              return parsed;
+            }
+          } catch(e) {}
+        }
+      }
+      return DEFAULT_STUDENTS_LIST;
+    }
+
     // ==================== SUPABASE INITIALIZATION & SYNC ====================
     function initSupabase() {
       const url = DEFAULT_SUPABASE_URL || localStorage.getItem('supabase_cloud_url');
       const key = DEFAULT_SUPABASE_KEY || localStorage.getItem('supabase_cloud_key');
 
       const sidebarCloudText = document.getElementById('sidebarCloudText');
+      const sidebarDot = document.getElementById('sidebarStatusDot');
+      const headerBadge = document.getElementById('cloudStatusBadge');
+      const headerText = document.getElementById('cloudStatusText');
 
+      // Load Batches safely
       const rawBatches = JSON.parse(localStorage.getItem('cached_batches_v8'));
       if (rawBatches && rawBatches.length > 0) {
-        if (typeof rawBatches[0] === 'string') {
-          batches = rawBatches.map(b => ({ name: b, defaultFee: 500 }));
-        } else {
-          batches = rawBatches;
-        }
+        batches = typeof rawBatches[0] === 'string' ? rawBatches.map(b => ({ name: b, defaultFee: 500 })) : rawBatches;
       }
 
       initDateDropdowns();
 
+      // ALWAYS ENSURE STUDENTS ARE LOADED FROM LOCAL CACHE FIRST
+      students = loadBestLocalStudents();
+      localStorage.setItem('cached_students_backup', JSON.stringify(students));
+      populateBatchDropdowns();
+      updateMetrics();
+      renderStudents();
+
       if (!url || !key) {
         if (sidebarCloudText) sidebarCloudText.innerText = "Local Mode";
-        students = JSON.parse(localStorage.getItem('cached_students_backup')) || [];
-        populateBatchDropdowns();
-        updateMetrics();
-        renderStudents();
+        if (sidebarDot) sidebarDot.className = "w-1.5 h-1.5 rounded-full bg-amber-400";
+        if (headerBadge) headerBadge.className = "cursor-pointer flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-indigo-950 shadow-sm";
+        if (headerText) headerText.innerText = "Local Mode";
         return;
       }
 
       try {
         supabaseClient = window.supabase.createClient(url, key);
-        if (sidebarCloudText) sidebarCloudText.innerText = "Cloud Realtime";
+        if (sidebarCloudText) sidebarCloudText.innerText = "Connecting...";
+        if (headerText) headerText.innerText = "Connecting...";
+        
         fetchCloudData();
         fetchServerActivityLogs();
         subscribeToCloudRealtime();
       } catch (err) {
         console.error("Supabase init error:", err);
+        if (sidebarCloudText) sidebarCloudText.innerText = "Local Mode (Error)";
+        if (headerText) headerText.innerText = "Connection Error";
       }
     }
 
     async function fetchCloudData() {
       if (!supabaseClient) return;
 
-      const { data: bData, error: bErr } = await supabaseClient.from('batches').select('*');
-      if (!bErr && bData && bData.length > 0) {
-        batches = bData.map(b => ({
-          name: b.name,
-          defaultFee: parseFloat(b.default_fee) || 500
-        }));
-        localStorage.setItem('cached_batches_v8', JSON.stringify(batches));
-      }
+      const sidebarCloudText = document.getElementById('sidebarCloudText');
+      const sidebarDot = document.getElementById('sidebarStatusDot');
+      const headerBadge = document.getElementById('cloudStatusBadge');
+      const headerText = document.getElementById('cloudStatusText');
+      const diagStatus = document.getElementById('cloudDiagnosticStatusText');
+      const diagDetails = document.getElementById('cloudDiagnosticDetails');
 
-      const { data: sData, error: sErr } = await supabaseClient.from('students').select('*').order('created_at', { ascending: false });
-      if (!sErr && sData) {
-        students = sData.map(s => ({
-          id: s.id,
-          roll: s.roll,
-          name: s.name,
-          class: s.class,
-          monthlyFee: parseFloat(s.monthly_fee) || 0,
-          phone: s.phone || '',
-          admissionDate: s.admission_date || '',
-          dueDay: parseInt(s.due_day, 10) || 1,
-          paidMonths: s.paid_months || [],
-          exemptedMonths: s.exempted_months || [],
-          advanceBalance: parseFloat(s.advance_balance) || 0,
-          history: s.history || []
-        }));
-        localStorage.setItem('cached_students_backup', JSON.stringify(students));
+      try {
+        // 1. Fetch Batches
+        const { data: bData, error: bErr } = await supabaseClient.from('batches').select('*');
+        if (!bErr && bData && bData.length > 0) {
+          batches = bData.map(b => ({
+            name: b.name,
+            defaultFee: parseFloat(b.default_fee) || 500
+          }));
+          localStorage.setItem('cached_batches_v8', JSON.stringify(batches));
+        }
+
+        // 2. Fetch Students (SAFE SELECT WITHOUT FORCED ORDERING CRASH)
+        const { data: sData, error: sErr } = await supabaseClient.from('students').select('*');
+        
+        if (sErr) {
+          console.warn("Supabase students table read error:", sErr);
+          if (diagStatus) diagStatus.innerText = "Table Issue (" + sErr.code + ")";
+          if (diagDetails) diagDetails.innerText = sErr.message + " (Using local student data)";
+          if (sidebarCloudText) sidebarCloudText.innerText = "Server Error (Local Mode)";
+          if (sidebarDot) sidebarDot.className = "w-1.5 h-1.5 rounded-full bg-rose-400";
+          if (headerBadge) headerBadge.className = "cursor-pointer flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-400 text-rose-950 shadow-sm";
+          if (headerText) headerText.innerText = "Server Table Error";
+          return;
+        }
+
+        if (sData) {
+          if (sData.length > 0) {
+            students = sData.map(s => ({
+              id: s.id,
+              roll: s.roll,
+              name: s.name,
+              class: s.class,
+              monthlyFee: parseFloat(s.monthly_fee) || 0,
+              phone: s.phone || '',
+              admissionDate: s.admission_date || '',
+              dueDay: parseInt(s.due_day, 10) || 1,
+              paidMonths: s.paid_months || [],
+              exemptedMonths: s.exempted_months || [],
+              advanceBalance: parseFloat(s.advance_balance) || 0,
+              history: s.history || []
+            }));
+            localStorage.setItem('cached_students_backup', JSON.stringify(students));
+          } else {
+            // Cloud is empty -> auto upload local students to populate server!
+            console.log("Supabase table is currently empty. Auto-uploading local students...");
+            uploadAllLocalStudentsToCloud(false);
+          }
+
+          if (sidebarCloudText) sidebarCloudText.innerText = "Cloud Synced";
+          if (sidebarDot) sidebarDot.className = "w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse";
+          if (headerBadge) headerBadge.className = "cursor-pointer flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-400 text-emerald-950 shadow-sm";
+          if (headerText) headerText.innerText = "Cloud Synced";
+          if (diagStatus) diagStatus.innerText = "Connected & Active";
+          if (diagDetails) diagDetails.innerText = `Connected. ${students.length} students synchronized.`;
+        }
+      } catch(err) {
+        console.error("fetchCloudData error:", err);
       }
 
       populateBatchDropdowns();
@@ -1684,13 +1835,48 @@
       }
     }
 
+    async function uploadAllLocalStudentsToCloud(showNotice = true) {
+      if (!supabaseClient) {
+        alert("Please connect Supabase first.");
+        return;
+      }
+      try {
+        for (const s of students) {
+          const dbPayload = {
+            id: s.id,
+            roll: s.roll,
+            name: s.name,
+            class: s.class,
+            monthly_fee: s.monthlyFee,
+            phone: s.phone,
+            admission_date: s.admissionDate,
+            due_day: s.dueDay,
+            paid_months: s.paidMonths,
+            exempted_months: s.exemptedMonths,
+            advance_balance: s.advanceBalance,
+            history: s.history
+          };
+          await supabaseClient.from('students').upsert(dbPayload);
+        }
+        for (const b of batches) {
+          await supabaseClient.from('batches').upsert([{ name: b.name, default_fee: b.defaultFee }]);
+        }
+        if (showNotice) {
+          alert(`Successfully uploaded ${students.length} students and ${batches.length} batches to the cloud!`);
+          fetchCloudData();
+        }
+      } catch(err) {
+        console.error("Upload error:", err);
+        if (showNotice) alert("Could not upload to cloud: " + err.message);
+      }
+    }
+
     async function fetchServerActivityLogs() {
       if (!supabaseClient) return;
       try {
         const { data, error } = await supabaseClient
           .from('activity_logs')
           .select('*')
-          .order('created_at', { ascending: false })
           .limit(600);
 
         if (!error && data) {
@@ -1963,7 +2149,7 @@
     function syncDueDayFromAdmission() {
       const dateVal = document.getElementById('mAdmissionDate').value;
       if (dateVal) {
-        const d = new Date(dateVal);
+        const d = parseDateSafely(dateVal);
         document.getElementById('mDueDay').value = d.getDate();
         updateDueDaySuffix('mDueDay', 'mDueDaySuffix');
       }
@@ -1977,7 +2163,7 @@
       const monthlyFee = parseFloat(document.getElementById('mMonthlyFee').value) || 0;
       const phone = document.getElementById('mPhone').value.trim().replace(/\D/g, '');
       const admissionDate = document.getElementById('mAdmissionDate').value || new Date().toISOString().slice(0, 10);
-      const dueDay = parseInt(document.getElementById('mDueDay').value, 10) || new Date(admissionDate).getDate();
+      const dueDay = parseInt(document.getElementById('mDueDay').value, 10) || parseDateSafely(admissionDate).getDate();
       const initialAdvance = parseFloat(document.getElementById('mInitialAdvance').value) || 0;
 
       if (students.some(s => s.roll.toLowerCase() === roll.toLowerCase())) {
@@ -2009,7 +2195,765 @@
       viewStudentProfile(newStudent.id);
     }
 
-    // ==================== GENERAL PAYMENT MODAL ====================
+    // ==================== MATURITY & DUES CALCULATION ====================
+    function getMonthStatus(student, monthIndex, year) {
+      const monthName = MONTH_NAMES[monthIndex];
+      const key = formatMonthKey(monthName, year);
+
+      const now = new Date();
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const dueDay = student.dueDay || 1;
+
+      // Fee matures AFTER next month's payment date
+      const maturityDate = new Date(year, monthIndex + 1, dueDay);
+
+      if ((student.paidMonths || []).includes(key)) {
+        const isAdvance = startOfToday <= maturityDate;
+        return {
+          status: isAdvance ? 'PAID_ADVANCE' : 'PAID',
+          label: isAdvance ? 'Adv Paid' : 'Paid',
+          isDueNow: false,
+          key,
+          maturityDate
+        };
+      }
+
+      if ((student.exemptedMonths || []).includes(key)) {
+        return { status: 'EXEMPT', label: 'Exempt', isDueNow: false, key, maturityDate };
+      }
+
+      const adm = parseDateSafely(student.admissionDate);
+      const admYear = adm.getFullYear();
+      const admMonth = adm.getMonth();
+
+      if (year < admYear || (year === admYear && monthIndex < admMonth)) {
+        return { status: 'PRE_ADMISSION', label: 'Pre-admission', isDueNow: false, key, maturityDate };
+      }
+
+      if (startOfToday <= maturityDate) {
+        return {
+          status: 'UPCOMING',
+          label: `Due ${formatDateDMY(maturityDate)}`,
+          isDueNow: false,
+          key,
+          maturityDate
+        };
+      }
+
+      return {
+        status: 'DUE',
+        label: 'Due Today',
+        isDueNow: true,
+        key,
+        maturityDate
+      };
+    }
+
+    function getStudentCalculatedDue(student, filterMode = null, targetMonth = null, targetYear = null) {
+      if (!filterMode) {
+        filterMode = document.getElementById('dueFilterPeriod') ? document.getElementById('dueFilterPeriod').value : 'MATURED_TODAY';
+      }
+
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+
+      const adm = parseDateSafely(student.admissionDate);
+      let startYear = adm.getFullYear();
+      let startMonth = adm.getMonth();
+      if (isNaN(startYear)) startYear = currentYear;
+      if (isNaN(startMonth)) startMonth = 0;
+
+      let maturedUnpaidMonthsCount = 0;
+      const dueKeys = [];
+
+      if (filterMode === 'CUSTOM_MONTH') {
+        const m = targetMonth !== null ? targetMonth : parseInt(document.getElementById('dueMonthSelect').value, 10);
+        const y = targetYear !== null ? targetYear : parseInt(document.getElementById('dueYearSelect').value, 10);
+        const st = getMonthStatus(student, m, y);
+        if (st.status === 'DUE' || st.status === 'UPCOMING') {
+          maturedUnpaidMonthsCount = 1;
+          dueKeys.push(st.key);
+        }
+      } else if (filterMode === 'CUSTOM_YEAR') {
+        const y = targetYear !== null ? targetYear : parseInt(document.getElementById('dueYearSelect').value, 10);
+        for (let m = 0; m < 12; m++) {
+          const st = getMonthStatus(student, m, y);
+          if (st.status === 'DUE' || (st.status === 'UPCOMING' && m <= currentMonth)) {
+            maturedUnpaidMonthsCount++;
+            dueKeys.push(st.key);
+          }
+        }
+      } else if (filterMode === 'THIS_MONTH') {
+        const st = getMonthStatus(student, currentMonth, currentYear);
+        if (st.status === 'DUE' || st.status === 'UPCOMING') {
+          maturedUnpaidMonthsCount = 1;
+          dueKeys.push(st.key);
+        }
+      } else {
+        const endYear = (filterMode === 'ALL') ? currentYear + 1 : currentYear;
+        for (let y = startYear; y <= endYear; y++) {
+          const mStart = (y === startYear) ? startMonth : 0;
+          const mEnd = (y === endYear && filterMode !== 'ALL') ? currentMonth : 11;
+
+          for (let m = mStart; m <= mEnd; m++) {
+            const st = getMonthStatus(student, m, y);
+            if (st.isDueNow || (filterMode === 'ALL' && st.status === 'UPCOMING' && y <= currentYear && m <= currentMonth)) {
+              maturedUnpaidMonthsCount++;
+              dueKeys.push(st.key);
+            }
+          }
+        }
+      }
+
+      const grossMaturedDue = maturedUnpaidMonthsCount * student.monthlyFee;
+      const advanceInWallet = student.advanceBalance || 0;
+      let netDueToday = 0;
+      let adjustedFromAdvance = 0;
+
+      if (advanceInWallet >= grossMaturedDue) {
+        adjustedFromAdvance = grossMaturedDue;
+        netDueToday = 0;
+      } else {
+        adjustedFromAdvance = advanceInWallet;
+        netDueToday = grossMaturedDue - advanceInWallet;
+      }
+
+      let breakdownText = "";
+      if (netDueToday === 0) {
+        if (advanceInWallet > 0) {
+          breakdownText = `All cleared • ₹${advanceInWallet} in Advance Wallet`;
+        } else {
+          breakdownText = "All dues cleared as of today";
+        }
+      } else {
+        const fullM = Math.floor(netDueToday / student.monthlyFee);
+        const rem = netDueToday % student.monthlyFee;
+        if (fullM > 0 && rem > 0) {
+          breakdownText = `${fullM} month${fullM > 1 ? 's' : ''} and ${rem} rupees`;
+        } else if (fullM > 0 && rem === 0) {
+          breakdownText = `${fullM} month${fullM > 1 ? 's' : ''}`;
+        } else {
+          breakdownText = `${rem} rupees (partial fee)`;
+        }
+        if (adjustedFromAdvance > 0) {
+          breakdownText += ` (₹${adjustedFromAdvance} adjusted from Advance)`;
+        }
+      }
+
+      return {
+        grossMaturedDue,
+        netDueToday,
+        advanceInWallet,
+        adjustedFromAdvance,
+        maturedUnpaidMonthsCount,
+        dueKeys,
+        breakdownText,
+        isCleared: netDueToday === 0
+      };
+    }
+
+    // ==================== CALENDAR TILE CLICK (PAY / UNPAY) ====================
+    function handleCalendarTileClick(studentId, monthIndex, year) {
+      const s = students.find(item => item.id === studentId);
+      if (!s) return;
+
+      const info = getMonthStatus(s, monthIndex, year);
+      const targetMonthName = MONTH_NAMES[monthIndex];
+      const monthKey = formatMonthKey(targetMonthName, year);
+
+      if (info.status === 'PAID' || info.status === 'PAID_ADVANCE') {
+        activeManageMonthData = {
+          studentId: s.id,
+          monthKey,
+          isAdvance: info.status === 'PAID_ADVANCE'
+        };
+        document.getElementById('managePaidMonthTitle').innerText = monthKey;
+        document.getElementById('managePaidStudentName').innerText = `${s.name} (Roll: ${s.roll})`;
+        
+        const badge = document.getElementById('managePaidStatusBadge');
+        if (info.status === 'PAID_ADVANCE') {
+          badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-100 text-cyan-800";
+          badge.innerText = "Advance Paid";
+        } else {
+          badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800";
+          badge.innerText = "Paid (Cleared)";
+        }
+
+        openModal('managePaidMonthModal');
+        lucide.createIcons();
+        return;
+      }
+
+      if (info.status === 'EXEMPT') {
+        if (confirm(`Month: ${monthKey} is EXEMPTED.\n\nCancel exemption and mark as unpaid/billable?`)) {
+          s.exemptedMonths = s.exemptedMonths.filter(k => k !== monthKey);
+          logSystemActivity("Reversal", "Exemption Cancelled", `${monthKey} un-exempted for ${s.name} (#${s.roll})`);
+          syncStudentToCloud(s);
+          viewStudentProfile(s.id);
+        }
+        return;
+      }
+
+      if (info.status === 'PRE_ADMISSION') {
+        alert(`${monthKey} is prior to enrollment (${formatDateDMY(s.admissionDate)}).`);
+        return;
+      }
+
+      document.getElementById('targetMonthStudentId').value = s.id;
+      document.getElementById('targetMonthKey').value = monthKey;
+      document.getElementById('targetMonthTitle').innerText = monthKey;
+      document.getElementById('targetMonthStudentName').innerText = `${s.name} (Roll: ${s.roll})`;
+      document.getElementById('targetMonthStandardFee').innerText = `₹${s.monthlyFee}`;
+      document.getElementById('targetMonthAvailAdvance').innerText = `₹${s.advanceBalance || 0}`;
+      document.getElementById('targetMonthCollectorDisplay').innerText = getCurrentCollectorName();
+
+      const availAdvance = s.advanceBalance || 0;
+      const suggestedAmount = Math.max(0, s.monthlyFee - availAdvance);
+      document.getElementById('targetMonthAmount').value = suggestedAmount > 0 ? suggestedAmount : s.monthlyFee;
+      document.getElementById('targetMonthNote').value = `Fee payment for ${monthKey}`;
+
+      calculateTargetMonthPreview();
+      openModal('clickMonthPayModal');
+    }
+
+    // ADJUSTS TOTAL COLLECTION AUTOMATICALLY UPON MARKING UNPAID / UNADVANCE
+    async function executeUnpayMonth() {
+      if (!activeManageMonthData) return;
+      const { studentId, monthKey, isAdvance } = activeManageMonthData;
+      const s = students.find(item => item.id === studentId);
+      if (!s) return;
+
+      const actionLabel = isAdvance ? "Unadvance" : "Unpaid";
+      s.paidMonths = (s.paidMonths || []).filter(k => k !== monthKey);
+
+      const paidRecord = (s.history || []).find(h => h.monthCovered === monthKey && (h.type === 'Payment' || !h.type) && Number(h.amount) > 0);
+      const refundAmount = paidRecord ? Number(paidRecord.amount) : Number(s.monthlyFee);
+
+      const reversalLog = {
+        amount: -refundAmount,
+        mode: "Reversal",
+        note: `Reversal: ${actionLabel} for ${monthKey}`,
+        collectedBy: getCurrentCollectorName(),
+        date: new Date().toISOString().slice(0, 10),
+        monthCovered: monthKey,
+        type: "Reversal"
+      };
+      if (!s.history) s.history = [];
+      s.history.unshift(reversalLog);
+
+      await logSystemActivity("Reversal", `Month Marked ${actionLabel}`, `Collection reduced by ₹${refundAmount} for ${s.name} (${monthKey})`);
+
+      await syncStudentToCloud(s);
+      closeModal('managePaidMonthModal');
+      
+      if (selectedStudentIdForProfile === s.id) {
+        viewStudentProfile(s.id);
+      }
+      renderStudents();
+      updateMetrics();
+      alert(`Success: ${monthKey} marked as ${actionLabel}. ₹${refundAmount} was adjusted from total collections.`);
+    }
+
+    async function executeExemptFromPaid() {
+      if (!activeManageMonthData) return;
+      const { studentId, monthKey } = activeManageMonthData;
+      const s = students.find(item => item.id === studentId);
+      if (!s) return;
+
+      s.paidMonths = (s.paidMonths || []).filter(k => k !== monthKey);
+      if (!s.exemptedMonths) s.exemptedMonths = [];
+      if (!s.exemptedMonths.includes(monthKey)) s.exemptedMonths.push(monthKey);
+
+      const paidRecord = (s.history || []).find(h => h.monthCovered === monthKey && (h.type === 'Payment' || !h.type) && Number(h.amount) > 0);
+      const refundAmount = paidRecord ? Number(paidRecord.amount) : Number(s.monthlyFee);
+
+      const log = {
+        amount: -refundAmount,
+        mode: "Fee Exemption",
+        note: `Converted ${monthKey} to Exemption (Fee Reversed ₹${refundAmount})`,
+        collectedBy: getCurrentCollectorName(),
+        date: new Date().toISOString().slice(0, 10),
+        monthCovered: monthKey,
+        type: "Exemption"
+      };
+      if (!s.history) s.history = [];
+      s.history.unshift(log);
+
+      await logSystemActivity("Exemption", "Converted to Exemption", `${monthKey} converted to fee waiver for ${s.name} (Collection reduced by ₹${refundAmount})`);
+
+      await syncStudentToCloud(s);
+      closeModal('managePaidMonthModal');
+      if (selectedStudentIdForProfile === s.id) {
+        viewStudentProfile(s.id);
+      }
+      renderStudents();
+      updateMetrics();
+      alert(`Success: ${monthKey} converted to Exemption. ₹${refundAmount} adjusted from collections.`);
+    }
+
+    function calculateTargetMonthPreview() {
+      const studentId = document.getElementById('targetMonthStudentId').value;
+      const s = students.find(item => item.id === studentId);
+      if (!s) return;
+
+      const amt = parseFloat(document.getElementById('targetMonthAmount').value) || 0;
+      const availAdvance = s.advanceBalance || 0;
+      const totalAvailable = amt + availAdvance;
+      const helpEl = document.getElementById('targetMonthPreviewHelp');
+
+      if (totalAvailable >= s.monthlyFee) {
+        const surplus = totalAvailable - s.monthlyFee;
+        helpEl.innerHTML = `✅ Clears <span class="font-bold text-emerald-700">${document.getElementById('targetMonthTitle').innerText}</span> in full.${surplus > 0 ? ` <span class="text-cyan-700 font-bold">+₹${surplus} surplus saved to Advance Wallet</span>.` : ''}`;
+      } else {
+        const short = s.monthlyFee - totalAvailable;
+        helpEl.innerHTML = `⚠️ Partial payment: ₹${short} will still remain due for this month.`;
+      }
+    }
+
+    async function processClickMonthPayment(e) {
+      e.preventDefault();
+      const studentId = document.getElementById('targetMonthStudentId').value;
+      const monthKey = document.getElementById('targetMonthKey').value;
+      const amount = parseFloat(document.getElementById('targetMonthAmount').value) || 0;
+      const mode = document.getElementById('targetMonthMode').value;
+      const note = document.getElementById('targetMonthNote').value.trim() || `Fee payment for ${monthKey}`;
+      const collector = getCurrentCollectorName();
+
+      const s = students.find(item => item.id === studentId);
+      if (!s) return;
+
+      if (!s.paidMonths) s.paidMonths = [];
+      if (!s.advanceBalance) s.advanceBalance = 0;
+
+      const totalAvailable = amount + s.advanceBalance;
+      if (totalAvailable >= s.monthlyFee) {
+        if (!s.paidMonths.includes(monthKey)) s.paidMonths.push(monthKey);
+        s.advanceBalance = totalAvailable - s.monthlyFee;
+      } else {
+        s.advanceBalance = totalAvailable;
+      }
+
+      const todayISO = new Date().toISOString().slice(0, 10);
+      const receipt = {
+        amount,
+        mode,
+        note,
+        date: todayISO,
+        monthCovered: monthKey,
+        collectedBy: collector,
+        type: 'Payment'
+      };
+      if (!s.history) s.history = [];
+      s.history.unshift(receipt);
+
+      await logSystemActivity("Payment", `Payment Collected (₹${amount})`, `Received for ${monthKey} from ${s.name} (Roll: #${s.roll}) via ${mode}`);
+
+      await syncStudentToCloud(s);
+      closeModal('clickMonthPayModal');
+
+      const dueInfo = getStudentCalculatedDue(s);
+      document.getElementById('recDate').innerText = formatDateDMY(todayISO);
+      document.getElementById('recName').innerText = s.name;
+      document.getElementById('recRollClass').innerText = `${s.roll} (${s.class})`;
+      document.getElementById('recMode').innerText = mode;
+      document.getElementById('recCollector').innerText = collector;
+      document.getElementById('recSignatureName').innerText = collector;
+      document.getElementById('recNote').innerText = note;
+      document.getElementById('recAmount').innerText = '₹' + amount;
+      document.getElementById('recBalanceDue').innerText = '₹' + dueInfo.netDueToday;
+      document.getElementById('recAdvanceBalance').innerText = '₹' + s.advanceBalance;
+      document.getElementById('recDueBreakdown').innerText = dueInfo.breakdownText;
+
+      if (selectedStudentIdForProfile === s.id) {
+        viewStudentProfile(s.id);
+      }
+
+      if (confirm(`Payment of ₹${amount} collected by ${collector} for ${monthKey}!\nRemaining due today: ₹${dueInfo.netDueToday} • Advance: ₹${s.advanceBalance}.\n\nPrint official receipt now?`)) {
+        window.print();
+      }
+    }
+
+    async function exemptTargetMonthDirect() {
+      const studentId = document.getElementById('targetMonthStudentId').value;
+      const monthKey = document.getElementById('targetMonthKey').value;
+      const collector = getCurrentCollectorName();
+      const s = students.find(item => item.id === studentId);
+      if (!s) return;
+
+      const reason = prompt(`Enter reason for granting fee exemption for ${monthKey}:`, "Merit Scholarship / Concession");
+      if (!reason) return;
+
+      if (!s.exemptedMonths) s.exemptedMonths = [];
+      if (!s.exemptedMonths.includes(monthKey)) s.exemptedMonths.push(monthKey);
+      s.paidMonths = (s.paidMonths || []).filter(k => k !== monthKey);
+
+      const log = {
+        amount: 0,
+        mode: 'Fee Exemption',
+        note: `Exemption for ${monthKey} (${reason})`,
+        collectedBy: collector,
+        date: new Date().toISOString().slice(0, 10),
+        type: 'Exemption'
+      };
+      if (!s.history) s.history = [];
+      s.history.unshift(log);
+
+      await logSystemActivity("Exemption", "Month Fee Exempted", `${monthKey} waived for ${s.name} (${reason})`);
+
+      await syncStudentToCloud(s);
+      closeModal('clickMonthPayModal');
+      if (selectedStudentIdForProfile === s.id) viewStudentProfile(s.id);
+      alert(`Month ${monthKey} exempted in cloud by ${collector} for ${s.name}.`);
+    }
+
+    // ==================== DUE DETAILED BREAKDOWN MODAL ====================
+    function openDueBreakdownModal() {
+      const filterMode = document.getElementById('dueFilterPeriod').value;
+      const subtitleEl = document.getElementById('dueModalSubtitle');
+      const tableBody = document.getElementById('dueModalTableBody');
+      tableBody.innerHTML = '';
+
+      let filterLabel = "Matured As of Today";
+      if (filterMode === 'THIS_MONTH') filterLabel = "This Month's Dues";
+      else if (filterMode === 'CUSTOM_MONTH') {
+        const m = parseInt(document.getElementById('dueMonthSelect').value, 10);
+        const y = document.getElementById('dueYearSelect').value;
+        filterLabel = `Month: ${SHORT_MONTHS[m]} ${y}`;
+      } else if (filterMode === 'CUSTOM_YEAR') {
+        filterLabel = `Year: ${document.getElementById('dueYearSelect').value}`;
+      } else if (filterMode === 'ALL') filterLabel = "All Pending Dues";
+
+      subtitleEl.innerText = `Active Filter: ${filterLabel}`;
+
+      let totalDueSum = 0;
+      let count = 0;
+
+      students.forEach(s => {
+        const dueInfo = getStudentCalculatedDue(s, filterMode);
+        if (dueInfo.netDueToday > 0) {
+          totalDueSum += dueInfo.netDueToday;
+          count++;
+
+          const monthBadges = dueInfo.dueKeys.map(k => 
+            `<span class="inline-block bg-rose-100 text-rose-800 text-[10px] font-bold px-1.5 py-0.5 rounded mr-1 mb-1">${k}</span>`
+          ).join('');
+
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
+          tr.innerHTML = `
+            <td class="py-2.5 px-3 font-mono font-bold text-indigo-900">#${s.roll}</td>
+            <td class="py-2.5 px-3">
+              <span class="font-bold text-slate-800 block">${s.name}</span>
+              <span class="text-[10px] text-slate-400">${s.phone || 'No phone'}</span>
+            </td>
+            <td class="py-2.5 px-3">
+              <span class="bg-indigo-50 text-indigo-800 text-[10px] font-semibold px-2 py-0.5 rounded-full">${s.class}</span>
+            </td>
+            <td class="py-2.5 px-3">
+              <span class="font-black text-rose-600 text-sm">₹${dueInfo.netDueToday}</span>
+              <span class="text-[10px] text-slate-400 block">${dueInfo.breakdownText}</span>
+            </td>
+            <td class="py-2.5 px-3">
+              <div class="flex flex-wrap items-center">${monthBadges || '<span class="text-slate-400 italic">Partial</span>'}</div>
+            </td>
+            <td class="py-2.5 px-3 text-center">
+              <div class="flex items-center justify-center gap-1.5">
+                <button onclick="closeModal('dueBreakdownModal'); openGeneralPaymentModal('${s.id}')" title="Pay Now" class="bg-emerald-600 hover:bg-emerald-700 text-white p-1.5 rounded-lg shadow-sm">
+                  <i data-lucide="credit-card" class="w-3.5 h-3.5"></i>
+                </button>
+                <button onclick="sendWhatsAppReminder('${s.id}')" title="Send WhatsApp Reminder" class="bg-green-500 hover:bg-green-600 text-white p-1.5 rounded-lg shadow-sm">
+                  <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+                </button>
+                <button onclick="makePhoneCall('${s.phone}')" title="Call Guardian" class="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded-lg shadow-sm">
+                  <i data-lucide="phone-call" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </td>
+          `;
+          tableBody.appendChild(tr);
+        }
+      });
+
+      if (count === 0) {
+        tableBody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400 font-medium">No students owe dues for this selected filter! 🎉</td></tr>`;
+      }
+
+      document.getElementById('dueModalTotalAmount').innerText = `₹${totalDueSum.toLocaleString('en-IN')}`;
+      document.getElementById('dueModalStudentCount').innerText = `${count} Students`;
+
+      openModal('dueBreakdownModal');
+      lucide.createIcons();
+    }
+
+    // ==================== UNIFIED HISTORY (ALL SERVER ACTIVITIES) ====================
+    async function openGlobalHistoryModal() {
+      await fetchServerActivityLogs();
+      renderGlobalHistory();
+      openModal('globalHistoryModal');
+      if (window.innerWidth < 768) {
+        toggleMobileSidebar();
+      }
+    }
+
+    function renderGlobalHistory() {
+      const tbody = document.getElementById('globalHistoryTableBody');
+      const selectedType = document.getElementById('historyTypeFilter').value;
+      const selectedCollector = document.getElementById('historyCollectorFilter').value;
+      tbody.innerHTML = '';
+
+      const combined = [];
+
+      students.forEach(s => {
+        (s.history || []).forEach(h => {
+          combined.push({
+            type: h.type || 'Payment',
+            date: h.date,
+            details: `Student: <strong>${s.name}</strong> (#${s.roll}, ${s.class}) • Amount: <strong>₹${h.amount || 0}</strong> • Mode: ${h.mode} • Note: ${h.note || '-'}`,
+            admin: h.collectedBy || "Miraj"
+          });
+        });
+      });
+
+      systemLogs.forEach(l => {
+        if (l.type !== 'Payment') {
+          combined.push({
+            type: l.type,
+            date: l.date,
+            details: `<strong>${l.title}:</strong> ${l.details}`,
+            admin: l.admin || "Miraj"
+          });
+        }
+      });
+
+      combined.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      const filtered = combined.filter(item => {
+        const matchesType = (selectedType === 'ALL') || (item.type.toLowerCase() === selectedType.toLowerCase());
+        const matchesAdmin = (selectedCollector === 'ALL') || (item.admin.toLowerCase() === selectedCollector.toLowerCase());
+        return matchesType && matchesAdmin;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-slate-400">No activity history found matching your filters.</td></tr>`;
+      } else {
+        filtered.forEach(item => {
+          let badgeClass = "bg-slate-100 text-slate-700";
+          if (item.type === 'Payment') badgeClass = "bg-emerald-100 text-emerald-800";
+          else if (item.type === 'Admission') badgeClass = "bg-blue-100 text-blue-800";
+          else if (item.type === 'Edit') badgeClass = "bg-indigo-100 text-indigo-800";
+          else if (item.type === 'Delete') badgeClass = "bg-rose-100 text-rose-800";
+          else if (item.type === 'Exemption') badgeClass = "bg-purple-100 text-purple-800";
+          else if (item.type === 'Reversal') badgeClass = "bg-amber-100 text-amber-800";
+
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
+          tr.innerHTML = `
+            <td class="py-2.5 px-3 font-medium text-slate-600 whitespace-nowrap">${formatDateDMY(item.date)}</td>
+            <td class="py-2.5 px-3">
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold ${badgeClass}">
+                ${item.type}
+              </span>
+            </td>
+            <td class="py-2.5 px-3 text-slate-700">${item.details}</td>
+            <td class="py-2.5 px-3">
+              <span class="font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded text-[11px]">
+                ${item.admin}
+              </span>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      document.getElementById('historyTotalSumText').innerText = `Total Logged Entries: ${filtered.length}`;
+    }
+
+    // ==================== PROFILE DRAWER & CALENDAR ====================
+    function changeProfileCalendarYear(delta) {
+      activeProfileCalendarYear += delta;
+      document.getElementById('profileCalendarYearDisplay').innerText = activeProfileCalendarYear;
+      if (selectedStudentIdForProfile) {
+        const s = students.find(item => item.id === selectedStudentIdForProfile);
+        if (s) renderProfileCalendar(s, activeProfileCalendarYear);
+      }
+    }
+
+    function renderProfileModalContent(s) {
+      const initials = s.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+      document.getElementById('profAvatar').innerText = initials;
+      document.getElementById('profName').innerText = s.name;
+      document.getElementById('profRoll').innerText = s.roll;
+      document.getElementById('profClassBadge').innerText = s.class;
+      document.getElementById('profJoined').innerText = formatDateDMY(s.admissionDate);
+      document.getElementById('profPhone').innerText = s.phone || 'Not provided';
+      document.getElementById('profMonthlyFee').innerText = `₹${s.monthlyFee} / month`;
+      document.getElementById('profDueCycle').innerText = `Every ${formatDayOrdinal(s.dueDay || 1)} of month`;
+      document.getElementById('profAdvanceHeld').innerText = `₹${s.advanceBalance || 0}`;
+
+      document.getElementById('profileCalendarYearDisplay').innerText = activeProfileCalendarYear;
+
+      const dueInfo = getStudentCalculatedDue(s);
+      const dueBanner = document.getElementById('profDueBanner');
+      const dueAmountEl = document.getElementById('profDueAmount');
+      const dueTextEl = document.getElementById('profDueBreakdownText');
+      const advBadge = document.getElementById('profAdvanceBadge');
+      const deleteAdvBtn = document.getElementById('profDeleteAdvBtn');
+
+      if ((s.advanceBalance || 0) > 0) {
+        advBadge.classList.remove('hidden');
+        advBadge.innerText = `Advance: ₹${s.advanceBalance}`;
+        if (deleteAdvBtn) deleteAdvBtn.classList.remove('hidden');
+      } else {
+        advBadge.classList.add('hidden');
+        if (deleteAdvBtn) deleteAdvBtn.classList.add('hidden');
+      }
+
+      if (dueInfo.isCleared) {
+        dueBanner.className = "rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3";
+        dueAmountEl.className = "text-2xl font-black mt-0.5 text-emerald-700";
+        dueAmountEl.innerText = "₹0";
+        dueTextEl.className = "text-xs font-semibold text-emerald-800 mt-1";
+        dueTextEl.innerText = (s.advanceBalance > 0) 
+          ? `All dues cleared! Student has ₹${s.advanceBalance} Advance Credit in Cloud.`
+          : "All matured dues cleared. Next bill on cycle date.";
+      } else {
+        dueBanner.className = "rounded-xl border border-rose-200 bg-rose-50/70 p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3";
+        dueAmountEl.className = "text-2xl font-black mt-0.5 text-rose-600";
+        dueAmountEl.innerText = `₹${dueInfo.netDueToday}`;
+        dueTextEl.className = "text-xs font-bold text-rose-800 mt-1";
+        dueTextEl.innerHTML = `⚠️ Due Today: <span class="underline">${dueInfo.breakdownText}</span>`;
+      }
+
+      renderProfileCalendar(s, activeProfileCalendarYear);
+
+      // Ledger Table
+      const historyTbody = document.getElementById('profHistoryTable');
+      historyTbody.innerHTML = '';
+      if (!s.history || s.history.length === 0) {
+        historyTbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-400">No payment records yet.</td></tr>`;
+      } else {
+        s.history.forEach(h => {
+          const isExempt = h.type === "Exemption";
+          const collector = h.collectedBy || "Miraj";
+          const row = document.createElement('tr');
+          row.className = isExempt ? "bg-violet-50/50 hover:bg-violet-50" : "hover:bg-slate-50";
+          row.innerHTML = `
+            <td class="py-2 px-3 text-slate-600 font-medium">${formatDateDMY(h.date)}</td>
+            <td class="py-2 px-3 font-bold ${isExempt ? 'text-violet-700' : (Number(h.amount) < 0 ? 'text-rose-600' : 'text-emerald-700')}">
+              ${isExempt ? 'WAIVED' : (Number(h.amount) < 0 ? `-₹${Math.abs(h.amount)}` : `₹${h.amount}`)}
+            </td>
+            <td class="py-2 px-3">
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-100 text-indigo-800">
+                ${collector}
+              </span>
+            </td>
+            <td class="py-2 px-3 text-slate-600">${h.mode}</td>
+            <td class="py-2 px-3 text-slate-500">${h.note || '-'}</td>
+          `;
+          historyTbody.appendChild(row);
+        });
+      }
+      lucide.createIcons();
+    }
+
+    function viewStudentProfile(id) {
+      const s = students.find(item => item.id === id);
+      if (!s) return;
+      selectedStudentIdForProfile = id;
+      renderProfileModalContent(s);
+      openModal('profileModal');
+    }
+
+    function renderProfileCalendar(student, year) {
+      const grid = document.getElementById('profCalendarGrid');
+      grid.innerHTML = '';
+
+      for (let m = 0; m < 12; m++) {
+        const info = getMonthStatus(student, m, year);
+        const card = document.createElement('div');
+        
+        if (info.status === 'PAID') {
+          card.className = "bg-emerald-500 text-white rounded-xl p-2.5 text-center shadow-sm cursor-pointer hover:bg-emerald-600 border border-emerald-600 transition";
+          card.innerHTML = `
+            <p class="text-[10px] font-bold uppercase tracking-wider">${SHORT_MONTHS[m]}</p>
+            <div class="flex items-center justify-center gap-0.5 mt-1 text-[11px] font-extrabold">
+              <i data-lucide="check-circle" class="w-3 h-3 text-amber-200"></i> Paid
+            </div>
+          `;
+        } else if (info.status === 'PAID_ADVANCE') {
+          card.className = "bg-cyan-500 text-white rounded-xl p-2.5 text-center shadow-sm cursor-pointer hover:bg-cyan-600 border border-cyan-600 transition";
+          card.innerHTML = `
+            <p class="text-[10px] font-bold uppercase tracking-wider">${SHORT_MONTHS[m]}</p>
+            <div class="flex items-center justify-center gap-0.5 mt-1 text-[10px] font-extrabold">
+              <i data-lucide="sparkles" class="w-3 h-3 text-amber-200"></i> Adv Paid
+            </div>
+          `;
+        } else if (info.status === 'EXEMPT') {
+          card.className = "bg-violet-600 text-white rounded-xl p-2.5 text-center shadow-sm cursor-pointer hover:bg-violet-700 border border-violet-700 transition";
+          card.innerHTML = `
+            <p class="text-[10px] font-bold uppercase tracking-wider">${SHORT_MONTHS[m]}</p>
+            <div class="flex items-center justify-center gap-0.5 mt-1 text-[11px] font-extrabold">
+              <i data-lucide="shield-check" class="w-3 h-3 text-amber-300"></i> Exempt
+            </div>
+          `;
+        } else if (info.status === 'DUE') {
+          card.className = "bg-rose-50 text-rose-700 rounded-xl p-2.5 text-center border-2 border-rose-300 shadow-sm cursor-pointer hover:bg-rose-100 transition animate-pulse";
+          card.innerHTML = `
+            <p class="text-[10px] font-bold uppercase tracking-wider text-rose-900">${SHORT_MONTHS[m]}</p>
+            <div class="flex items-center justify-center gap-0.5 mt-1 text-[11px] font-black text-rose-600">
+              <i data-lucide="alert-circle" class="w-3 h-3 text-rose-500"></i> Pay Due
+            </div>
+          `;
+        } else if (info.status === 'UPCOMING') {
+          card.className = "bg-slate-100 text-slate-600 rounded-xl p-2.5 text-center border border-slate-200 shadow-sm cursor-pointer hover:bg-slate-200 transition";
+          card.innerHTML = `
+            <p class="text-[10px] font-bold uppercase tracking-wider text-slate-700">${SHORT_MONTHS[m]}</p>
+            <div class="flex items-center justify-center gap-0.5 mt-1 text-[10px] font-medium text-slate-500">
+              <i data-lucide="clock" class="w-2.5 h-2.5"></i> ${info.label}
+            </div>
+          `;
+        } else {
+          card.className = "bg-slate-50 border border-dashed border-slate-200 text-slate-400 rounded-xl p-2.5 text-center opacity-50";
+          card.innerHTML = `
+            <p class="text-[10px] font-semibold uppercase">${SHORT_MONTHS[m]}</p>
+            <span class="text-[9px] block mt-1">Pre-admission</span>
+          `;
+        }
+
+        card.onclick = () => handleCalendarTileClick(student.id, m, year);
+        grid.appendChild(card);
+      }
+      lucide.createIcons();
+    }
+
+    function openPaymentFromProfile() {
+      if (selectedStudentIdForProfile) openGeneralPaymentModal(selectedStudentIdForProfile);
+    }
+    function sendWhatsAppFromProfile() {
+      if (selectedStudentIdForProfile) sendWhatsAppReminder(selectedStudentIdForProfile);
+    }
+
+    async function deleteStudentFromProfile() {
+      if (!selectedStudentIdForProfile) return;
+      const s = students.find(item => item.id === selectedStudentIdForProfile);
+      if (!s) return;
+
+      if (confirm(`Permanently delete student ${s.name} (#${s.roll}) and all records?`)) {
+        const delId = selectedStudentIdForProfile;
+        await logSystemActivity("Delete", "Student Record Deleted", `Deleted ${s.name} (Roll: #${s.roll}, Batch: ${s.class})`);
+
+        if (supabaseClient) {
+          await supabaseClient.from('students').delete().eq('id', delId);
+        }
+        students = students.filter(item => item.id !== delId);
+        closeProfileModal();
+        updateMetrics();
+        renderStudents();
+      }
+    }
+
+    // ==================== GENERAL CUSTOM PAYMENT ====================
     function openGeneralPaymentModal(id) {
       const s = students.find(item => item.id === id);
       if (!s) return;
@@ -2026,7 +2970,6 @@
       document.getElementById('genPaymentCollectorDisplay').innerText = collector;
       document.getElementById('payCustomDate').value = new Date().toISOString().slice(0, 10);
       
-      // Populate Fee Month Covered Dropdown
       const coverSelect = document.getElementById('payMonthCoverSelect');
       coverSelect.innerHTML = '';
       
@@ -2035,7 +2978,6 @@
       autoOpt.innerText = dueInfo.dueKeys[0] ? `Auto: ${dueInfo.dueKeys[0]}` : `Auto: Current Cycle`;
       coverSelect.appendChild(autoOpt);
 
-      // Add options for upcoming months & current year
       const currentYear = new Date().getFullYear();
       for (let y = currentYear - 1; y <= currentYear + 1; y++) {
         for (let m = 0; m < 12; m++) {
@@ -2130,7 +3072,6 @@
 
       if (!note) note = `Fee Payment for ${finalMonthCovered}`;
 
-      // Explicitly store monthCovered on the receipt for exact collection filtering!
       const receipt = {
         amount,
         mode,
@@ -2232,6 +3173,273 @@
       } else {
         closeModal('qrScannerModal');
       }
+    }
+
+    // ==================== DASHBOARD & REVENUE FILTERS ====================
+    function updateCollectionMetrics() {
+      const period = document.getElementById('collectionPeriodFilter').value;
+      const customPickers = document.getElementById('collectionCustomPickers');
+      const labelEl = document.getElementById('kpiCollectionLabel');
+
+      if (period === 'CUSTOM_MONTH' || period === 'YEAR') {
+        customPickers.classList.remove('hidden');
+        if (period === 'YEAR') {
+          document.getElementById('colMonthSelect').classList.add('hidden');
+        } else {
+          document.getElementById('colMonthSelect').classList.remove('hidden');
+        }
+      } else {
+        customPickers.classList.add('hidden');
+      }
+
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+      const todayISO = now.toISOString().slice(0, 10);
+
+      let filteredTotal = 0;
+      let txnCount = 0;
+
+      const allReceipts = [];
+      students.forEach(s => {
+        (s.history || []).forEach(h => {
+          if (h.amount !== undefined && h.amount !== null && Number(h.amount) !== 0) {
+            allReceipts.push(h);
+          }
+        });
+      });
+
+      allReceipts.forEach(h => {
+        const feePeriod = getReceiptFeeMonthAndYear(h);
+        const txISO = typeof h.date === 'string' ? h.date.slice(0, 10) : '';
+
+        let matches = false;
+        if (period === 'ALL') {
+          matches = true;
+        } else if (period === 'TODAY') {
+          matches = (txISO === todayISO);
+        } else if (period === 'MONTH') {
+          matches = (feePeriod.year === currentYear && feePeriod.month === currentMonth);
+        } else if (period === 'CUSTOM_MONTH') {
+          const selMonth = parseInt(document.getElementById('colMonthSelect').value, 10);
+          const selYear = parseInt(document.getElementById('colYearSelect').value, 10);
+          matches = (feePeriod.year === selYear && feePeriod.month === selMonth);
+        } else if (period === 'YEAR') {
+          const selYear = parseInt(document.getElementById('colYearSelect').value, 10);
+          matches = (feePeriod.year === selYear);
+        }
+
+        if (matches) {
+          filteredTotal += Number(h.amount || 0);
+          if (Number(h.amount || 0) > 0) txnCount++;
+          else if (Number(h.amount || 0) < 0) txnCount = Math.max(0, txnCount - 1);
+        }
+      });
+
+      filteredTotal = Math.max(0, filteredTotal);
+
+      if (period === 'ALL') labelEl.innerText = "All-Time Fee Collections";
+      else if (period === 'TODAY') labelEl.innerText = "Today's Fee Receipts";
+      else if (period === 'MONTH') labelEl.innerText = `${SHORT_MONTHS[currentMonth]} ${currentYear} Fee Collections`;
+      else if (period === 'CUSTOM_MONTH') {
+        const selMonth = parseInt(document.getElementById('colMonthSelect').value, 10);
+        const selYear = document.getElementById('colYearSelect').value;
+        labelEl.innerText = `${SHORT_MONTHS[selMonth]} ${selYear} Fee Collections`;
+      } else if (period === 'YEAR') {
+        const selYear = document.getElementById('colYearSelect').value;
+        labelEl.innerText = `Year ${selYear} Total Collections`;
+      }
+
+      document.getElementById('kpiFilteredCollection').innerText = '₹' + filteredTotal.toLocaleString('en-IN');
+      document.getElementById('kpiTxnCount').innerText = `${txnCount} Receipts`;
+    }
+
+    function updateMetrics() {
+      const totalStudents = students.length;
+      const dueFilter = document.getElementById('dueFilterPeriod').value;
+      const duePickers = document.getElementById('dueCustomPickers');
+
+      if (dueFilter === 'CUSTOM_MONTH' || dueFilter === 'CUSTOM_YEAR') {
+        duePickers.classList.remove('hidden');
+        if (dueFilter === 'CUSTOM_YEAR') {
+          document.getElementById('dueMonthSelect').classList.add('hidden');
+        } else {
+          document.getElementById('dueMonthSelect').classList.remove('hidden');
+        }
+      } else {
+        duePickers.classList.add('hidden');
+      }
+
+      let totalDueSum = 0;
+      let dueStudentsCount = 0;
+      let totalAdvanceHeld = 0;
+      let advanceStudentsCount = 0;
+
+      students.forEach(s => {
+        const dueInfo = getStudentCalculatedDue(s, dueFilter);
+        totalDueSum += dueInfo.netDueToday;
+        if (dueInfo.netDueToday > 0) dueStudentsCount++;
+        
+        const adv = s.advanceBalance || 0;
+        totalAdvanceHeld += adv;
+        if (adv > 0) advanceStudentsCount++;
+      });
+
+      document.getElementById('kpiTotalStudents').innerText = totalStudents;
+      document.getElementById('kpiActiveBatchesCount').innerText = `${batches.length} Active Batches`;
+      document.getElementById('kpiTotalDue').innerText = '₹' + totalDueSum.toLocaleString('en-IN');
+      document.getElementById('kpiDueStudents').innerText = dueStudentsCount;
+      document.getElementById('kpiTotalAdvance').innerText = '₹' + totalAdvanceHeld.toLocaleString('en-IN');
+      document.getElementById('kpiAdvanceStudents').innerText = advanceStudentsCount;
+
+      updateCollectionMetrics();
+    }
+
+    // ==================== TABLE RENDERING ====================
+    function renderStudents() {
+      const search = document.getElementById('searchInput').value.toLowerCase().trim();
+      const filterClass = document.getElementById('filterClass').value;
+      const filterStatus = document.getElementById('filterStatus').value;
+      const dueFilter = document.getElementById('dueFilterPeriod').value;
+
+      const headerLabelEl = document.getElementById('tableDueHeaderCol');
+      if (headerLabelEl) {
+        if (dueFilter === 'MATURED_TODAY') headerLabelEl.innerText = "Dues (Matured) & Advance";
+        else if (dueFilter === 'THIS_MONTH') headerLabelEl.innerText = "Dues (This Month) & Advance";
+        else if (dueFilter === 'CUSTOM_MONTH') {
+          const m = parseInt(document.getElementById('dueMonthSelect').value, 10);
+          headerLabelEl.innerText = `Dues (${SHORT_MONTHS[m]}) & Advance`;
+        } else if (dueFilter === 'CUSTOM_YEAR') {
+          const y = document.getElementById('dueYearSelect').value;
+          headerLabelEl.innerText = `Dues (${y}) & Advance`;
+        } else {
+          headerLabelEl.innerText = "Dues (All) & Advance";
+        }
+      }
+
+      const tbody = document.getElementById('studentTableBody');
+      tbody.innerHTML = '';
+
+      const filtered = students.filter(s => {
+        const matchesSearch = s.name.toLowerCase().includes(search) || 
+                              s.roll.toLowerCase().includes(search) || 
+                              (s.phone && s.phone.includes(search));
+        const matchesClass = filterClass === 'ALL' || s.class === filterClass;
+        
+        const dueInfo = getStudentCalculatedDue(s, dueFilter);
+        const hasAdvance = (s.advanceBalance || 0) > 0;
+        const periodCol = getStudentPeriodCollection(s);
+
+        let matchesStatus = true;
+        if (filterStatus === 'DUE') {
+          matchesStatus = (dueInfo.netDueToday > 0);
+        } else if (filterStatus === 'COLLECTED') {
+          matchesStatus = (periodCol.collectedInPeriod > 0);
+        } else if (filterStatus === 'ADVANCE') {
+          matchesStatus = hasAdvance;
+        } else if (filterStatus === 'PAID') {
+          matchesStatus = (dueInfo.netDueToday === 0);
+        }
+
+        return matchesSearch && matchesClass && matchesStatus;
+      });
+
+      if (filtered.length === 0) {
+        document.getElementById('noDataMessage').classList.remove('hidden');
+      } else {
+        document.getElementById('noDataMessage').classList.add('hidden');
+      }
+
+      filtered.forEach(s => {
+        const dueInfo = getStudentCalculatedDue(s, dueFilter);
+        const hasAdvance = (s.advanceBalance || 0) > 0;
+        const periodCol = getStudentPeriodCollection(s);
+
+        let statusBadgesHtml = '';
+        const paidCount = (s.paidMonths || []).length;
+        const exemptCount = (s.exemptedMonths || []).length;
+
+        if (paidCount > 0) {
+          statusBadgesHtml += `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1.5 py-0.5 rounded">${paidCount} Paid</span> `;
+        }
+        if (exemptCount > 0) {
+          statusBadgesHtml += `<span class="bg-violet-100 text-violet-800 text-[10px] font-bold px-1.5 py-0.5 rounded">${exemptCount} Exempt</span> `;
+        }
+        if (periodCol.collectedInPeriod > 0) {
+          statusBadgesHtml += `<span class="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-1.5 py-0.5 rounded border border-emerald-200">Paid in Period: ₹${periodCol.collectedInPeriod}</span> `;
+        }
+        if (dueInfo.netDueToday > 0) {
+          statusBadgesHtml += `<span class="bg-rose-100 text-rose-800 text-[10px] font-bold px-1.5 py-0.5 rounded">Due</span>`;
+        } else if (hasAdvance) {
+          statusBadgesHtml += `<span class="bg-cyan-100 text-cyan-800 text-[10px] font-bold px-1.5 py-0.5 rounded">Adv: ₹${s.advanceBalance}</span>`;
+        } else {
+          statusBadgesHtml += `<span class="bg-slate-100 text-slate-600 text-[10px] font-semibold px-1.5 py-0.5 rounded">Clear</span>`;
+        }
+
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-indigo-50/40 transition border-b border-slate-100";
+        tr.innerHTML = `
+          <td class="py-3 px-4 font-mono font-bold text-indigo-900 whitespace-nowrap">#${s.roll}</td>
+          
+          <td class="py-3 px-4 whitespace-nowrap">
+            <button onclick="viewStudentProfile('${s.id}')" class="font-bold text-slate-900 hover:text-indigo-600 text-left transition flex items-center gap-1 whitespace-nowrap">
+              <span class="truncate max-w-[125px] sm:max-w-none block">${s.name}</span>
+              <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+            </button>
+            <div class="text-xs text-slate-500 flex items-center gap-1 mt-0.5 whitespace-nowrap">
+              <i data-lucide="phone" class="w-3 h-3 text-slate-400 shrink-0"></i>
+              <span>${s.phone || 'No phone'}</span>
+            </div>
+            <div class="text-[10px] text-slate-400 mt-0.5 whitespace-nowrap">Admitted: ${formatDateDMY(s.admissionDate)}</div>
+          </td>
+
+          <td class="py-3 px-4 whitespace-nowrap">
+            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-800 border border-indigo-100">${s.class}</span>
+          </td>
+          <td class="py-3 px-4 whitespace-nowrap">
+            <div class="font-bold text-slate-800">₹${s.monthlyFee}</div>
+            <div class="text-[11px] text-indigo-600 font-medium">Every ${formatDayOrdinal(s.dueDay || 1)}</div>
+          </td>
+          <td class="py-3 px-4 whitespace-nowrap">
+            <div class="space-y-0.5">
+              <div class="flex items-center gap-2">
+                <span class="font-black text-sm ${dueInfo.netDueToday > 0 ? 'text-rose-600' : 'text-emerald-600'}">
+                  ₹${dueInfo.netDueToday}
+                </span>
+                ${hasAdvance ? `<span class="bg-cyan-100 text-cyan-900 text-[10px] font-black px-1.5 py-0.5 rounded-full">Adv: ₹${s.advanceBalance}</span>` : ''}
+              </div>
+              <div class="text-[11px] font-medium ${dueInfo.netDueToday > 0 ? 'text-amber-700' : 'text-slate-400'}">
+                ${dueInfo.breakdownText}
+              </div>
+            </div>
+          </td>
+          <td class="py-3 px-4 whitespace-nowrap">
+            <div class="flex items-center gap-1 flex-wrap">${statusBadgesHtml}</div>
+          </td>
+          <td class="py-3 px-4 text-center whitespace-nowrap">
+            <div class="flex items-center justify-center gap-1.5">
+              <button onclick="openEditStudentModal('${s.id}')" title="Edit Student Profile" class="bg-slate-100 hover:bg-slate-200 text-slate-700 p-1.5 rounded-lg transition shadow-sm">
+                <i data-lucide="edit-3" class="w-4 h-4"></i>
+              </button>
+              <button onclick="viewStudentProfile('${s.id}')" title="Student Profile & Calendar" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 p-1.5 rounded-lg transition shadow-sm">
+                <i data-lucide="user" class="w-4 h-4"></i>
+              </button>
+              <button onclick="openGeneralPaymentModal('${s.id}')" title="Pay" class="bg-emerald-600 hover:bg-emerald-700 text-white p-1.5 rounded-lg transition shadow-sm">
+                <i data-lucide="credit-card" class="w-4 h-4"></i>
+              </button>
+              <button onclick="sendWhatsAppReminder('${s.id}')" title="WhatsApp Due Alert" class="bg-green-500 hover:bg-green-600 text-white p-1.5 rounded-lg transition shadow-sm">
+                <i data-lucide="message-circle" class="w-4 h-4"></i>
+              </button>
+              <button onclick="makePhoneCall('${s.phone}')" title="Direct Phone Call" class="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded-lg transition shadow-sm">
+                <i data-lucide="phone-call" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      lucide.createIcons();
     }
 
     // ==================== EXPORTS (DD/MM/YYYY) ====================
