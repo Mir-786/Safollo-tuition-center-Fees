@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Safollo Tuition Fee Management System</title>
+  <title>Tuition Fee Management System</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
@@ -36,7 +36,7 @@
         <div class="inline-flex p-3 bg-indigo-600 rounded-2xl text-amber-300 shadow-inner mb-3">
           <i data-lucide="graduation-cap" class="w-8 h-8"></i>
         </div>
-        <h2 class="text-xl font-bold tracking-tight">Safollo Tuition Fee Portal</h2>
+        <h2 class="text-xl font-bold tracking-tight">Tuition Fee Portal</h2>
         <p class="text-xs text-indigo-200 mt-1">Authorized Staff & Admin Login</p>
       </div>
 
@@ -49,7 +49,7 @@
           <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Username</label>
           <div class="relative">
             <i data-lucide="user" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
-            <input type="text" id="loginUsername" required placeholder="Admin" class="w-full pl-9 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-800">
+            <input type="text" id="loginUsername" required placeholder="miraj / moyna / abida" class="w-full pl-9 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-800">
           </div>
         </div>
 
@@ -66,7 +66,7 @@
         </button>
 
         <div class="pt-3 border-t border-slate-100 text-center">
-          <p class="text-[11px] text-slate-400">Create By Miraj</p>
+          <p class="text-[11px] text-slate-400">Accounts: Miraj, Moyna, Abida</p>
         </div>
       </form>
     </div>
@@ -82,7 +82,7 @@
     <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-300 flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out shadow-2xl md:shadow-none shrink-0">
       
       <!-- Top Section: Brand & Collector Profile -->
-      <div class="p-5 space-y-6">
+      <div class="p-5 space-y-5">
         
         <!-- Branding -->
         <div class="flex items-center justify-between pb-4 border-b border-slate-800">
@@ -92,7 +92,7 @@
             </div>
             <div>
               <h1 class="text-sm font-bold text-white tracking-wide">Tuition Portal</h1>
-              <p class="text-[10px] text-slate-400">Fees & Student System</p>
+              <p class="text-[10px] text-slate-400">Server-Synced System</p>
             </div>
           </div>
           <button onclick="toggleMobileSidebar()" class="md:hidden text-slate-400 hover:text-white p-1">
@@ -100,9 +100,9 @@
           </button>
         </div>
 
-        <!-- Collector Profile Card with Round Shape Photo -->
+        <!-- Collector Profile Card with Round Shape Photo (Only in Menu Bar) -->
         <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/60 text-center relative overflow-hidden shadow-inner">
-          <div class="relative mx-auto w-16 h-16 mb-2.5">
+          <div class="relative mx-auto w-16 h-16 mb-2">
             <img id="sidebarCollectorPhoto" src="" alt="Collector Avatar" class="w-16 h-16 rounded-full object-cover border-2 border-amber-400 shadow-md mx-auto">
             <span class="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-emerald-500 border-2 border-slate-900"></span>
           </div>
@@ -121,10 +121,10 @@
             <span>Students Directory</span>
           </a>
 
-          <!-- Payment History in Menu Bar -->
-          <button onclick="openGlobalPaymentHistoryModal()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white transition text-left">
+          <!-- ALL HISTORY (SAVED TO SERVER) -->
+          <button onclick="openGlobalHistoryModal()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white transition text-left">
             <i data-lucide="history" class="w-4 h-4 text-emerald-400"></i>
-            <span>Payment History</span>
+            <span>History</span>
           </button>
 
           <!-- Export Option in Menu Bar -->
@@ -140,8 +140,8 @@
             </button>
           </div>
 
-          <div class="space-y-1 pt-2">
-            <p class="px-3 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Batch & Settings</p>
+          <div class="space-y-1 pt-1">
+            <p class="px-3 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Management</p>
             <button onclick="openBatchManagerModal()" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-800 text-purple-300 hover:text-purple-200 transition text-left">
               <i data-lucide="layers" class="w-4 h-4"></i>
               <span>Batches & Class Fees</span>
@@ -150,6 +150,18 @@
               <i data-lucide="cloud" class="w-4 h-4 text-sky-400"></i>
               <span>Cloud Database Config</span>
             </button>
+          </div>
+
+          <!-- UPDATE BUTTON ON MENU BAR (External Link) -->
+          <div class="pt-2">
+            <p class="px-3 text-[10px] uppercase font-bold text-slate-500 tracking-wider">System</p>
+            <a href="https://vercel.com" target="_blank" rel="noopener noreferrer" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-indigo-600/30 text-indigo-300 hover:text-white border border-slate-700/60 transition group text-left">
+              <div class="flex items-center gap-3">
+                <i data-lucide="arrow-up-circle" class="w-4 h-4 text-amber-400 group-hover:rotate-45 transition-transform"></i>
+                <span>Update App</span>
+              </div>
+              <i data-lucide="external-link" class="w-3.5 h-3.5 opacity-60"></i>
+            </a>
           </div>
         </nav>
       </div>
@@ -166,7 +178,7 @@
     <!-- ==================== MAIN CONTENT AREA ==================== -->
     <div class="flex-1 min-w-0 flex flex-col min-h-screen">
       
-      <!-- TOP BAR: Icon-Only Action Buttons & No Admin Name/Photo -->
+      <!-- TOP BAR: Icon-Only Action Buttons & Clean (No Admin Name/Photo) -->
       <header class="bg-indigo-700 text-white shadow-md sticky top-0 z-30 px-4 md:px-8 py-3 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <!-- Mobile Menu Hamburger Button -->
@@ -174,17 +186,15 @@
             <i data-lucide="menu" class="w-5 h-5"></i>
           </button>
           <div class="flex items-center gap-2">
-            <h1 class="text-base font-bold tracking-tight">Safollo Tuition Fee Portal</h1>
-            <!---
+            <h1 class="text-base font-bold tracking-tight">Tuition Fee Portal</h1>
             <button onclick="openCloudConfigModal()" id="cloudStatusBadge" class="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-indigo-950 shadow-sm transition hover:opacity-90">
               <span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-ping"></span>
               <span id="cloudStatusText">Cloud</span>
             </button>
-            --->
           </div>
         </div>
 
-        <!-- Right Side: Icon-Only Action Buttons (No text, no admin photo/name) -->
+        <!-- Right Side: Icon-Only Action Buttons (No text, no admin photo or name) -->
         <div class="flex items-center gap-2">
           <!-- Scan Student QR (Icon Only) -->
           <button onclick="openQRScanner()" title="Scan Student QR Code" class="w-10 h-10 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition shadow flex items-center justify-center border border-indigo-500/50 focus:outline-none">
@@ -286,13 +296,13 @@
             <table class="w-full text-left border-collapse" id="mainStudentsTable">
               <thead>
                 <tr class="bg-slate-100 text-slate-600 text-xs font-semibold uppercase tracking-wider border-b border-slate-200">
-                  <th class="py-3 px-4">Roll</th>
-                  <th class="py-3 px-4">Student & Contact</th>
-                  <th class="py-3 px-4">Batch</th>
-                  <th class="py-3 px-4">Monthly Fee & Cycle</th>
-                  <th class="py-3 px-4">Dues & Advance Balance</th>
-                  <th class="py-3 px-4">Calendar Status</th>
-                  <th class="py-3 px-4 text-center">Actions</th>
+                  <th class="py-3 px-4 whitespace-nowrap">Roll</th>
+                  <th class="py-3 px-4 whitespace-nowrap">Student & Contact</th>
+                  <th class="py-3 px-4 whitespace-nowrap">Batch</th>
+                  <th class="py-3 px-4 whitespace-nowrap">Monthly Fee & Cycle</th>
+                  <th class="py-3 px-4 whitespace-nowrap">Dues & Advance Balance</th>
+                  <th class="py-3 px-4 whitespace-nowrap">Calendar Status</th>
+                  <th class="py-3 px-4 text-center whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
               <tbody id="studentTableBody" class="divide-y divide-slate-100 text-sm">
@@ -309,34 +319,48 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL: ALL PAYMENT HISTORY ==================== -->
-  <div id="globalPaymentHistoryModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+  <!-- ==================== MODAL: ALL SERVER HISTORY ==================== -->
+  <div id="globalHistoryModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl max-w-4xl w-full shadow-2xl overflow-hidden my-auto max-h-[90vh] flex flex-col">
       <div class="bg-slate-900 px-6 py-4 flex justify-between items-center text-white">
         <div class="flex items-center gap-2">
           <i data-lucide="history" class="w-5 h-5 text-emerald-400"></i>
           <div>
-            <h3 class="font-bold text-base">Global Payment History & Ledger</h3>
-            <p class="text-xs text-slate-400">All student transactions recorded across all devices</p>
+            <h3 class="font-bold text-base">Server Activity History & Ledger</h3>
+            <p class="text-xs text-slate-400">Stored directly in database across all staff logins</p>
           </div>
         </div>
-        <button onclick="closeModal('globalPaymentHistoryModal')" class="text-slate-400 hover:text-white p-1">
+        <button onclick="closeModal('globalHistoryModal')" class="text-slate-400 hover:text-white p-1">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
       <div class="p-6 overflow-y-auto space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div class="flex items-center gap-2">
-            <label class="font-bold text-slate-600">Filter Collector:</label>
-            <select id="historyCollectorFilter" onchange="renderGlobalPaymentHistory()" class="border rounded-lg px-2.5 py-1.5 bg-slate-50 font-semibold focus:outline-none">
-              <option value="ALL">All Collectors</option>
-              <option value="Miraj">Miraj Only</option>
-              <option value="Moyna">Moyna Only</option>
-              <option value="Abida">Abida Only</option>
-            </select>
+        <!-- Filter Controls -->
+        <div class="flex flex-wrap items-center justify-between gap-3 text-xs bg-slate-50 p-3 rounded-xl border border-slate-200">
+          <div class="flex flex-wrap items-center gap-3">
+            <div>
+              <label class="font-bold text-slate-600 block text-[10px] uppercase mb-0.5">Filter Type:</label>
+              <select id="historyTypeFilter" onchange="renderGlobalHistory()" class="border rounded-lg px-2.5 py-1.5 bg-white font-semibold focus:outline-none">
+                <option value="ALL">All Activities</option>
+                <option value="Payment">Payments Only</option>
+                <option value="Admission">Admissions Only</option>
+                <option value="Delete">Deleted Students</option>
+                <option value="Exemption">Exemptions</option>
+                <option value="Reversal">Reversals / Unpaid</option>
+              </select>
+            </div>
+            <div>
+              <label class="font-bold text-slate-600 block text-[10px] uppercase mb-0.5">Filter Admin:</label>
+              <select id="historyCollectorFilter" onchange="renderGlobalHistory()" class="border rounded-lg px-2.5 py-1.5 bg-white font-semibold focus:outline-none">
+                <option value="ALL">All Staff</option>
+                <option value="Miraj">Miraj</option>
+                <option value="Moyna">Moyna</option>
+                <option value="Abida">Abida</option>
+              </select>
+            </div>
           </div>
-          <span id="historyTotalSumText" class="font-black text-sm text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">Total: ₹0</span>
+          <span id="historyTotalSumText" class="font-black text-xs text-emerald-800 bg-emerald-100 px-3 py-1.5 rounded-lg border border-emerald-200">Total Entries: 0</span>
         </div>
 
         <div class="border border-slate-200 rounded-xl overflow-hidden">
@@ -345,23 +369,22 @@
               <thead class="bg-slate-100 text-slate-600 font-semibold border-b border-slate-200">
                 <tr>
                   <th class="py-2.5 px-3">Date (DD/MM/YYYY)</th>
-                  <th class="py-2.5 px-3">Student Name</th>
-                  <th class="py-2.5 px-3">Roll & Batch</th>
-                  <th class="py-2.5 px-3">Amount</th>
-                  <th class="py-2.5 px-3">Collected By</th>
-                  <th class="py-2.5 px-3">Mode</th>
-                  <th class="py-2.5 px-3">Remarks / Month Covered</th>
+                  <th class="py-2.5 px-3">Action Type</th>
+                  <th class="py-2.5 px-3">Description / Details</th>
+                  <th class="py-2.5 px-3">Performed By</th>
                 </tr>
               </thead>
-              <tbody id="globalHistoryTableBody" class="divide-y divide-slate-100"></tbody>
+              <tbody id="globalHistoryTableBody" class="divide-y divide-slate-100">
+                <!-- Dynamically populated from server -->
+              </tbody>
             </table>
           </div>
         </div>
       </div>
 
       <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-end">
-        <button onclick="closeModal('globalPaymentHistoryModal')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-4 py-2 rounded-lg text-xs transition">
-          Close Ledger
+        <button onclick="closeModal('globalHistoryModal')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-4 py-2 rounded-lg text-xs transition">
+          Close History
         </button>
       </div>
     </div>
@@ -375,11 +398,10 @@
         <button onclick="closeModal('batchManagerModal')" class="text-indigo-200 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
       <div class="p-6 space-y-5">
-        <!-- Add New Batch with Class-Wise Fee -->
         <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3">
           <label class="block text-xs font-bold uppercase text-slate-700">Add New Batch with Default Fee</label>
           <div class="grid grid-cols-3 gap-2">
-            <input type="text" id="newBatchNameInput" placeholder="Batch Name (e.g. Class 10)" class="col-span-2 px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+            <input type="text" id="newBatchNameInput" placeholder="Batch Name" class="col-span-2 px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
             <input type="number" id="newBatchFeeInput" placeholder="Fee (₹)" class="px-3 py-2 border rounded-lg text-xs font-bold focus:ring-2 focus:ring-indigo-500 focus:outline-none">
           </div>
           <button onclick="addNewBatch()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded-lg text-xs transition flex items-center justify-center gap-1.5 shadow-sm">
@@ -387,7 +409,6 @@
           </button>
         </div>
 
-        <!-- Active Batches List -->
         <div>
           <label class="block text-xs font-bold uppercase text-slate-600 mb-2">Active Batches (<span id="batchCountBadge">0</span>)</label>
           <div class="max-h-60 overflow-y-auto space-y-2 border border-slate-200 rounded-xl p-2 bg-slate-50" id="batchListContainer"></div>
@@ -416,7 +437,6 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Batch / Class</label>
-            <!-- Auto-fetches fee onchange -->
             <select id="mClass" onchange="handleAdmissionBatchChange()" class="w-full px-3 py-2 border rounded-lg bg-white focus:ring-2 focus:ring-indigo-500"></select>
           </div>
           <div>
@@ -424,7 +444,6 @@
               <label class="block text-xs font-semibold text-slate-600 uppercase">Monthly Fee (₹)</label>
               <span class="text-[10px] text-indigo-600 font-bold">Editable</span>
             </div>
-            <!-- Auto-fetched but freely editable -->
             <input type="number" id="mMonthlyFee" required placeholder="500" class="w-full px-3 py-2 border rounded-lg font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
           </div>
         </div>
@@ -880,27 +899,27 @@
         username: "miraj", 
         password: "mir159", 
         displayName: "Miraj", 
-        photo: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80" 
+        photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" 
       },
       { 
         username: "moyna", 
         password: "moyna786", 
         displayName: "Moyna", 
-        photo: "/IMG20261018061222.jpg?w=150&auto=format&fit=crop&q=80" 
+        photo: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80" 
       },
       { 
         username: "abida", 
         password: "abida321", 
         displayName: "Abida", 
-        photo: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80" 
+        photo: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80" 
       }
     ];
 
     let currentLoggedInAdmin = null;
 
     // Optional hardcoded Supabase keys
-    const DEFAULT_SUPABASE_URL = "https://qlmrbaadqshccqzswwzr.supabase.co"; 
-    const DEFAULT_SUPABASE_KEY = "sb_publishable_ZUjzXyMzKTdKR1ZquFjRYg_Skb6o4nv";
+    const DEFAULT_SUPABASE_URL = ""; 
+    const DEFAULT_SUPABASE_KEY = "";
 
     const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const SHORT_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -931,25 +950,17 @@
 
     let supabaseClient = null;
     let students = [];
-    
-    // Batches storing class-wise default fee
     let batches = [
-      { name: "Baby", defaultFee: 100 },
-      { name: "Class 1", defaultFee: 100 },
-      { name: "Class 2", defaultFee: 100 },
-      { name: "Class 3", defaultFee: 150 },
-      { name: "Class 4", defaultFee: 200 },
-      { name: "Class 5", defaultFee: 500 }, 
-      { name: "Class 8", defaultFee: 500 },
-      { name: "Class 6", defaultFee: 500 },
-      { name: "Class 7", defaultFee: 500 },
       { name: "Class 8", defaultFee: 500 },
       { name: "Class 9", defaultFee: 550 },
       { name: "Class 10", defaultFee: 600 },
       { name: "Class 11", defaultFee: 700 },
       { name: "Class 12", defaultFee: 800 },
-      
+      { name: "Competitive (WBP/SSC)", defaultFee: 750 }
     ];
+
+    // Server Activity Logs (stored in Supabase 'activity_logs' table)
+    let systemLogs = [];
 
     let selectedStudentIdForProfile = null;
     let activeProfileCalendarYear = new Date().getFullYear();
@@ -971,6 +982,37 @@
       document.getElementById('studentsTableSection').scrollIntoView({ behavior: 'smooth' });
       if (window.innerWidth < 768) {
         toggleMobileSidebar();
+      }
+    }
+
+    // ==================== CLOUD SERVER ACTIVITY LOGGER ====================
+    async function logSystemActivity(action_type, title, details) {
+      const logPayload = {
+        id: 'LOG-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+        action_type,
+        title,
+        details,
+        admin: getCurrentCollectorName(),
+        created_at: new Date().toISOString()
+      };
+
+      // Optimistic local push
+      systemLogs.unshift({
+        id: logPayload.id,
+        type: logPayload.action_type,
+        title: logPayload.title,
+        details: logPayload.details,
+        admin: logPayload.admin,
+        date: logPayload.created_at
+      });
+
+      // Save directly to Supabase server table
+      if (supabaseClient) {
+        try {
+          await supabaseClient.from('activity_logs').insert([logPayload]);
+        } catch(err) {
+          console.warn("Could not save log to activity_logs table:", err);
+        }
       }
     }
 
@@ -1044,7 +1086,6 @@
 
       const sidebarCloudText = document.getElementById('sidebarCloudText');
 
-      // Load batches cache with backward compatibility
       const rawBatches = JSON.parse(localStorage.getItem('cached_batches_v8'));
       if (rawBatches && rawBatches.length > 0) {
         if (typeof rawBatches[0] === 'string') {
@@ -1067,6 +1108,7 @@
         supabaseClient = window.supabase.createClient(url, key);
         if (sidebarCloudText) sidebarCloudText.innerText = "Cloud Synced";
         fetchCloudData();
+        fetchServerActivityLogs();
         subscribeToCloudRealtime();
       } catch (err) {
         console.error("Supabase init error:", err);
@@ -1113,6 +1155,33 @@
       }
     }
 
+    async function fetchServerActivityLogs() {
+      if (!supabaseClient) return;
+      try {
+        const { data, error } = await supabaseClient
+          .from('activity_logs')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(600);
+
+        if (!error && data) {
+          systemLogs = data.map(l => ({
+            id: l.id,
+            type: l.action_type,
+            title: l.title,
+            details: l.details,
+            admin: l.admin,
+            date: l.created_at
+          }));
+          if (!document.getElementById('globalHistoryModal').classList.contains('hidden')) {
+            renderGlobalHistory();
+          }
+        }
+      } catch(err) {
+        console.warn("Could not query activity_logs from server:", err);
+      }
+    }
+
     function subscribeToCloudRealtime() {
       if (!supabaseClient) return;
       supabaseClient
@@ -1122,6 +1191,9 @@
         })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'batches' }, () => {
           fetchCloudData();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'activity_logs' }, () => {
+          fetchServerActivityLogs();
         })
         .subscribe();
     }
@@ -1314,13 +1386,10 @@
       document.getElementById('mAdmissionDate').value = todayStr;
       document.getElementById('mDueDay').value = new Date().getDate();
 
-      // Automatically fetch and set the default fee for the first batch
       handleAdmissionBatchChange();
-
       openModal('addStudentModal');
     }
 
-    // When student batch changes -> auto-populate fee (still editable)
     function handleAdmissionBatchChange() {
       const selectedBatchName = document.getElementById('mClass').value;
       const found = batches.find(b => b.name === selectedBatchName);
@@ -1370,6 +1439,10 @@
 
       students.unshift(newStudent);
       await syncStudentToCloud(newStudent);
+
+      // Server Activity Audit Log (Saved to Supabase Server)
+      await logSystemActivity("Admission", "New Student Enrolled", `${name} (Roll: #${roll}, Batch: ${cls}) - Fee: ₹${monthlyFee}`);
+
       closeModal('addStudentModal');
       viewStudentProfile(newStudent.id);
     }
@@ -1535,6 +1608,7 @@
       if (info.status === 'EXEMPT') {
         if (confirm(`Month: ${monthKey} is EXEMPTED.\n\nCancel exemption and mark as unpaid/billable?`)) {
           s.exemptedMonths = s.exemptedMonths.filter(k => k !== monthKey);
+          logSystemActivity("Reversal", "Exemption Cancelled", `${monthKey} un-exempted for ${s.name} (#${s.roll})`);
           syncStudentToCloud(s);
           viewStudentProfile(s.id);
         }
@@ -1583,6 +1657,8 @@
       if (!s.history) s.history = [];
       s.history.unshift(log);
 
+      await logSystemActivity("Reversal", `Month Marked ${actionLabel}`, `${monthKey} payment reversed for ${s.name} (Roll: #${s.roll})`);
+
       await syncStudentToCloud(s);
       closeModal('managePaidMonthModal');
       if (selectedStudentIdForProfile === s.id) {
@@ -1611,6 +1687,8 @@
       };
       if (!s.history) s.history = [];
       s.history.unshift(log);
+
+      await logSystemActivity("Exemption", "Converted to Exemption", `${monthKey} converted to fee waiver for ${s.name}`);
 
       await syncStudentToCloud(s);
       closeModal('managePaidMonthModal');
@@ -1675,6 +1753,9 @@
       if (!s.history) s.history = [];
       s.history.unshift(receipt);
 
+      // Save Activity to Supabase Server Log
+      await logSystemActivity("Payment", `Payment Collected (₹${amount})`, `Received for ${monthKey} from ${s.name} (Roll: #${s.roll}) via ${mode}`);
+
       await syncStudentToCloud(s);
       closeModal('clickMonthPayModal');
 
@@ -1725,76 +1806,98 @@
       if (!s.history) s.history = [];
       s.history.unshift(log);
 
+      await logSystemActivity("Exemption", "Month Fee Exempted", `${monthKey} waived for ${s.name} (${reason})`);
+
       await syncStudentToCloud(s);
       closeModal('clickMonthPayModal');
       if (selectedStudentIdForProfile === s.id) viewStudentProfile(s.id);
       alert(`Month ${monthKey} exempted in cloud by ${collector} for ${s.name}.`);
     }
 
-    // ==================== GLOBAL PAYMENT HISTORY ====================
-    function openGlobalPaymentHistoryModal() {
-      renderGlobalPaymentHistory();
-      openModal('globalPaymentHistoryModal');
+    // ==================== UNIFIED HISTORY (ALL SERVER ACTIVITIES) ====================
+    async function openGlobalHistoryModal() {
+      await fetchServerActivityLogs();
+      renderGlobalHistory();
+      openModal('globalHistoryModal');
       if (window.innerWidth < 768) {
         toggleMobileSidebar();
       }
     }
 
-    function renderGlobalPaymentHistory() {
+    function renderGlobalHistory() {
       const tbody = document.getElementById('globalHistoryTableBody');
+      const selectedType = document.getElementById('historyTypeFilter').value;
       const selectedCollector = document.getElementById('historyCollectorFilter').value;
       tbody.innerHTML = '';
 
-      const allTxns = [];
+      // Combine server activity logs and students payment history
+      const combined = [];
+
+      // 1. All student payment records
       students.forEach(s => {
         (s.history || []).forEach(h => {
-          allTxns.push({
-            studentName: s.name,
-            roll: s.roll,
-            class: s.class,
+          combined.push({
+            type: h.type || 'Payment',
             date: h.date,
-            amount: h.amount || 0,
-            mode: h.mode,
-            collectedBy: h.collectedBy || "Miraj",
-            note: h.note || '-',
-            monthCovered: h.monthCovered || '',
-            type: h.type || 'Payment'
+            details: `Student: <strong>${s.name}</strong> (#${s.roll}, ${s.class}) • Amount: <strong>₹${h.amount || 0}</strong> • Mode: ${h.mode} • Note: ${h.note || '-'}`,
+            admin: h.collectedBy || "Miraj"
           });
         });
       });
 
-      allTxns.sort((a, b) => new Date(b.date) - new Date(a.date));
+      // 2. All server activity logs (Admissions, Deletions, Reversals, Exemptions)
+      systemLogs.forEach(l => {
+        if (l.type !== 'Payment') {
+          combined.push({
+            type: l.type,
+            date: l.date,
+            details: `<strong>${l.title}:</strong> ${l.details}`,
+            admin: l.admin || "Miraj"
+          });
+        }
+      });
 
-      let totalSum = 0;
-      const filtered = allTxns.filter(t => {
-        return selectedCollector === 'ALL' || t.collectedBy.toLowerCase() === selectedCollector.toLowerCase();
+      // Sort newest first
+      combined.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      const filtered = combined.filter(item => {
+        const matchesType = (selectedType === 'ALL') || (item.type.toLowerCase() === selectedType.toLowerCase());
+        const matchesAdmin = (selectedCollector === 'ALL') || (item.admin.toLowerCase() === selectedCollector.toLowerCase());
+        return matchesType && matchesAdmin;
       });
 
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-400">No payment records found for this selection.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-slate-400">No activity history found matching your filters.</td></tr>`;
       } else {
-        filtered.forEach(t => {
-          totalSum += t.amount;
+        filtered.forEach(item => {
+          let badgeClass = "bg-slate-100 text-slate-700";
+          if (item.type === 'Payment') badgeClass = "bg-emerald-100 text-emerald-800";
+          else if (item.type === 'Admission') badgeClass = "bg-blue-100 text-blue-800";
+          else if (item.type === 'Delete') badgeClass = "bg-rose-100 text-rose-800";
+          else if (item.type === 'Exemption') badgeClass = "bg-purple-100 text-purple-800";
+          else if (item.type === 'Reversal') badgeClass = "bg-amber-100 text-amber-800";
+
           const tr = document.createElement('tr');
           tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
           tr.innerHTML = `
-            <td class="py-2.5 px-3 font-medium text-slate-700">${formatDateDMY(t.date)}</td>
-            <td class="py-2.5 px-3 font-bold text-slate-900">${t.studentName}</td>
-            <td class="py-2.5 px-3 font-mono text-slate-600">#${t.roll} (${t.class})</td>
-            <td class="py-2.5 px-3 font-bold text-emerald-700">₹${t.amount}</td>
+            <td class="py-2.5 px-3 font-medium text-slate-600 whitespace-nowrap">${formatDateDMY(item.date)}</td>
             <td class="py-2.5 px-3">
-              <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-100 text-indigo-800">
-                ${t.collectedBy}
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold ${badgeClass}">
+                ${item.type}
               </span>
             </td>
-            <td class="py-2.5 px-3 text-slate-600">${t.mode}</td>
-            <td class="py-2.5 px-3 text-slate-500">${t.note}</td>
+            <td class="py-2.5 px-3 text-slate-700">${item.details}</td>
+            <td class="py-2.5 px-3">
+              <span class="font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded text-[11px]">
+                ${item.admin}
+              </span>
+            </td>
           `;
           tbody.appendChild(tr);
         });
       }
 
-      document.getElementById('historyTotalSumText').innerText = `Total Collected: ₹${totalSum.toLocaleString('en-IN')}`;
+      document.getElementById('historyTotalSumText').innerText = `Total Logged Entries: ${filtered.length}`;
     }
 
     // ==================== PROFILE DRAWER & CALENDAR ====================
@@ -1957,12 +2060,19 @@
 
     async function deleteStudentFromProfile() {
       if (!selectedStudentIdForProfile) return;
-      if (confirm('Permanently delete this student from the Cloud Database?')) {
+      const s = students.find(item => item.id === selectedStudentIdForProfile);
+      if (!s) return;
+
+      if (confirm(`Permanently delete student ${s.name} (#${s.roll}) and all records?`)) {
         const delId = selectedStudentIdForProfile;
+        
+        // Log deletion to server table
+        await logSystemActivity("Delete", "Student Record Deleted", `Deleted ${s.name} (Roll: #${s.roll}, Batch: ${s.class})`);
+
         if (supabaseClient) {
           await supabaseClient.from('students').delete().eq('id', delId);
         }
-        students = students.filter(s => s.id !== delId);
+        students = students.filter(item => item.id !== delId);
         closeModal('profileModal');
         updateMetrics();
         renderStudents();
@@ -2069,6 +2179,9 @@
       if (!s.history) s.history = [];
       s.history.unshift(receipt);
 
+      // Save activity log to server table
+      await logSystemActivity("Payment", `Payment Collected (₹${amount})`, `Collected from ${s.name} (Roll: #${s.roll}) via ${mode}`);
+
       await syncStudentToCloud(s);
       closeModal('paymentModal');
 
@@ -2094,7 +2207,7 @@
       }
     }
 
-    // ==================== WHATSAPP NOTICE (DD/MM/YYYY) ====================
+    // ==================== WHATSAPP NOTICE ====================
     function sendWhatsAppReminder(id) {
       const s = students.find(item => item.id === id);
       if (!s) return;
@@ -2227,7 +2340,7 @@
       updateCollectionMetrics();
     }
 
-    // ==================== TABLE RENDERING ====================
+    // ==================== TABLE RENDERING (SINGLE LINE MOBILE NAME) ====================
     function renderStudents() {
       const search = document.getElementById('searchInput').value.toLowerCase().trim();
       const filterClass = document.getElementById('filterClass').value;
@@ -2283,24 +2396,29 @@
         const tr = document.createElement('tr');
         tr.className = "hover:bg-indigo-50/40 transition border-b border-slate-100";
         tr.innerHTML = `
-          <td class="py-3 px-4 font-mono font-bold text-indigo-900">#${s.roll}</td>
-          <td class="py-3 px-4">
-            <button onclick="viewStudentProfile('${s.id}')" class="font-bold text-slate-900 hover:text-indigo-600 text-left transition flex items-center gap-1.5">
-              ${s.name} <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400"></i>
+          <td class="py-3 px-4 font-mono font-bold text-indigo-900 whitespace-nowrap">#${s.roll}</td>
+          
+          <!-- STUDENT & CONTACT COLUMN: STRICTLY ONE-LINE ON MOBILE -->
+          <td class="py-3 px-4 whitespace-nowrap">
+            <button onclick="viewStudentProfile('${s.id}')" class="font-bold text-slate-900 hover:text-indigo-600 text-left transition flex items-center gap-1 whitespace-nowrap">
+              <span class="truncate max-w-[130px] sm:max-w-none block">${s.name}</span>
+              <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
             </button>
-            <div class="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
-              <i data-lucide="phone" class="w-3 h-3 text-slate-400"></i> ${s.phone || 'No phone'}
+            <div class="text-xs text-slate-500 flex items-center gap-1 mt-0.5 whitespace-nowrap">
+              <i data-lucide="phone" class="w-3 h-3 text-slate-400 shrink-0"></i>
+              <span>${s.phone || 'No phone'}</span>
             </div>
-            <div class="text-[10px] text-slate-400 mt-0.5">Admitted: ${formatDateDMY(s.admissionDate)}</div>
+            <div class="text-[10px] text-slate-400 mt-0.5 whitespace-nowrap">Admitted: ${formatDateDMY(s.admissionDate)}</div>
           </td>
-          <td class="py-3 px-4">
+
+          <td class="py-3 px-4 whitespace-nowrap">
             <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-800 border border-indigo-100">${s.class}</span>
           </td>
-          <td class="py-3 px-4">
+          <td class="py-3 px-4 whitespace-nowrap">
             <div class="font-bold text-slate-800">₹${s.monthlyFee}</div>
             <div class="text-[11px] text-indigo-600 font-medium">Every ${s.dueDay || 1}th</div>
           </td>
-          <td class="py-3 px-4">
+          <td class="py-3 px-4 whitespace-nowrap">
             <div class="space-y-0.5">
               <div class="flex items-center gap-2">
                 <span class="font-black text-sm ${dueInfo.netDueToday > 0 ? 'text-rose-600' : 'text-emerald-600'}">
@@ -2313,10 +2431,10 @@
               </div>
             </div>
           </td>
-          <td class="py-3 px-4">
+          <td class="py-3 px-4 whitespace-nowrap">
             <div class="flex items-center gap-1 flex-wrap">${statusBadgesHtml}</div>
           </td>
-          <td class="py-3 px-4 text-center">
+          <td class="py-3 px-4 text-center whitespace-nowrap">
             <div class="flex items-center justify-center gap-1.5">
               <button onclick="viewStudentProfile('${s.id}')" title="Student Profile & Calendar" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 p-1.5 rounded-lg transition">
                 <i data-lucide="user" class="w-4 h-4"></i>
