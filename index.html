@@ -118,7 +118,7 @@
           </button>
         </div>
 
-        <!-- Collector Profile Card with Round Shape Photo (Only in Menu Bar) -->
+        <!-- Collector Profile Card with Round Shape Photo -->
         <div class="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/60 text-center relative overflow-hidden shadow-inner">
           <div class="relative mx-auto w-16 h-16 mb-2">
             <img id="sidebarCollectorPhoto" src="" alt="Collector Avatar" class="w-16 h-16 rounded-full object-cover border-2 border-amber-400 shadow-md mx-auto">
@@ -199,7 +199,6 @@
       <!-- TOP BAR: Icon-Only Action Buttons & Clean (No Admin Name/Photo) -->
       <header class="bg-indigo-700 text-white shadow-md sticky top-0 z-30 px-4 md:px-8 py-3 flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <!-- Mobile Menu Hamburger Button -->
           <button onclick="toggleMobileSidebar()" class="md:hidden p-2 rounded-lg bg-indigo-800 hover:bg-indigo-900 text-white transition focus:outline-none">
             <i data-lucide="menu" class="w-5 h-5"></i>
           </button>
@@ -212,7 +211,7 @@
           </div>
         </div>
 
-        <!-- Right Side: Icon-Only Action Buttons (No text, no admin photo or name) -->
+        <!-- Right Side: Icon-Only Action Buttons -->
         <div class="flex items-center gap-2">
           <!-- Scan Student QR (Icon Only) -->
           <button onclick="openQRScanner()" title="Scan Student QR Code" class="w-10 h-10 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition shadow flex items-center justify-center border border-indigo-500/50 focus:outline-none">
@@ -240,7 +239,7 @@
             <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl"><i data-lucide="users" class="w-5 h-5"></i></div>
           </div>
 
-          <!-- DUES CARD (DIRECTLY FILTERS DIRECTORY ON CHANGE) -->
+          <!-- DUES CARD: Directly Filters Directory on Change or Click -->
           <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between cursor-pointer hover:border-rose-300 transition" onclick="applyDueCardFilter()">
             <div>
               <div class="flex items-center justify-between gap-1 mb-2">
@@ -269,13 +268,14 @@
               </div>
             </div>
 
-            <!-- CLICK TO INSPECT DUE STUDENTS BUTTON -->
+            <!-- Inspect Due List Button -->
             <button onclick="event.stopPropagation(); openDueBreakdownModal()" class="w-full mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-rose-700 hover:text-rose-900 transition group">
               <span>Inspect Due Students List</span>
               <i data-lucide="chevron-right" class="w-4 h-4 group-hover:translate-x-0.5 transition-transform"></i>
             </button>
           </div>
 
+          <!-- ADVANCE BALANCE CARD -->
           <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between cursor-pointer hover:border-cyan-300 transition" onclick="applyAdvanceCardFilter()">
             <div>
               <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Advance Held</p>
@@ -285,7 +285,7 @@
             <div class="p-3 bg-cyan-50 text-cyan-600 rounded-xl"><i data-lucide="wallet-cards" class="w-5 h-5"></i></div>
           </div>
 
-          <!-- FEES COLLECTION CARD (DIRECTLY FILTERS DIRECTORY ON CHANGE) -->
+          <!-- FEES COLLECTION CARD: Directly Filters Directory on Change or Click -->
           <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between cursor-pointer hover:border-emerald-300 transition" onclick="applyCollectionCardFilter()">
             <div>
               <div class="flex items-center justify-between gap-1 mb-2">
@@ -360,7 +360,7 @@
                   <th class="py-3 px-4 whitespace-nowrap">Student & Contact</th>
                   <th class="py-3 px-4 whitespace-nowrap">Batch</th>
                   <th class="py-3 px-4 whitespace-nowrap">Monthly Fee & Cycle</th>
-                  <th class="py-3 px-4 whitespace-nowrap" id="tableDueHeaderCol">Dues (Matured) & Advance</th>
+                  <th class="py-3 px-4 whitespace-nowrap" id="tableDueHeaderCol">Dues & Advance</th>
                   <th class="py-3 px-4 whitespace-nowrap">Calendar / Payment Status</th>
                   <th class="py-3 px-4 text-center whitespace-nowrap">Actions</th>
                 </tr>
@@ -396,7 +396,6 @@
       </div>
 
       <div class="p-6 overflow-y-auto space-y-4">
-        <!-- Summary Strip -->
         <div class="flex flex-wrap items-center justify-between gap-3 text-xs bg-rose-50 p-3.5 rounded-xl border border-rose-100">
           <div>
             <span class="text-slate-600 font-semibold">Total Pending Balance:</span>
@@ -695,8 +694,9 @@
             <p class="text-xs font-medium text-slate-700 mt-1" id="profDueBreakdownText">-</p>
           </div>
           <div class="flex items-center gap-2 flex-wrap">
-            <button onclick="openPaymentFromProfile()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow transition">
-              <i data-lucide="credit-card" class="w-4 h-4"></i> Pay / Add Advance
+            <!-- "Pay" Button (Renamed from Pay/Add Advance) -->
+            <button onclick="openPaymentFromProfile()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow transition">
+              <i data-lucide="credit-card" class="w-4 h-4"></i> Pay
             </button>
             <button onclick="sendWhatsAppFromProfile()" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow transition">
               <i data-lucide="message-circle" class="w-4 h-4"></i> WhatsApp
@@ -725,12 +725,13 @@
                   </button>
                 </div>
               </div>
-              <p class="text-xs text-slate-500 mt-0.5">Click any month tile to pay, exempt, unpay, or cancel advance.</p>
+              <p class="text-xs text-slate-500 mt-0.5">Click any month tile to pay, exempt, unpay, or manage partial/advance.</p>
             </div>
             
             <div class="flex items-center gap-2 text-[11px] font-medium flex-wrap">
               <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Paid</span>
-              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-cyan-500"></span> Adv Paid</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span> Partial Due</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-cyan-500"></span> Advance</span>
               <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-violet-600"></span> Exempt</span>
               <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Due Today</span>
               <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span> Upcoming</span>
@@ -823,7 +824,7 @@
           </div>
         </div>
         <p class="text-slate-600">
-          This month is currently cleared. Click below to unmark this payment, cancel advance, or convert it to exemption.
+          This month has active payment or advance credits. Click below to unmark this payment, cancel advance, or convert it to exemption.
         </p>
         <div class="space-y-2 pt-1">
           <button onclick="executeUnpayMonth()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-lg text-xs transition shadow flex items-center justify-center gap-1.5">
@@ -833,7 +834,7 @@
             <i data-lucide="shield-check" class="w-4 h-4"></i> Convert to Exemption (Waived)
           </button>
           <button onclick="closeModal('managePaidMonthModal')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 rounded-lg text-xs transition">
-            Keep as Paid (Close)
+            Close
           </button>
         </div>
       </div>
@@ -865,8 +866,8 @@
             <span class="font-bold text-slate-900" id="targetMonthStandardFee">₹0</span>
           </div>
           <div class="flex justify-between items-center text-xs text-cyan-800 font-semibold">
-            <span>Available Advance Wallet:</span>
-            <span id="targetMonthAvailAdvance">₹0</span>
+            <span>Current Month Balance:</span>
+            <span id="targetMonthCurrentCreditBadge">₹0 Paid</span>
           </div>
           <div class="flex justify-between items-center text-xs text-indigo-900 font-semibold pt-1 border-t border-emerald-200">
             <span>Payment Collector:</span>
@@ -919,7 +920,7 @@
   <div id="paymentModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
       <div class="bg-emerald-600 px-6 py-4 flex justify-between items-center text-white">
-        <h3 class="font-bold text-base flex items-center gap-2"><i data-lucide="receipt" class="w-5 h-5"></i> Record Custom Payment / Advance</h3>
+        <h3 class="font-bold text-base flex items-center gap-2"><i data-lucide="receipt" class="w-5 h-5"></i> Record Payment</h3>
         <button onclick="closeModal('paymentModal')" class="text-emerald-100 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
       <form id="paymentForm" onsubmit="processGeneralPayment(event)" class="p-6 space-y-4 text-sm">
@@ -945,7 +946,7 @@
         <div>
           <div class="flex justify-between items-center mb-1">
             <label class="block text-xs font-semibold text-slate-600 uppercase">Payment Amount (₹)</label>
-            <span class="text-[11px] text-emerald-700 font-medium">Extra is stored in Advance</span>
+            <span class="text-[11px] text-emerald-700 font-medium">Extra rolls forward to next month</span>
           </div>
           <input 
             type="number" 
@@ -964,7 +965,7 @@
               <span id="genRemainingDue" class="font-bold text-emerald-600">₹0</span>
             </div>
             <div class="flex justify-between font-semibold text-cyan-800">
-              <span>Advance Wallet Credit:</span>
+              <span>Next Month Credit / Advance:</span>
               <span id="genAdvanceCredit" class="font-black text-cyan-700">₹0</span>
             </div>
             <p class="text-[11px] text-slate-500 pt-1 border-t border-slate-200" id="genBreakdownText">-</p>
@@ -989,7 +990,7 @@
 
         <div>
           <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Payment Remarks</label>
-          <input type="text" id="payNote" placeholder="e.g. Cleared dues + advance" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-emerald-500">
+          <input type="text" id="payNote" placeholder="e.g. Tuition fee payment" class="w-full px-3 py-2 border rounded-lg text-xs focus:ring-2 focus:ring-emerald-500">
         </div>
 
         <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg text-sm transition shadow">
@@ -1272,6 +1273,72 @@
       return { collectedInPeriod, txCount };
     }
 
+    // ==================== MONTH CREDIT RETRIEVAL ====================
+    function getStudentMonthCredit(student, monthKey) {
+      if (!student) return 0;
+      if (student.monthCredits && student.monthCredits[monthKey] !== undefined) {
+        return Number(student.monthCredits[monthKey]) || 0;
+      }
+      if (student.paidMonths && !Array.isArray(student.paidMonths) && typeof student.paidMonths === 'object') {
+        if (student.paidMonths[monthKey] !== undefined) {
+          return Number(student.paidMonths[monthKey]) || 0;
+        }
+      }
+      if (Array.isArray(student.paidMonths) && student.paidMonths.includes(monthKey)) {
+        return Number(student.monthlyFee) || 500;
+      }
+      return 0;
+    }
+
+    // Ensures monthCredits map is initialized
+    function ensureStudentMonthCredits(student) {
+      if (!student.monthCredits) {
+        student.monthCredits = {};
+        if (Array.isArray(student.paidMonths)) {
+          student.paidMonths.forEach(k => {
+            student.monthCredits[k] = student.monthlyFee || 500;
+          });
+        } else if (student.paidMonths && typeof student.paidMonths === 'object') {
+          student.monthCredits = { ...student.paidMonths };
+        }
+      }
+    }
+
+    // ==================== WATERFALL PAYMENT ALLOCATION ====================
+    function allocatePaymentToStudentMonths(student, paymentAmount) {
+      ensureStudentMonthCredits(student);
+      let remaining = paymentAmount;
+      const fee = student.monthlyFee || 0;
+      if (fee <= 0) return;
+
+      const adm = new Date(student.admissionDate || '2026-01-01');
+      const startYear = adm.getFullYear();
+      const startMonth = adm.getMonth();
+      const currentYear = new Date().getFullYear();
+
+      // Allocate forward chronologically across student months
+      for (let y = startYear; y <= currentYear + 3; y++) {
+        const mStart = (y === startYear) ? startMonth : 0;
+        for (let m = mStart; m < 12; m++) {
+          if (remaining <= 0) break;
+
+          const key = formatMonthKey(MONTH_NAMES[m], y);
+          if ((student.exemptedMonths || []).includes(key)) continue;
+
+          const currentCredit = student.monthCredits[key] || 0;
+          if (currentCredit < fee) {
+            const needed = fee - currentCredit;
+            const toAdd = Math.min(remaining, needed);
+            student.monthCredits[key] = currentCredit + toAdd;
+            remaining -= toAdd;
+          }
+        }
+        if (remaining <= 0) break;
+      }
+
+      student.advanceBalance = remaining;
+    }
+
     // ==================== PHONE CALL TRIGGER ====================
     function makePhoneCall(phone) {
       if (!phone || phone.replace(/\D/g, '').length < 5) {
@@ -1543,20 +1610,25 @@
 
       const { data: sData, error: sErr } = await supabaseClient.from('students').select('*').order('created_at', { ascending: false });
       if (!sErr && sData) {
-        students = sData.map(s => ({
-          id: s.id,
-          roll: s.roll,
-          name: s.name,
-          class: s.class,
-          monthlyFee: parseFloat(s.monthly_fee) || 0,
-          phone: s.phone || '',
-          admissionDate: s.admission_date || '',
-          dueDay: parseInt(s.due_day, 10) || 1,
-          paidMonths: s.paid_months || [],
-          exemptedMonths: s.exempted_months || [],
-          advanceBalance: parseFloat(s.advance_balance) || 0,
-          history: s.history || []
-        }));
+        students = sData.map(s => {
+          const studentObj = {
+            id: s.id,
+            roll: s.roll,
+            name: s.name,
+            class: s.class,
+            monthlyFee: parseFloat(s.monthly_fee) || 0,
+            phone: s.phone || '',
+            admissionDate: s.admission_date || '',
+            dueDay: parseInt(s.due_day, 10) || 1,
+            paidMonths: s.paid_months || {},
+            monthCredits: (s.paid_months && !Array.isArray(s.paid_months)) ? s.paid_months : {},
+            exemptedMonths: s.exempted_months || [],
+            advanceBalance: parseFloat(s.advance_balance) || 0,
+            history: s.history || []
+          };
+          ensureStudentMonthCredits(studentObj);
+          return studentObj;
+        });
         localStorage.setItem('cached_students_backup', JSON.stringify(students));
       }
 
@@ -1564,7 +1636,7 @@
       updateMetrics();
       renderStudents();
 
-      // FIXED BUG: Only update profile if the modal is actively visible!
+      // ONLY update profile if modal is open and visible
       const profileModalEl = document.getElementById('profileModal');
       if (selectedStudentIdForProfile && profileModalEl && !profileModalEl.classList.contains('hidden')) {
         viewStudentProfile(selectedStudentIdForProfile);
@@ -1641,6 +1713,7 @@
     }
 
     async function syncStudentToCloud(student) {
+      ensureStudentMonthCredits(student);
       if (!supabaseClient) {
         localStorage.setItem('cached_students_backup', JSON.stringify(students));
         updateMetrics();
@@ -1656,7 +1729,7 @@
         phone: student.phone,
         admission_date: student.admissionDate,
         due_day: student.dueDay,
-        paid_months: student.paidMonths,
+        paid_months: student.monthCredits, // Saves monthCredits map to jsonb
         exempted_months: student.exemptedMonths,
         advance_balance: student.advanceBalance,
         history: student.history
@@ -1882,7 +1955,8 @@
         admissionDate,
         dueDay,
         advanceBalance: initialAdvance,
-        paidMonths: [],
+        paidMonths: {},
+        monthCredits: {},
         exemptedMonths: [],
         history: []
       };
@@ -1896,164 +1970,6 @@
       viewStudentProfile(newStudent.id);
     }
 
-    // ==================== MATURITY & DUES CALCULATION ====================
-    function getMonthStatus(student, monthIndex, year) {
-      const monthName = MONTH_NAMES[monthIndex];
-      const key = formatMonthKey(monthName, year);
-
-      const now = new Date();
-      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const dueDay = student.dueDay || 1;
-
-      // Fee matures AFTER next month's payment date
-      const maturityDate = new Date(year, monthIndex + 1, dueDay);
-
-      if ((student.paidMonths || []).includes(key)) {
-        const isAdvance = startOfToday <= maturityDate;
-        return {
-          status: isAdvance ? 'PAID_ADVANCE' : 'PAID',
-          label: isAdvance ? 'Adv Paid' : 'Paid',
-          isDueNow: false,
-          key,
-          maturityDate
-        };
-      }
-
-      if ((student.exemptedMonths || []).includes(key)) {
-        return { status: 'EXEMPT', label: 'Exempt', isDueNow: false, key, maturityDate };
-      }
-
-      const adm = new Date(student.admissionDate || '2026-01-01');
-      const admYear = adm.getFullYear();
-      const admMonth = adm.getMonth();
-
-      if (year < admYear || (year === admYear && monthIndex < admMonth)) {
-        return { status: 'PRE_ADMISSION', label: 'Pre-admission', isDueNow: false, key, maturityDate };
-      }
-
-      if (startOfToday <= maturityDate) {
-        return {
-          status: 'UPCOMING',
-          label: `Due ${formatDateDMY(maturityDate)}`,
-          isDueNow: false,
-          key,
-          maturityDate
-        };
-      }
-
-      return {
-        status: 'DUE',
-        label: 'Due Today',
-        isDueNow: true,
-        key,
-        maturityDate
-      };
-    }
-
-    // Calculates dues based on user-selected due filter
-    function getStudentCalculatedDue(student, filterMode = null, targetMonth = null, targetYear = null) {
-      if (!filterMode) {
-        filterMode = document.getElementById('dueFilterPeriod') ? document.getElementById('dueFilterPeriod').value : 'MATURED_TODAY';
-      }
-
-      const now = new Date();
-      const currentYear = now.getFullYear();
-      const currentMonth = now.getMonth();
-
-      const adm = new Date(student.admissionDate || '2026-01-01');
-      const startYear = adm.getFullYear();
-      const startMonth = adm.getMonth();
-
-      let maturedUnpaidMonthsCount = 0;
-      const dueKeys = [];
-
-      if (filterMode === 'CUSTOM_MONTH') {
-        const m = targetMonth !== null ? targetMonth : parseInt(document.getElementById('dueMonthSelect').value, 10);
-        const y = targetYear !== null ? targetYear : parseInt(document.getElementById('dueYearSelect').value, 10);
-        const st = getMonthStatus(student, m, y);
-        if (st.status === 'DUE' || st.status === 'UPCOMING') {
-          maturedUnpaidMonthsCount = 1;
-          dueKeys.push(st.key);
-        }
-      } else if (filterMode === 'CUSTOM_YEAR') {
-        const y = targetYear !== null ? targetYear : parseInt(document.getElementById('dueYearSelect').value, 10);
-        for (let m = 0; m < 12; m++) {
-          const st = getMonthStatus(student, m, y);
-          if (st.status === 'DUE' || (st.status === 'UPCOMING' && m <= currentMonth)) {
-            maturedUnpaidMonthsCount++;
-            dueKeys.push(st.key);
-          }
-        }
-      } else if (filterMode === 'THIS_MONTH') {
-        const st = getMonthStatus(student, currentMonth, currentYear);
-        if (st.status === 'DUE' || st.status === 'UPCOMING') {
-          maturedUnpaidMonthsCount = 1;
-          dueKeys.push(st.key);
-        }
-      } else {
-        // MATURED_TODAY & ALL
-        const endYear = (filterMode === 'ALL') ? currentYear + 1 : currentYear;
-        for (let y = startYear; y <= endYear; y++) {
-          const mStart = (y === startYear) ? startMonth : 0;
-          const mEnd = (y === endYear && filterMode !== 'ALL') ? currentMonth : 11;
-
-          for (let m = mStart; m <= mEnd; m++) {
-            const st = getMonthStatus(student, m, y);
-            if (st.isDueNow || (filterMode === 'ALL' && st.status === 'UPCOMING' && y <= currentYear && m <= currentMonth)) {
-              maturedUnpaidMonthsCount++;
-              dueKeys.push(st.key);
-            }
-          }
-        }
-      }
-
-      const grossMaturedDue = maturedUnpaidMonthsCount * student.monthlyFee;
-      const advanceInWallet = student.advanceBalance || 0;
-      let netDueToday = 0;
-      let adjustedFromAdvance = 0;
-
-      if (advanceInWallet >= grossMaturedDue) {
-        adjustedFromAdvance = grossMaturedDue;
-        netDueToday = 0;
-      } else {
-        adjustedFromAdvance = advanceInWallet;
-        netDueToday = grossMaturedDue - advanceInWallet;
-      }
-
-      let breakdownText = "";
-      if (netDueToday === 0) {
-        if (advanceInWallet > 0) {
-          breakdownText = `All cleared • ₹${advanceInWallet} in Advance Wallet`;
-        } else {
-          breakdownText = "All dues cleared as of today";
-        }
-      } else {
-        const fullM = Math.floor(netDueToday / student.monthlyFee);
-        const rem = netDueToday % student.monthlyFee;
-        if (fullM > 0 && rem > 0) {
-          breakdownText = `${fullM} month${fullM > 1 ? 's' : ''} and ${rem} rupees`;
-        } else if (fullM > 0 && rem === 0) {
-          breakdownText = `${fullM} month${fullM > 1 ? 's' : ''}`;
-        } else {
-          breakdownText = `${rem} rupees (partial fee)`;
-        }
-        if (adjustedFromAdvance > 0) {
-          breakdownText += ` (₹${adjustedFromAdvance} adjusted from Advance)`;
-        }
-      }
-
-      return {
-        grossMaturedDue,
-        netDueToday,
-        advanceInWallet,
-        adjustedFromAdvance,
-        maturedUnpaidMonthsCount,
-        dueKeys,
-        breakdownText,
-        isCleared: netDueToday === 0
-      };
-    }
-
     // ==================== CALENDAR TILE CLICK (PAY / UNPAY) ====================
     function handleCalendarTileClick(studentId, monthIndex, year) {
       const s = students.find(item => item.id === studentId);
@@ -2063,11 +1979,12 @@
       const targetMonthName = MONTH_NAMES[monthIndex];
       const monthKey = formatMonthKey(targetMonthName, year);
 
-      if (info.status === 'PAID' || info.status === 'PAID_ADVANCE') {
+      // If already paid, partial, or advance -> Open Manage Paid Month Modal
+      if (info.status === 'PAID' || info.status === 'PAID_ADVANCE' || info.status === 'PARTIAL_DUE' || info.status === 'PARTIAL_ADVANCE') {
         activeManageMonthData = {
           studentId: s.id,
           monthKey,
-          isAdvance: info.status === 'PAID_ADVANCE'
+          isAdvance: (info.status === 'PAID_ADVANCE' || info.status === 'PARTIAL_ADVANCE')
         };
         document.getElementById('managePaidMonthTitle').innerText = monthKey;
         document.getElementById('managePaidStudentName').innerText = `${s.name} (Roll: ${s.roll})`;
@@ -2076,9 +1993,15 @@
         if (info.status === 'PAID_ADVANCE') {
           badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-100 text-cyan-800";
           badge.innerText = "Advance Paid";
-        } else {
+        } else if (info.status === 'PAID') {
           badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800";
           badge.innerText = "Paid (Cleared)";
+        } else if (info.status === 'PARTIAL_DUE') {
+          badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800";
+          badge.innerText = `Partial: ₹${info.credit} Paid, ₹${info.dueAmount} Due`;
+        } else {
+          badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-100 text-cyan-800";
+          badge.innerText = `Advance: ₹${info.credit} Paid, ₹${info.dueAmount} Left`;
         }
 
         openModal('managePaidMonthModal');
@@ -2101,16 +2024,18 @@
         return;
       }
 
+      // Open Payment modal for this specific month
       document.getElementById('targetMonthStudentId').value = s.id;
       document.getElementById('targetMonthKey').value = monthKey;
       document.getElementById('targetMonthTitle').innerText = monthKey;
       document.getElementById('targetMonthStudentName').innerText = `${s.name} (Roll: ${s.roll})`;
       document.getElementById('targetMonthStandardFee').innerText = `₹${s.monthlyFee}`;
-      document.getElementById('targetMonthAvailAdvance').innerText = `₹${s.advanceBalance || 0}`;
+      
+      const currentMonthCredit = getStudentMonthCredit(s, monthKey);
+      document.getElementById('targetMonthCurrentCreditBadge').innerText = currentMonthCredit > 0 ? `₹${currentMonthCredit} Already Paid` : `₹0 Paid`;
       document.getElementById('targetMonthCollectorDisplay').innerText = getCurrentCollectorName();
 
-      const availAdvance = s.advanceBalance || 0;
-      const suggestedAmount = Math.max(0, s.monthlyFee - availAdvance);
+      const suggestedAmount = Math.max(0, s.monthlyFee - currentMonthCredit);
       document.getElementById('targetMonthAmount').value = suggestedAmount > 0 ? suggestedAmount : s.monthlyFee;
       document.getElementById('targetMonthNote').value = `Fee payment for ${monthKey}`;
 
@@ -2124,8 +2049,9 @@
       const s = students.find(item => item.id === studentId);
       if (!s) return;
 
+      ensureStudentMonthCredits(s);
       const actionLabel = isAdvance ? "Unadvance" : "Unpaid";
-      s.paidMonths = (s.paidMonths || []).filter(k => k !== monthKey);
+      s.monthCredits[monthKey] = 0;
 
       const log = {
         amount: 0,
@@ -2154,7 +2080,8 @@
       const s = students.find(item => item.id === studentId);
       if (!s) return;
 
-      s.paidMonths = (s.paidMonths || []).filter(k => k !== monthKey);
+      ensureStudentMonthCredits(s);
+      s.monthCredits[monthKey] = 0;
       if (!s.exemptedMonths) s.exemptedMonths = [];
       if (!s.exemptedMonths.includes(monthKey)) s.exemptedMonths.push(monthKey);
 
@@ -2181,20 +2108,21 @@
 
     function calculateTargetMonthPreview() {
       const studentId = document.getElementById('targetMonthStudentId').value;
+      const monthKey = document.getElementById('targetMonthKey').value;
       const s = students.find(item => item.id === studentId);
       if (!s) return;
 
       const amt = parseFloat(document.getElementById('targetMonthAmount').value) || 0;
-      const availAdvance = s.advanceBalance || 0;
-      const totalAvailable = amt + availAdvance;
+      const currentCredit = getStudentMonthCredit(s, monthKey);
+      const totalAvailable = amt + currentCredit;
       const helpEl = document.getElementById('targetMonthPreviewHelp');
 
       if (totalAvailable >= s.monthlyFee) {
         const surplus = totalAvailable - s.monthlyFee;
-        helpEl.innerHTML = `✅ Clears <span class="font-bold text-emerald-700">${document.getElementById('targetMonthTitle').innerText}</span> in full.${surplus > 0 ? ` <span class="text-cyan-700 font-bold">+₹${surplus} surplus saved to Advance Wallet</span>.` : ''}`;
+        helpEl.innerHTML = `✅ Clears <span class="font-bold text-emerald-700">${monthKey}</span> in full.${surplus > 0 ? ` <span class="text-cyan-700 font-bold">+₹${surplus} surplus rolls into upcoming month advance</span>.` : ''}`;
       } else {
         const short = s.monthlyFee - totalAvailable;
-        helpEl.innerHTML = `⚠️ Partial payment: ₹${short} will still remain due for this month.`;
+        helpEl.innerHTML = `⚠️ Partial payment: ₹${totalAvailable} Paid • ₹${short} Remaining Due for this month.`;
       }
     }
 
@@ -2210,16 +2138,7 @@
       const s = students.find(item => item.id === studentId);
       if (!s) return;
 
-      if (!s.paidMonths) s.paidMonths = [];
-      if (!s.advanceBalance) s.advanceBalance = 0;
-
-      const totalAvailable = amount + s.advanceBalance;
-      if (totalAvailable >= s.monthlyFee) {
-        if (!s.paidMonths.includes(monthKey)) s.paidMonths.push(monthKey);
-        s.advanceBalance = totalAvailable - s.monthlyFee;
-      } else {
-        s.advanceBalance = totalAvailable;
-      }
+      allocatePaymentToStudentMonths(s, amount);
 
       const todayISO = new Date().toISOString().slice(0, 10);
       const receipt = {
@@ -2256,7 +2175,7 @@
         viewStudentProfile(s.id);
       }
 
-      if (confirm(`Payment of ₹${amount} collected by ${collector} for ${monthKey}!\nRemaining due today: ₹${dueInfo.netDueToday} • Advance: ₹${s.advanceBalance}.\n\nPrint official receipt now?`)) {
+      if (confirm(`Payment of ₹${amount} collected by ${collector} for ${monthKey}!\nDue Today: ₹${dueInfo.netDueToday} • Advance: ₹${s.advanceBalance}.\n\nPrint official receipt now?`)) {
         window.print();
       }
     }
@@ -2271,9 +2190,10 @@
       const reason = prompt(`Enter reason for granting fee exemption for ${monthKey}:`, "Merit Scholarship / Concession");
       if (!reason) return;
 
+      ensureStudentMonthCredits(s);
+      s.monthCredits[monthKey] = 0;
       if (!s.exemptedMonths) s.exemptedMonths = [];
       if (!s.exemptedMonths.includes(monthKey)) s.exemptedMonths.push(monthKey);
-      s.paidMonths = (s.paidMonths || []).filter(k => k !== monthKey);
 
       const log = {
         amount: 0,
@@ -2373,7 +2293,7 @@
       lucide.createIcons();
     }
 
-    // ==================== UNIFIED HISTORY (ALL SERVER ACTIVITIES) ====================
+    // ==================== UNIFIED HISTORY ====================
     async function openGlobalHistoryModal() {
       await fetchServerActivityLogs();
       renderGlobalHistory();
@@ -2548,28 +2468,33 @@
     function renderProfileCalendar(student, year) {
       const grid = document.getElementById('profCalendarGrid');
       grid.innerHTML = '';
+      const now = new Date();
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const dueDay = student.dueDay || 1;
+      const fee = student.monthlyFee || 0;
 
       for (let m = 0; m < 12; m++) {
-        const info = getMonthStatus(student, m, year);
+        const targetMonthName = MONTH_NAMES[m];
+        const monthKey = formatMonthKey(targetMonthName, year);
+        const credit = getStudentMonthCredit(student, monthKey);
+        const maturityDate = new Date(year, m + 1, dueDay);
+        const isMatured = (startOfToday > maturityDate);
+
+        const adm = new Date(student.admissionDate || '2026-01-01');
+        const admYear = adm.getFullYear();
+        const admMonth = adm.getMonth();
+        const isPreAdmission = (year < admYear || (year === admYear && m < admMonth));
+        const isExempt = (student.exemptedMonths || []).includes(monthKey);
+
         const card = document.createElement('div');
-        
-        if (info.status === 'PAID') {
-          card.className = "bg-emerald-500 text-white rounded-xl p-2.5 text-center shadow-sm cursor-pointer hover:bg-emerald-600 border border-emerald-600 transition";
+
+        if (isPreAdmission) {
+          card.className = "bg-slate-50 border border-dashed border-slate-200 text-slate-400 rounded-xl p-2.5 text-center opacity-50";
           card.innerHTML = `
-            <p class="text-[10px] font-bold uppercase tracking-wider">${SHORT_MONTHS[m]}</p>
-            <div class="flex items-center justify-center gap-0.5 mt-1 text-[11px] font-extrabold">
-              <i data-lucide="check-circle" class="w-3 h-3 text-amber-200"></i> Paid
-            </div>
+            <p class="text-[10px] font-semibold uppercase">${SHORT_MONTHS[m]}</p>
+            <span class="text-[9px] block mt-1">Pre-admission</span>
           `;
-        } else if (info.status === 'PAID_ADVANCE') {
-          card.className = "bg-cyan-500 text-white rounded-xl p-2.5 text-center shadow-sm cursor-pointer hover:bg-cyan-600 border border-cyan-600 transition";
-          card.innerHTML = `
-            <p class="text-[10px] font-bold uppercase tracking-wider">${SHORT_MONTHS[m]}</p>
-            <div class="flex items-center justify-center gap-0.5 mt-1 text-[10px] font-extrabold">
-              <i data-lucide="sparkles" class="w-3 h-3 text-amber-200"></i> Adv Paid
-            </div>
-          `;
-        } else if (info.status === 'EXEMPT') {
+        } else if (isExempt) {
           card.className = "bg-violet-600 text-white rounded-xl p-2.5 text-center shadow-sm cursor-pointer hover:bg-violet-700 border border-violet-700 transition";
           card.innerHTML = `
             <p class="text-[10px] font-bold uppercase tracking-wider">${SHORT_MONTHS[m]}</p>
@@ -2577,7 +2502,47 @@
               <i data-lucide="shield-check" class="w-3 h-3 text-amber-300"></i> Exempt
             </div>
           `;
-        } else if (info.status === 'DUE') {
+        } else if (credit >= fee && fee > 0) {
+          // Fully paid (Green if due matured, Cyan if advance)
+          if (isMatured) {
+            card.className = "bg-emerald-500 text-white rounded-xl p-2.5 text-center shadow-sm cursor-pointer hover:bg-emerald-600 border border-emerald-600 transition";
+            card.innerHTML = `
+              <p class="text-[10px] font-bold uppercase tracking-wider">${SHORT_MONTHS[m]}</p>
+              <div class="flex items-center justify-center gap-0.5 mt-1 text-[11px] font-extrabold">
+                <i data-lucide="check-circle" class="w-3 h-3 text-amber-200"></i> Paid
+              </div>
+            `;
+          } else {
+            card.className = "bg-cyan-500 text-white rounded-xl p-2.5 text-center shadow-sm cursor-pointer hover:bg-cyan-600 border border-cyan-600 transition";
+            card.innerHTML = `
+              <p class="text-[10px] font-bold uppercase tracking-wider">${SHORT_MONTHS[m]}</p>
+              <div class="flex items-center justify-center gap-0.5 mt-1 text-[10px] font-extrabold">
+                <i data-lucide="sparkles" class="w-3 h-3 text-amber-200"></i> Adv Paid
+              </div>
+            `;
+          }
+        } else if (credit > 0 && credit < fee) {
+          // PARTIAL STATE: Exactly satisfies user's request!
+          const dueAmt = fee - credit;
+          if (isMatured) {
+            // Matured month with partial payment: e.g. "400 Paid 100 Due"
+            card.className = "bg-amber-50 text-amber-900 rounded-xl p-2 text-center border-2 border-amber-400 shadow-sm cursor-pointer hover:bg-amber-100 transition";
+            card.innerHTML = `
+              <p class="text-[10px] font-bold uppercase tracking-wider text-amber-900">${SHORT_MONTHS[m]}</p>
+              <div class="mt-0.5 text-[10px] font-extrabold text-emerald-700">₹${credit} Paid</div>
+              <div class="text-[10px] font-black text-rose-600">₹${dueAmt} Due</div>
+            `;
+          } else {
+            // Future month with advance credit: e.g. "300 Advance"
+            card.className = "bg-cyan-50 text-cyan-900 rounded-xl p-2 text-center border-2 border-cyan-400 shadow-sm cursor-pointer hover:bg-cyan-100 transition";
+            card.innerHTML = `
+              <p class="text-[10px] font-bold uppercase tracking-wider text-cyan-900">${SHORT_MONTHS[m]}</p>
+              <div class="mt-0.5 text-[10px] font-extrabold text-cyan-700">₹${credit} Adv</div>
+              <div class="text-[10px] font-semibold text-slate-500">₹${dueAmt} Left</div>
+            `;
+          }
+        } else if (isMatured) {
+          // Unpaid and due date passed -> Due Today
           card.className = "bg-rose-50 text-rose-700 rounded-xl p-2.5 text-center border-2 border-rose-300 shadow-sm cursor-pointer hover:bg-rose-100 transition animate-pulse";
           card.innerHTML = `
             <p class="text-[10px] font-bold uppercase tracking-wider text-rose-900">${SHORT_MONTHS[m]}</p>
@@ -2585,19 +2550,14 @@
               <i data-lucide="alert-circle" class="w-3 h-3 text-rose-500"></i> Pay Due
             </div>
           `;
-        } else if (info.status === 'UPCOMING') {
+        } else {
+          // Unpaid but in future/upcoming
           card.className = "bg-slate-100 text-slate-600 rounded-xl p-2.5 text-center border border-slate-200 shadow-sm cursor-pointer hover:bg-slate-200 transition";
           card.innerHTML = `
             <p class="text-[10px] font-bold uppercase tracking-wider text-slate-700">${SHORT_MONTHS[m]}</p>
             <div class="flex items-center justify-center gap-0.5 mt-1 text-[10px] font-medium text-slate-500">
-              <i data-lucide="clock" class="w-2.5 h-2.5"></i> ${info.label}
+              <i data-lucide="clock" class="w-2.5 h-2.5"></i> Due ${formatDateDMY(maturityDate)}
             </div>
-          `;
-        } else {
-          card.className = "bg-slate-50 border border-dashed border-slate-200 text-slate-400 rounded-xl p-2.5 text-center opacity-50";
-          card.innerHTML = `
-            <p class="text-[10px] font-semibold uppercase">${SHORT_MONTHS[m]}</p>
-            <span class="text-[9px] block mt-1">Pre-admission</span>
           `;
         }
 
@@ -2681,7 +2641,7 @@
 
       const textEl = document.getElementById('genBreakdownText');
       if (remainingDue === 0 && advanceAdded > 0) {
-        textEl.innerHTML = `🌟 Matured due cleared! <span class="font-bold text-cyan-800">₹${totalNewAdvance} stored in Advance</span>.`;
+        textEl.innerHTML = `🌟 Matured due cleared! <span class="font-bold text-cyan-800">₹${totalNewAdvance} credited forward</span> to next month.`;
       } else if (remainingDue === 0 && advanceAdded === 0) {
         textEl.innerText = "Exact amount to clear all dues matured up to today.";
       } else {
@@ -2705,20 +2665,8 @@
         return;
       }
 
-      if (!s.paidMonths) s.paidMonths = [];
-      if (!s.advanceBalance) s.advanceBalance = 0;
-
-      const dueInfo = getStudentCalculatedDue(s);
-
-      if (amount >= dueInfo.netDueToday) {
-        dueInfo.dueKeys.forEach(k => {
-          if (!s.paidMonths.includes(k)) s.paidMonths.push(k);
-        });
-        const surplus = amount - dueInfo.netDueToday;
-        s.advanceBalance += surplus;
-      } else {
-        s.advanceBalance += amount;
-      }
+      // Waterfall allocation across student months
+      allocatePaymentToStudentMonths(s, amount);
 
       if (!note) note = `Payment of ₹${amount}`;
 
@@ -3003,11 +2951,23 @@
         const periodCol = getStudentPeriodCollection(s);
 
         let statusBadgesHtml = '';
-        const paidCount = (s.paidMonths || []).length;
         const exemptCount = (s.exemptedMonths || []).length;
 
-        if (paidCount > 0) {
-          statusBadgesHtml += `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1.5 py-0.5 rounded">${paidCount} Paid</span> `;
+        // Count fully paid and partial months from monthCredits
+        ensureStudentMonthCredits(s);
+        let fullyPaidCount = 0;
+        let partialCount = 0;
+        Object.keys(s.monthCredits).forEach(k => {
+          const c = s.monthCredits[k];
+          if (c >= s.monthlyFee) fullyPaidCount++;
+          else if (c > 0) partialCount++;
+        });
+
+        if (fullyPaidCount > 0) {
+          statusBadgesHtml += `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1.5 py-0.5 rounded">${fullyPaidCount} Paid</span> `;
+        }
+        if (partialCount > 0) {
+          statusBadgesHtml += `<span class="bg-amber-100 text-amber-900 text-[10px] font-bold px-1.5 py-0.5 rounded border border-amber-300">${partialCount} Partial</span> `;
         }
         if (exemptCount > 0) {
           statusBadgesHtml += `<span class="bg-violet-100 text-violet-800 text-[10px] font-bold px-1.5 py-0.5 rounded">${exemptCount} Exempt</span> `;
@@ -3072,7 +3032,8 @@
               <button onclick="viewStudentProfile('${s.id}')" title="Student Profile & Calendar" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 p-1.5 rounded-lg transition shadow-sm">
                 <i data-lucide="user" class="w-4 h-4"></i>
               </button>
-              <button onclick="openGeneralPaymentModal('${s.id}')" title="Pay / Add Advance" class="bg-emerald-600 hover:bg-emerald-700 text-white p-1.5 rounded-lg transition shadow-sm">
+              <!-- "Pay" Button (Renamed from Pay/Add Advance) -->
+              <button onclick="openGeneralPaymentModal('${s.id}')" title="Pay" class="bg-emerald-600 hover:bg-emerald-700 text-white p-1.5 rounded-lg transition shadow-sm">
                 <i data-lucide="credit-card" class="w-4 h-4"></i>
               </button>
               <button onclick="sendWhatsAppReminder('${s.id}')" title="WhatsApp Due Alert" class="bg-green-500 hover:bg-green-600 text-white p-1.5 rounded-lg transition shadow-sm">
@@ -3107,7 +3068,6 @@
           "Matured Due Today (₹)": dueInfo.netDueToday,
           "Advance Balance in Cloud (₹)": s.advanceBalance || 0,
           "Status Breakdown": dueInfo.breakdownText,
-          "Paid Months": (s.paidMonths || []).join(", "),
           "Exempted Months": (s.exemptedMonths || []).join(", "),
           "Lifetime Total Paid (₹)": totalPaid,
           "Guardian Mobile": s.phone || ""
