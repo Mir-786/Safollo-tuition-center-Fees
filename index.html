@@ -360,11 +360,11 @@
               <thead>
                 <tr class="bg-slate-100 text-slate-600 text-xs font-semibold uppercase tracking-wider border-b border-slate-200">
                   <th class="py-3 px-4 whitespace-nowrap">Roll</th>
-                  <th class="py-3 px-4 whitespace-nowrap">Student & Contact</th>
-                  <th class="py-3 px-4 whitespace-nowrap">Batch</th>
-                  <th class="py-3 px-4 whitespace-nowrap">Monthly Fee & Cycle</th>
-                  <th class="py-3 px-4 whitespace-nowrap" id="tableDueHeaderCol">Dues (Matured) & Advance</th>
-                  <th class="py-3 px-4 whitespace-nowrap">Calendar / Payment Status</th>
+                  <th class="py-3 px-4 whitespace-nowrap">Student</th>
+                  <th class="py-3 px-4 whitespace-nowrap">Class</th>
+                  <th class="py-3 px-4 whitespace-nowrap">Monthly Fee</th>
+                  <th class="py-3 px-4 whitespace-nowrap" id="tableDueHeaderCol">Dues</th>
+                  <th class="py-3 px-4 whitespace-nowrap">Payment Status</th>
                   <th class="py-3 px-4 text-center whitespace-nowrap">Actions</th>
                 </tr>
               </thead>
@@ -1225,19 +1225,19 @@
         username: "miraj", 
         password: "mir159", 
         displayName: "Miraj", 
-        photo: "/miraj-image.png?w=150&auto=format&fit=crop&q=80" 
+        photo: "https://safollo-tuition-center-fees.vercel.app/miraj-image.png?w=150&auto=format&fit=crop&q=80" 
       },
       { 
         username: "moyna", 
         password: "moyna786", 
         displayName: "Moyna", 
-        photo: "/Moyna-Image.jpg?w=150&auto=format&fit=crop&q=80" 
+        photo: "https://safollo-tuition-center-fees.vercel.app/Moyna-Image.jpg?w=150&auto=format&fit=crop&q=80" 
       },
       { 
         username: "abida", 
         password: "abida321", 
         displayName: "Abida", 
-        photo: "/abida-image.jpg?w=150&auto=format&fit=crop&q=80" 
+        photo: "https://safollo-tuition-center-fees.vercel.app/abida-image.jpg?w=150&auto=format&fit=crop&q=80" 
       }
     ];
 
@@ -1481,12 +1481,20 @@
     let supabaseClient = null;
     let students = [];
     let batches = [
+            { name: "Baby", defaultFee: 100 },
+      { name: "Class 1", defaultFee: 100 },
+      { name: "Class 2", defaultFee: 100 },
+      { name: "Class 3", defaultFee: 150 },
+      { name: "Class 4", defaultFee: 200 },
+      { name: "Class 5", defaultFee: 500 }, 
+      { name: "Class 8", defaultFee: 500 },
+      { name: "Class 6", defaultFee: 500 },
+      { name: "Class 7", defaultFee: 500 },
       { name: "Class 8", defaultFee: 500 },
       { name: "Class 9", defaultFee: 550 },
       { name: "Class 10", defaultFee: 600 },
       { name: "Class 11", defaultFee: 700 },
       { name: "Class 12", defaultFee: 800 },
-      { name: "Competitive (WBP/SSC)", defaultFee: 750 }
     ];
 
     let systemLogs = [];
@@ -2004,8 +2012,8 @@
 
           if (sidebarCloudText) sidebarCloudText.innerText = "Cloud Synced";
           if (sidebarDot) sidebarDot.className = "w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse";
-          if (headerBadge) headerBadge.className = "cursor-pointer flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-400 text-emerald-950 shadow-sm";
-          if (headerText) headerText.innerText = "Cloud Synced";
+          if (headerBadge) headerBadge.className = "";
+          if (headerText) headerText.innerText = "";
           if (diagStatus) diagStatus.innerText = "Connected & Active";
           if (diagDetails) diagDetails.innerText = `Connected. ${students.length} students synchronized.`;
         }
@@ -2301,7 +2309,7 @@
       const addSelect = document.getElementById('mClass');
       const currentFilter = filterSelect.value || "ALL";
 
-      filterSelect.innerHTML = `<option value="ALL">All Batches (${batches.length})</option>`;
+      filterSelect.innerHTML = `<option value="ALL">All Classes (${batches.length})</option>`;
       addSelect.innerHTML = '';
 
       batches.forEach(b => {
