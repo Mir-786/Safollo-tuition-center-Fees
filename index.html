@@ -152,9 +152,9 @@
               <i data-lucide="sheet" class="w-4 h-4 text-emerald-500"></i>
               <span>Export to Excel (.xlsx)</span>
             </button>
-            <button onclick="exportToPDF()" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white transition text-left">
-              <i data-lucide="file-text" class="w-4 h-4 text-rose-400"></i>
-              <span>Export to PDF (.pdf)</span>
+            <button onclick="openPDFExportModal()" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white transition text-left">
+              <i data-lucide="book-open-check" class="w-4 h-4 text-rose-400"></i>
+              <span>Export Register PDF</span>
             </button>
           </div>
 
@@ -212,6 +212,12 @@
         </div>
 
         <div class="flex items-center gap-2">
+          <!-- Export Register PDF Quick Action -->
+          <button onclick="openPDFExportModal()" title="Export Register PDF (Yearly / Lifetime)" class="px-3 h-10 rounded-xl bg-rose-600 hover:bg-rose-500 text-white transition shadow flex items-center justify-center gap-1.5 border border-rose-400/40 text-xs font-bold focus:outline-none">
+            <i data-lucide="book-open-check" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">Register PDF</span>
+          </button>
+
           <!-- Scan Student QR (Icon Only) -->
           <button onclick="openQRScanner()" title="Scan Student QR Code" class="w-10 h-10 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition shadow flex items-center justify-center border border-indigo-500/50 focus:outline-none">
             <i data-lucide="scan" class="w-5 h-5 text-amber-300"></i>
@@ -373,6 +379,104 @@
           </div>
         </section>
       </main>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: REGISTER BOOK PDF EXPORT (YEARLY / LIFETIME) ==================== -->
+  <div id="pdfExportModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden my-auto">
+      <div class="bg-rose-700 px-6 py-4 flex justify-between items-center text-white">
+        <div class="flex items-center gap-2.5">
+          <i data-lucide="book-open-check" class="w-5 h-5 text-amber-300"></i>
+          <div>
+            <h3 class="font-bold text-base">Export Register Book PDF</h3>
+            <p class="text-xs text-rose-100">Physical Notebook Format: SL NO | Name / Start Date | Months</p>
+          </div>
+        </div>
+        <button onclick="closeModal('pdfExportModal')" class="text-rose-200 hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4 text-sm">
+        <!-- Report Mode Selection: Yearly vs Lifetime -->
+        <div>
+          <label class="block text-xs font-bold uppercase text-slate-600 mb-2">1. Choose Register Scope</label>
+          <div class="grid grid-cols-2 gap-3">
+            <button type="button" id="pdfModeYearlyBtn" onclick="setPDFReportMode('YEARLY')" class="flex flex-col items-center justify-center p-3 rounded-xl border-2 border-rose-600 bg-rose-50/70 text-rose-900 transition text-center">
+              <i data-lucide="calendar-range" class="w-5 h-5 text-rose-600 mb-1"></i>
+              <span class="font-bold text-xs">Yearly Register</span>
+              <span class="text-[10px] text-slate-500 mt-0.5">Single Year Register Sheet</span>
+            </button>
+
+            <button type="button" id="pdfModeLifetimeBtn" onclick="setPDFReportMode('LIFETIME')" class="flex flex-col items-center justify-center p-3 rounded-xl border-2 border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition text-center">
+              <i data-lucide="infinity" class="w-5 h-5 text-indigo-600 mb-1"></i>
+              <span class="font-bold text-xs">Lifetime Register</span>
+              <span class="text-[10px] text-slate-500 mt-0.5">All Years Since Admission</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Year & Column Layout Selector -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+          <div id="pdfYearSelectWrapper">
+            <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Select Register Year</label>
+            <select id="pdfExportYear" onchange="updatePDFExportPreview()" class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white font-bold text-slate-800 text-xs focus:ring-2 focus:ring-rose-500 focus:outline-none">
+            </select>
+          </div>
+
+          <div id="pdfLayoutStyleWrapper">
+            <label class="block text-xs font-bold uppercase text-slate-700 mb-1">Columns Per Page</label>
+            <select id="pdfMonthSplitMode" onchange="updatePDFExportPreview()" class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white font-bold text-slate-800 text-xs focus:ring-2 focus:ring-rose-500 focus:outline-none">
+              <option value="FULL_12" selected>All 12 Months (Jan – Dec)</option>
+              <option value="HALF_6">6 Months Split (Jan–Jun & Jul–Dec)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Filter by Batch & Student -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">2. Filter Batch</label>
+            <select id="pdfExportBatch" onchange="onPDFBatchFilterChange()" class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white text-xs font-semibold focus:ring-2 focus:ring-rose-500 focus:outline-none">
+              <option value="ALL">All Batches</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">3. Filter Student</label>
+            <select id="pdfExportStudent" onchange="updatePDFExportPreview()" class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white text-xs font-semibold focus:ring-2 focus:ring-rose-500 focus:outline-none">
+              <option value="ALL">All Students</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Register Legend Preview -->
+        <div class="bg-amber-50/80 border border-amber-200 rounded-xl p-3.5 text-xs space-y-2">
+          <div class="flex items-center justify-between font-bold text-slate-800">
+            <span>Notebook Register Key:</span>
+            <span id="pdfPreviewBadge" class="bg-rose-600 text-white px-2 py-0.5 rounded-full text-[10px]">Yearly (2026)</span>
+          </div>
+          <div class="grid grid-cols-2 gap-1.5 text-[11px] font-mono bg-white p-2.5 rounded-lg border border-amber-200/80">
+            <div><span class="font-bold text-slate-900">500/- 10.09.26</span> = Paid & Date</div>
+            <div><span class="font-bold text-rose-600">Due - 500/-</span> = Month Due</div>
+            <div><span class="font-bold text-slate-500">X</span> = Pre-Admission / Exempt</div>
+            <div><span class="font-bold text-rose-700">Ad-200</span> = Advance Held</div>
+          </div>
+          <p class="text-slate-500 text-[11px]" id="pdfPreviewDescription">
+            Exports a ruled register table with SL NO, Student Name + Start Date, and Month columns.
+          </p>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
+          <button type="button" onclick="closeModal('pdfExportModal')" class="px-4 py-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">
+            Cancel
+          </button>
+          <button type="button" onclick="generateDetailedPDFReport()" class="px-5 py-2.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition shadow flex items-center gap-2">
+            <i data-lucide="download" class="w-4 h-4"></i> Download Register PDF
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -662,11 +766,14 @@
             ST
           </div>
           <div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
               <h2 class="text-xl font-bold" id="profName">-</h2>
               <span class="bg-indigo-600 text-indigo-100 text-[11px] px-2 py-0.5 rounded-full font-semibold" id="profClassBadge">-</span>
               <button onclick="openEditStudentModalFromProfile()" title="Edit Student Profile" class="text-amber-300 hover:text-white p-1 rounded-md bg-white/10 transition">
                 <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+              </button>
+              <button onclick="exportSingleStudentPDFFromProfile()" title="Export Register PDF for this Student" class="text-rose-200 hover:text-white px-2 py-0.5 rounded-md bg-rose-600/80 hover:bg-rose-600 text-[11px] font-bold flex items-center gap-1 transition">
+                <i data-lucide="book-open-check" class="w-3 h-3"></i> Register PDF
               </button>
             </div>
             <p class="text-xs text-indigo-200 mt-0.5">
@@ -826,6 +933,10 @@
             <span class="text-slate-500">Status:</span>
             <span class="font-bold" id="managePaidStatusBadge">-</span>
           </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Paid Date:</span>
+            <span class="font-bold text-emerald-700" id="managePaidDateDisplay">-</span>
+          </div>
         </div>
         <p class="text-slate-600">
           This month is currently cleared. Click below to unmark this payment, cancel advance, or convert it to exemption. Total collection will be adjusted automatically.
@@ -893,14 +1004,20 @@
           <p class="text-[11px] text-slate-500 mt-1" id="targetMonthPreviewHelp">Enter any custom rupee amount.</p>
         </div>
 
-        <div>
-          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Payment Mode</label>
-          <select id="targetMonthMode" class="w-full px-3 py-2 border rounded-lg bg-white focus:ring-2 focus:ring-emerald-500 text-xs">
-            <option value="Cash">Cash</option>
-            <option value="UPI / PhonePe / GPay">UPI (PhonePe / GPay)</option>
-            <option value="Bank Transfer">Bank Transfer</option>
-            <option value="Cheque">Cheque</option>
-          </select>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Payment Mode</label>
+            <select id="targetMonthMode" class="w-full px-3 py-2 border rounded-lg bg-white focus:ring-2 focus:ring-emerald-500 text-xs">
+              <option value="Cash">Cash</option>
+              <option value="UPI / PhonePe / GPay">UPI (PhonePe / GPay)</option>
+              <option value="Bank Transfer">Bank Transfer</option>
+              <option value="Cheque">Cheque</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Payment Date</label>
+            <input type="date" id="targetMonthDate" class="w-full px-3 py-2 border rounded-lg bg-white focus:ring-2 focus:ring-emerald-500 text-xs">
+          </div>
         </div>
 
         <div>
@@ -1125,7 +1242,6 @@
     ];
 
     // ==================== SELF-HEALING DEFAULT DATA ====================
-    // Ensures the app is NEVER empty even if the database is offline or not yet configured!
     const DEFAULT_STUDENTS_LIST = [
       {
         id: "S101",
@@ -1176,6 +1292,7 @@
     ];
 
     let currentLoggedInAdmin = null;
+    let activePDFReportMode = 'YEARLY'; // 'YEARLY' or 'LIFETIME'
 
     // Optional hardcoded Supabase keys
     const DEFAULT_SUPABASE_URL = ""; 
@@ -1245,8 +1362,88 @@
       return `${day}/${month}/${year}`;
     }
 
+    // Notebook-style compact dot date: DD.MM.YY (e.g. 17.04.25)
+    function formatDateNotebookDot(dateInput) {
+      if (!dateInput) return "";
+      const d = parseDateSafely(dateInput);
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const yearShort = String(d.getFullYear()).slice(-2);
+      return `${day}.${month}.${yearShort}`;
+    }
+
+    // Notebook-style start date: DD/MM/YY (e.g. 06/01/26)
+    function formatStartDateShort(dateInput) {
+      if (!dateInput) return "-";
+      const d = parseDateSafely(dateInput);
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const yearShort = String(d.getFullYear()).slice(-2);
+      return `${day}/${month}/${yearShort}`;
+    }
+
     function formatMonthKey(monthName, year) {
       return `${monthName} ${year}`;
+    }
+
+    function formatShortMonthKey(monthKey) {
+      if (!monthKey) return "";
+      const parts = monthKey.split(" ");
+      if (parts.length !== 2) return monthKey;
+      const mIdx = MONTH_NAMES.indexOf(parts[0]);
+      if (mIdx === -1) return monthKey;
+      return `${SHORT_MONTHS[mIdx]} ${parts[1]}`;
+    }
+
+    // Finds the payment details (date & amount) for a given paid monthKey from student.history
+    function getPaymentRecordForMonthKey(student, monthKey) {
+      const historyList = student.history || [];
+      const parts = monthKey.split(" ");
+      const monthName = parts[0] || "";
+      const yearStr = parts[1] || "";
+      const mIdx = MONTH_NAMES.indexOf(monthName);
+      const shortName = mIdx >= 0 ? SHORT_MONTHS[mIdx] : "";
+
+      for (const h of historyList) {
+        if (h.type === 'Reversal' || h.type === 'Exemption' || Number(h.amount || 0) <= 0) continue;
+
+        if (h.monthCovered && h.monthCovered.toLowerCase() === monthKey.toLowerCase()) {
+          return {
+            dateDMY: formatDateDMY(h.date),
+            dateDot: formatDateNotebookDot(h.date),
+            amount: Number(h.amount || student.monthlyFee)
+          };
+        }
+
+        if (Array.isArray(h.monthsCoveredList) && h.monthsCoveredList.includes(monthKey)) {
+          return {
+            dateDMY: formatDateDMY(h.date),
+            dateDot: formatDateNotebookDot(h.date),
+            amount: Number(student.monthlyFee)
+          };
+        }
+
+        const combinedText = `${h.monthCovered || ''} ${h.note || ''}`.toLowerCase();
+        if (yearStr && combinedText.includes(yearStr.toLowerCase())) {
+          if (
+            (monthName && combinedText.includes(monthName.toLowerCase())) ||
+            (shortName && combinedText.includes(shortName.toLowerCase()))
+          ) {
+            return {
+              dateDMY: formatDateDMY(h.date),
+              dateDot: formatDateNotebookDot(h.date),
+              amount: Number(student.monthlyFee)
+            };
+          }
+        }
+      }
+
+      return null;
+    }
+
+    function getPaymentDateForMonthKey(student, monthKey) {
+      const rec = getPaymentRecordForMonthKey(student, monthKey);
+      return rec ? rec.dateDMY : null;
     }
 
     // Maps a payment to the fee month for which payment was made
@@ -1487,7 +1684,6 @@
       }
     });
 
-    // Realtime background poll
     setInterval(() => {
       if (navigator.onLine && document.visibilityState === 'visible' && supabaseClient) {
         fetchCloudData();
@@ -1716,7 +1912,6 @@
       const headerBadge = document.getElementById('cloudStatusBadge');
       const headerText = document.getElementById('cloudStatusText');
 
-      // Load Batches safely
       const rawBatches = JSON.parse(localStorage.getItem('cached_batches_v8'));
       if (rawBatches && rawBatches.length > 0) {
         batches = typeof rawBatches[0] === 'string' ? rawBatches.map(b => ({ name: b, defaultFee: 500 })) : rawBatches;
@@ -1724,7 +1919,6 @@
 
       initDateDropdowns();
 
-      // ALWAYS ENSURE STUDENTS ARE LOADED FROM LOCAL CACHE FIRST
       students = loadBestLocalStudents();
       localStorage.setItem('cached_students_backup', JSON.stringify(students));
       populateBatchDropdowns();
@@ -1765,7 +1959,6 @@
       const diagDetails = document.getElementById('cloudDiagnosticDetails');
 
       try {
-        // 1. Fetch Batches
         const { data: bData, error: bErr } = await supabaseClient.from('batches').select('*');
         if (!bErr && bData && bData.length > 0) {
           batches = bData.map(b => ({
@@ -1775,7 +1968,6 @@
           localStorage.setItem('cached_batches_v8', JSON.stringify(batches));
         }
 
-        // 2. Fetch Students (SAFE SELECT WITHOUT FORCED ORDERING CRASH)
         const { data: sData, error: sErr } = await supabaseClient.from('students').select('*');
         
         if (sErr) {
@@ -1807,8 +1999,6 @@
             }));
             localStorage.setItem('cached_students_backup', JSON.stringify(students));
           } else {
-            // Cloud is empty -> auto upload local students to populate server!
-            console.log("Supabase table is currently empty. Auto-uploading local students...");
             uploadAllLocalStudentsToCloud(false);
           }
 
@@ -1827,7 +2017,6 @@
       updateMetrics();
       renderStudents();
 
-      // FIXED BUG: Only update modal content if the profile modal is actively open
       const profileModalEl = document.getElementById('profileModal');
       if (selectedStudentIdForProfile && profileModalEl && !profileModalEl.classList.contains('hidden')) {
         const s = students.find(item => item.id === selectedStudentIdForProfile);
@@ -1940,8 +2129,8 @@
     }
 
     async function syncStudentToCloud(student) {
+      localStorage.setItem('cached_students_backup', JSON.stringify(students));
       if (!supabaseClient) {
-        localStorage.setItem('cached_students_backup', JSON.stringify(students));
         updateMetrics();
         renderStudents();
         return;
@@ -1983,11 +2172,11 @@
         });
       });
 
-      ['dueYearSelect', 'colYearSelect'].forEach(id => {
+      ['dueYearSelect', 'colYearSelect', 'pdfExportYear'].forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
         el.innerHTML = '';
-        for (let y = currentYear - 2; y <= currentYear + 2; y++) {
+        for (let y = currentYear - 3; y <= currentYear + 2; y++) {
           const opt = document.createElement('option');
           opt.value = y;
           opt.innerText = y;
@@ -2209,9 +2398,11 @@
 
       if ((student.paidMonths || []).includes(key)) {
         const isAdvance = startOfToday <= maturityDate;
+        const paidOnDate = getPaymentDateForMonthKey(student, key);
         return {
           status: isAdvance ? 'PAID_ADVANCE' : 'PAID',
           label: isAdvance ? 'Adv Paid' : 'Paid',
+          paidDate: paidOnDate,
           isDueNow: false,
           key,
           maturityDate
@@ -2370,6 +2561,7 @@
         };
         document.getElementById('managePaidMonthTitle').innerText = monthKey;
         document.getElementById('managePaidStudentName').innerText = `${s.name} (Roll: ${s.roll})`;
+        document.getElementById('managePaidDateDisplay').innerText = info.paidDate || 'Recorded in Portal';
         
         const badge = document.getElementById('managePaidStatusBadge');
         if (info.status === 'PAID_ADVANCE') {
@@ -2407,6 +2599,7 @@
       document.getElementById('targetMonthStandardFee').innerText = `₹${s.monthlyFee}`;
       document.getElementById('targetMonthAvailAdvance').innerText = `₹${s.advanceBalance || 0}`;
       document.getElementById('targetMonthCollectorDisplay').innerText = getCurrentCollectorName();
+      document.getElementById('targetMonthDate').value = new Date().toISOString().slice(0, 10);
 
       const availAdvance = s.advanceBalance || 0;
       const suggestedAmount = Math.max(0, s.monthlyFee - availAdvance);
@@ -2417,7 +2610,6 @@
       openModal('clickMonthPayModal');
     }
 
-    // ADJUSTS TOTAL COLLECTION AUTOMATICALLY UPON MARKING UNPAID / UNADVANCE
     async function executeUnpayMonth() {
       if (!activeManageMonthData) return;
       const { studentId, monthKey, isAdvance } = activeManageMonthData;
@@ -2517,6 +2709,7 @@
       const monthKey = document.getElementById('targetMonthKey').value;
       const amount = parseFloat(document.getElementById('targetMonthAmount').value) || 0;
       const mode = document.getElementById('targetMonthMode').value;
+      const payDateISO = document.getElementById('targetMonthDate').value || new Date().toISOString().slice(0, 10);
       const note = document.getElementById('targetMonthNote').value.trim() || `Fee payment for ${monthKey}`;
       const collector = getCurrentCollectorName();
 
@@ -2534,26 +2727,26 @@
         s.advanceBalance = totalAvailable;
       }
 
-      const todayISO = new Date().toISOString().slice(0, 10);
       const receipt = {
         amount,
         mode,
         note,
-        date: todayISO,
+        date: payDateISO,
         monthCovered: monthKey,
+        monthsCoveredList: [monthKey],
         collectedBy: collector,
         type: 'Payment'
       };
       if (!s.history) s.history = [];
       s.history.unshift(receipt);
 
-      await logSystemActivity("Payment", `Payment Collected (₹${amount})`, `Received for ${monthKey} from ${s.name} (Roll: #${s.roll}) via ${mode}`);
+      await logSystemActivity("Payment", `Payment Collected (₹${amount})`, `Received for ${monthKey} from ${s.name} (Roll: #${s.roll}) on ${formatDateDMY(payDateISO)} via ${mode}`);
 
       await syncStudentToCloud(s);
       closeModal('clickMonthPayModal');
 
       const dueInfo = getStudentCalculatedDue(s);
-      document.getElementById('recDate').innerText = formatDateDMY(todayISO);
+      document.getElementById('recDate').innerText = formatDateDMY(payDateISO);
       document.getElementById('recName').innerText = s.name;
       document.getElementById('recRollClass').innerText = `${s.roll} (${s.class})`;
       document.getElementById('recMode').innerText = mode;
@@ -2569,7 +2762,7 @@
         viewStudentProfile(s.id);
       }
 
-      if (confirm(`Payment of ₹${amount} collected by ${collector} for ${monthKey}!\nRemaining due today: ₹${dueInfo.netDueToday} • Advance: ₹${s.advanceBalance}.\n\nPrint official receipt now?`)) {
+      if (confirm(`Payment of ₹${amount} collected by ${collector} for ${monthKey} (Date: ${formatDateDMY(payDateISO)})!\nRemaining due today: ₹${dueInfo.netDueToday} • Advance: ₹${s.advanceBalance}.\n\nPrint official receipt now?`)) {
         window.print();
       }
     }
@@ -2827,7 +3020,6 @@
 
       renderProfileCalendar(s, activeProfileCalendarYear);
 
-      // Ledger Table
       const historyTbody = document.getElementById('profHistoryTable');
       historyTbody.innerHTML = '';
       if (!s.history || s.history.length === 0) {
@@ -2874,20 +3066,22 @@
         const card = document.createElement('div');
         
         if (info.status === 'PAID') {
-          card.className = "bg-emerald-500 text-white rounded-xl p-2.5 text-center shadow-sm cursor-pointer hover:bg-emerald-600 border border-emerald-600 transition";
+          card.className = "bg-emerald-500 text-white rounded-xl p-2 text-center shadow-sm cursor-pointer hover:bg-emerald-600 border border-emerald-600 transition";
           card.innerHTML = `
             <p class="text-[10px] font-bold uppercase tracking-wider">${SHORT_MONTHS[m]}</p>
-            <div class="flex items-center justify-center gap-0.5 mt-1 text-[11px] font-extrabold">
+            <div class="flex items-center justify-center gap-0.5 mt-0.5 text-[11px] font-extrabold">
               <i data-lucide="check-circle" class="w-3 h-3 text-amber-200"></i> Paid
             </div>
+            <p class="text-[9px] text-emerald-100 mt-0.5 truncate">${info.paidDate || ''}</p>
           `;
         } else if (info.status === 'PAID_ADVANCE') {
-          card.className = "bg-cyan-500 text-white rounded-xl p-2.5 text-center shadow-sm cursor-pointer hover:bg-cyan-600 border border-cyan-600 transition";
+          card.className = "bg-cyan-500 text-white rounded-xl p-2 text-center shadow-sm cursor-pointer hover:bg-cyan-600 border border-cyan-600 transition";
           card.innerHTML = `
             <p class="text-[10px] font-bold uppercase tracking-wider">${SHORT_MONTHS[m]}</p>
-            <div class="flex items-center justify-center gap-0.5 mt-1 text-[10px] font-extrabold">
+            <div class="flex items-center justify-center gap-0.5 mt-0.5 text-[10px] font-extrabold">
               <i data-lucide="sparkles" class="w-3 h-3 text-amber-200"></i> Adv Paid
             </div>
+            <p class="text-[9px] text-cyan-100 mt-0.5 truncate">${info.paidDate || ''}</p>
           `;
         } else if (info.status === 'EXEMPT') {
           card.className = "bg-violet-600 text-white rounded-xl p-2.5 text-center shadow-sm cursor-pointer hover:bg-violet-700 border border-violet-700 transition";
@@ -2947,6 +3141,7 @@
           await supabaseClient.from('students').delete().eq('id', delId);
         }
         students = students.filter(item => item.id !== delId);
+        localStorage.setItem('cached_students_backup', JSON.stringify(students));
         closeProfileModal();
         updateMetrics();
         renderStudents();
@@ -3050,12 +3245,14 @@
 
       const dueInfo = getStudentCalculatedDue(s);
       let finalMonthCovered = '';
+      const monthsClearedInThisTx = [];
 
       if (chosenCover !== 'AUTO') {
         finalMonthCovered = chosenCover;
         if (!s.paidMonths.includes(chosenCover)) {
           s.paidMonths.push(chosenCover);
         }
+        monthsClearedInThisTx.push(chosenCover);
       } else {
         finalMonthCovered = dueInfo.dueKeys[0] || formatMonthKey(MONTH_NAMES[new Date(payDateISO).getMonth()], new Date(payDateISO).getFullYear());
       }
@@ -3063,6 +3260,7 @@
       if (amount >= dueInfo.netDueToday) {
         dueInfo.dueKeys.forEach(k => {
           if (!s.paidMonths.includes(k)) s.paidMonths.push(k);
+          if (!monthsClearedInThisTx.includes(k)) monthsClearedInThisTx.push(k);
         });
         const surplus = amount - dueInfo.netDueToday;
         s.advanceBalance += surplus;
@@ -3070,7 +3268,11 @@
         s.advanceBalance += amount;
       }
 
-      if (!note) note = `Fee Payment for ${finalMonthCovered}`;
+      if (monthsClearedInThisTx.length === 0 && finalMonthCovered) {
+        monthsClearedInThisTx.push(finalMonthCovered);
+      }
+
+      if (!note) note = `Fee Payment for ${monthsClearedInThisTx.join(', ')}`;
 
       const receipt = {
         amount,
@@ -3078,13 +3280,14 @@
         note,
         date: payDateISO,
         monthCovered: finalMonthCovered,
+        monthsCoveredList: monthsClearedInThisTx,
         collectedBy: collector,
         type: 'Payment'
       };
       if (!s.history) s.history = [];
       s.history.unshift(receipt);
 
-      await logSystemActivity("Payment", `Payment Collected (₹${amount})`, `Collected from ${s.name} (Roll: #${s.roll}, Fee Month: ${finalMonthCovered}) via ${mode}`);
+      await logSystemActivity("Payment", `Payment Collected (₹${amount})`, `Collected from ${s.name} (Roll: #${s.roll}, Fee Month: ${monthsClearedInThisTx.join(', ')}) on ${formatDateDMY(payDateISO)} via ${mode}`);
 
       await syncStudentToCloud(s);
       closeModal('paymentModal');
@@ -3106,7 +3309,7 @@
         viewStudentProfile(s.id);
       }
 
-      if (confirm(`Payment of ₹${amount} collected for ${finalMonthCovered} by ${collector}!\nDue: ₹${afterDue.netDueToday} • Advance: ₹${s.advanceBalance}.\n\nPrint receipt now?`)) {
+      if (confirm(`Payment of ₹${amount} collected for ${monthsClearedInThisTx.join(', ')} by ${collector}!\nDue: ₹${afterDue.netDueToday} • Advance: ₹${s.advanceBalance}.\n\nPrint receipt now?`)) {
         window.print();
       }
     }
@@ -3232,7 +3435,7 @@
         if (matches) {
           filteredTotal += Number(h.amount || 0);
           if (Number(h.amount || 0) > 0) txnCount++;
-          else if (Number(h.amount || 0) < 0) txnCount = Math.max(0, txnCount - 1);
+          else if (Number(h.amount || 0) < 0) txCount = Math.max(0, txnCount - 1);
         }
       });
 
@@ -3442,13 +3645,18 @@
       lucide.createIcons();
     }
 
-    // ==================== EXPORTS (DD/MM/YYYY) ====================
+    // ==================== EXCEL EXPORT ====================
     function exportToExcel() {
       const wb = XLSX.utils.book_new();
 
       const studentsData = students.map(s => {
         const dueInfo = getStudentCalculatedDue(s);
         const totalPaid = (s.history || []).filter(h => h.type !== "Exemption").reduce((sum, h) => sum + Number(h.amount || 0), 0);
+        const paidWithDates = (s.paidMonths || []).map(mKey => {
+          const pDate = getPaymentDateForMonthKey(s, mKey);
+          return pDate ? `${mKey} (Paid: ${pDate})` : mKey;
+        }).join(", ");
+
         return {
           "Roll Number": s.roll,
           "Full Name": s.name,
@@ -3457,9 +3665,10 @@
           "Monthly Billing Cycle": `Every ${formatDayOrdinal(s.dueDay || 1)} of month`,
           "Monthly Fee (₹)": s.monthlyFee,
           "Matured Due Today (₹)": dueInfo.netDueToday,
+          "Due Months": dueInfo.dueKeys.join(", ") || "None",
           "Advance Balance in Cloud (₹)": s.advanceBalance || 0,
           "Status Breakdown": dueInfo.breakdownText,
-          "Paid Months": (s.paidMonths || []).join(", "),
+          "Paid Months & Date Paid": paidWithDates,
           "Exempted Months": (s.exemptedMonths || []).join(", "),
           "Lifetime Total Paid (₹)": totalPaid,
           "Guardian Mobile": s.phone || ""
@@ -3491,67 +3700,341 @@
       XLSX.writeFile(wb, `Tuition_Fee_Master_Report_${new Date().toISOString().slice(0, 10)}.xlsx`);
     }
 
+    // ==================== REGISTER BOOK PDF EXPORT (YEARLY OR LIFETIME) ====================
+    function openPDFExportModal(preselectedStudentId = null) {
+      const batchSelect = document.getElementById('pdfExportBatch');
+      batchSelect.innerHTML = `<option value="ALL">All Batches (${batches.length})</option>`;
+      batches.forEach(b => {
+        batchSelect.innerHTML += `<option value="${b.name}">${b.name}</option>`;
+      });
+
+      populatePDFStudentDropdown(preselectedStudentId);
+      setPDFReportMode(activePDFReportMode);
+      openModal('pdfExportModal');
+
+      if (window.innerWidth < 768 && !preselectedStudentId) {
+        const sidebar = document.getElementById('sidebar');
+        if (!sidebar.classList.contains('-translate-x-full')) {
+          toggleMobileSidebar();
+        }
+      }
+      lucide.createIcons();
+    }
+
+    function exportSingleStudentPDFFromProfile() {
+      if (selectedStudentIdForProfile) {
+        openPDFExportModal(selectedStudentIdForProfile);
+      }
+    }
+
+    function onPDFBatchFilterChange() {
+      populatePDFStudentDropdown(null);
+      updatePDFExportPreview();
+    }
+
+    function populatePDFStudentDropdown(preselectedStudentId = null) {
+      const selectedBatch = document.getElementById('pdfExportBatch').value;
+      const studentSelect = document.getElementById('pdfExportStudent');
+      const filteredStudents = students.filter(s => selectedBatch === 'ALL' || s.class === selectedBatch);
+
+      studentSelect.innerHTML = `<option value="ALL">All Students (${filteredStudents.length})</option>`;
+      filteredStudents.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.innerText = `#${s.roll} - ${s.name} (${s.class})`;
+        if (preselectedStudentId && s.id === preselectedStudentId) {
+          opt.selected = true;
+        }
+        studentSelect.appendChild(opt);
+      });
+    }
+
+    function setPDFReportMode(mode) {
+      activePDFReportMode = mode;
+      const yearlyBtn = document.getElementById('pdfModeYearlyBtn');
+      const lifetimeBtn = document.getElementById('pdfModeLifetimeBtn');
+      const yearWrapper = document.getElementById('pdfYearSelectWrapper');
+
+      if (mode === 'YEARLY') {
+        yearlyBtn.className = "flex flex-col items-center justify-center p-3 rounded-xl border-2 border-rose-600 bg-rose-50/70 text-rose-900 transition text-center shadow-sm";
+        lifetimeBtn.className = "flex flex-col items-center justify-center p-3 rounded-xl border-2 border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition text-center";
+        yearWrapper.classList.remove('hidden');
+      } else {
+        lifetimeBtn.className = "flex flex-col items-center justify-center p-3 rounded-xl border-2 border-indigo-600 bg-indigo-50/70 text-indigo-900 transition text-center shadow-sm";
+        yearlyBtn.className = "flex flex-col items-center justify-center p-3 rounded-xl border-2 border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition text-center";
+        yearWrapper.classList.add('hidden');
+      }
+      updatePDFExportPreview();
+    }
+
+    function updatePDFExportPreview() {
+      const yearVal = document.getElementById('pdfExportYear').value;
+      const batchVal = document.getElementById('pdfExportBatch').value;
+      const studentVal = document.getElementById('pdfExportStudent').value;
+      const badgeEl = document.getElementById('pdfPreviewBadge');
+      const descEl = document.getElementById('pdfPreviewDescription');
+
+      const targetStudents = students.filter(s => {
+        const matchBatch = (batchVal === 'ALL' || s.class === batchVal);
+        const matchStu = (studentVal === 'ALL' || s.id === studentVal);
+        return matchBatch && matchStu;
+      });
+
+      if (activePDFReportMode === 'YEARLY') {
+        badgeEl.innerText = `Yearly Register (${yearVal})`;
+        descEl.innerText = `Exports ${yearVal} Register Sheet for ${targetStudents.length} student(s) with SL NO, Name/Start Date, and monthly boxes showing Amount + Paid Date or Due.`;
+      } else {
+        badgeEl.innerText = `Lifetime Register (All Years)`;
+        descEl.innerText = `Exports multi-year Register Book for ${targetStudents.length} student(s) from their earliest admission year to the present.`;
+      }
+    }
+
     function exportToPDF() {
+      openPDFExportModal();
+    }
+
+    // Formats a single month cell in the exact physical notebook style
+    function getNotebookMonthCellText(student, monthIndex, year, advanceTracker) {
+      const st = getMonthStatus(student, monthIndex, year);
+      const fee = student.monthlyFee || 0;
+
+      // 1. Pre-Admission or Exempted -> "X" (like February for SK Riju / Moyna)
+      if (st.status === 'PRE_ADMISSION' || st.status === 'EXEMPT') {
+        return { text: "X", cellType: "CROSS" };
+      }
+
+      // 2. Paid or Advance Paid -> "400/- 17.04.25"
+      if (st.status === 'PAID' || st.status === 'PAID_ADVANCE') {
+        const rec = getPaymentRecordForMonthKey(student, st.key);
+        const paidAmt = rec ? rec.amount : fee;
+        const dateDot = rec && rec.dateDot ? rec.dateDot : "";
+        return {
+          text: dateDot ? `${paidAmt}/-\n${dateDot}` : `${paidAmt}/-\nPaid`,
+          cellType: "PAID"
+        };
+      }
+
+      // 3. Matured Due -> "Due - 300/-" (or shows remaining due after advance offset)
+      if (st.status === 'DUE') {
+        if (advanceTracker.remainingAdvance > 0) {
+          if (advanceTracker.remainingAdvance >= fee) {
+            advanceTracker.remainingAdvance -= fee;
+            return { text: `Ad-${fee}/-`, cellType: "ADVANCE" };
+          } else {
+            const netDue = fee - advanceTracker.remainingAdvance;
+            const usedAdv = advanceTracker.remainingAdvance;
+            advanceTracker.remainingAdvance = 0;
+            return { text: `${usedAdv}/-\nDue-${netDue}`, cellType: "DUE" };
+          }
+        }
+        return { text: `Due - ${fee}/-`, cellType: "DUE" };
+      }
+
+      // 4. Upcoming Month -> Blank "", or "Ad-100" if student holds advance wallet balance
+      if (st.status === 'UPCOMING') {
+        if (advanceTracker.remainingAdvance > 0 && !advanceTracker.advanceShownInCell) {
+          const advAmt = advanceTracker.remainingAdvance;
+          advanceTracker.advanceShownInCell = true;
+          return { text: `Ad-${advAmt}`, cellType: "ADVANCE" };
+        }
+        return { text: "", cellType: "EMPTY" };
+      }
+
+      return { text: "", cellType: "EMPTY" };
+    }
+
+    function generateDetailedPDFReport() {
       const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
+      const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
 
-      const totalStudents = students.length;
-      let totalDueToday = 0;
-      let totalAdvance = 0;
-      students.forEach(s => { 
-        totalDueToday += getStudentCalculatedDue(s).netDueToday; 
-        totalAdvance += (s.advanceBalance || 0);
+      const mode = activePDFReportMode;
+      const selectedYear = parseInt(document.getElementById('pdfExportYear').value, 10);
+      const splitMode = document.getElementById('pdfMonthSplitMode').value; // 'FULL_12' or 'HALF_6'
+      const selectedBatch = document.getElementById('pdfExportBatch').value;
+      const selectedStudent = document.getElementById('pdfExportStudent').value;
+
+      const filteredStudents = students.filter(s => {
+        const matchBatch = (selectedBatch === 'ALL' || s.class === selectedBatch);
+        const matchStu = (selectedStudent === 'ALL' || s.id === selectedStudent);
+        return matchBatch && matchStu;
       });
 
-      doc.setFontSize(15);
-      doc.setTextColor(30, 41, 59);
-      doc.text("TUITION FEE, CYCLE DUES & CLOUD REPORT", 40, 40);
-      doc.setFontSize(9);
-      doc.setTextColor(100, 116, 139);
-      doc.text(`Official Academic Report • Generated: ${formatDateDMY(new Date())} by ${getCurrentCollectorName()}`, 40, 54);
+      if (filteredStudents.length === 0) {
+        alert("No students match the selected export filters.");
+        return;
+      }
 
-      doc.setFillColor(241, 245, 249);
-      doc.roundedRect(40, 68, 515, 38, 6, 6, "F");
+      // Determine which years to render
+      let yearsToRender = [];
+      if (mode === 'YEARLY') {
+        yearsToRender = [selectedYear];
+      } else {
+        // LIFETIME: Find earliest admission year up to current/latest paid year
+        const nowYear = new Date().getFullYear();
+        let minYear = nowYear;
+        let maxYear = nowYear;
 
-      doc.setFontSize(9);
-      doc.setTextColor(71, 85, 105);
-      doc.text(`Students: ${totalStudents}`, 55, 91);
-      doc.text(`Dues Today: Rs. ${totalDueToday.toLocaleString('en-IN')}`, 160, 91);
-      doc.text(`Total Advance in Cloud: Rs. ${totalAdvance.toLocaleString('en-IN')}`, 320, 91);
+        filteredStudents.forEach(s => {
+          const adm = parseDateSafely(s.admissionDate);
+          if (!isNaN(adm.getFullYear()) && adm.getFullYear() < minYear) {
+            minYear = adm.getFullYear();
+          }
+          (s.paidMonths || []).forEach(k => {
+            const yPart = parseInt(k.split(" ")[1], 10);
+            if (!isNaN(yPart) && yPart > maxYear) maxYear = yPart;
+          });
+        });
 
-      const tableRows = students.map(s => {
-        const dueInfo = getStudentCalculatedDue(s);
-        return [
-          s.roll,
-          s.name,
-          s.class,
-          `Rs.${s.monthlyFee} (${formatDayOrdinal(s.dueDay || 1)})\nAdm: ${formatDateDMY(s.admissionDate)}`,
-          `Due: Rs.${dueInfo.netDueToday}\nAdv: Rs.${s.advanceBalance || 0}`,
-          dueInfo.breakdownText,
-          s.phone || "-"
-        ];
+        for (let y = minYear; y <= maxYear; y++) {
+          yearsToRender.push(y);
+        }
+      }
+
+      // Determine month chunks per table (All 12 months vs 6-month split like large notebook pages)
+      const monthChunks = (splitMode === 'HALF_6')
+        ? [
+            { indices: [0, 1, 2, 3, 4, 5], label: "January to June" },
+            { indices: [6, 7, 8, 9, 10, 11], label: "July to December" }
+          ]
+        : [
+            { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], label: "January to December" }
+          ];
+
+      let isFirstSection = true;
+
+      yearsToRender.forEach(yearNum => {
+        // Filter students active or admitted on or before this year
+        const studentsForYear = filteredStudents.filter(s => {
+          const admYear = parseDateSafely(s.admissionDate).getFullYear();
+          return isNaN(admYear) || admYear <= yearNum;
+        });
+
+        const activeList = studentsForYear.length > 0 ? studentsForYear : filteredStudents;
+
+        // Track advance per student across the year's chunks
+        const studentAdvanceMap = {};
+        activeList.forEach(s => {
+          studentAdvanceMap[s.id] = {
+            remainingAdvance: Number(s.advanceBalance || 0),
+            advanceShownInCell: false
+          };
+        });
+
+        monthChunks.forEach(chunk => {
+          if (!isFirstSection) {
+            doc.addPage();
+          }
+          isFirstSection = false;
+
+          // Top Register Header Banner (Red/Maroon Notebook Header Style)
+          doc.setFontSize(14);
+          doc.setTextColor(185, 28, 28); // Red ink title
+          const batchLabel = selectedBatch === 'ALL' ? 'All Batches' : selectedBatch;
+          doc.text(
+            `TUITION FEE REGISTER BOOK — YEAR ${yearNum} (${chunk.label})`,
+            30,
+            32
+          );
+
+          doc.setFontSize(8.5);
+          doc.setTextColor(71, 85, 105);
+          doc.text(
+            `Batch: ${batchLabel} • Students: ${activeList.length} • Printed: ${formatDateDMY(new Date())} • Legend: [Amount Date = Paid]  [Due - Amt = Pending]  [X = Pre-Adm/Exempt]  [Ad-Amt = Advance]`,
+            30,
+            46
+          );
+
+          const headRow = [
+            'SL\nNO',
+            'Name / Start Date',
+            ...chunk.indices.map(mIdx => MONTH_NAMES[mIdx])
+          ];
+
+          // Matrix to store cell metadata for custom red/blue ink styling
+          const cellMetaMatrix = [];
+
+          const bodyRows = activeList.map((s, idx) => {
+            const startStr = formatStartDateShort(s.admissionDate);
+            const nameAndStartCell = `${s.name} (${s.monthlyFee}/-)\nStart: ${startStr} • Roll: ${s.roll}`;
+
+            const rowCells = [
+              `${idx + 1}.`,
+              nameAndStartCell
+            ];
+
+            const rowMeta = ['SL', 'NAME'];
+
+            chunk.indices.forEach(mIdx => {
+              const cellInfo = getNotebookMonthCellText(s, mIdx, yearNum, studentAdvanceMap[s.id]);
+              rowCells.push(cellInfo.text);
+              rowMeta.push(cellInfo.cellType);
+            });
+
+            cellMetaMatrix.push(rowMeta);
+            return rowCells;
+          });
+
+          doc.autoTable({
+            startY: 54,
+            head: [headRow],
+            body: bodyRows,
+            theme: 'grid',
+            styles: {
+              font: 'helvetica',
+              fontSize: splitMode === 'HALF_6' ? 9 : 7.5,
+              cellPadding: splitMode === 'HALF_6' ? 5 : 3.5,
+              lineColor: [71, 85, 105], // Ruled notebook dark grey/black grid lines
+              lineWidth: 0.6,
+              valign: 'middle',
+              textColor: [15, 23, 42]
+            },
+            headStyles: {
+              fillColor: [255, 250, 245], // Warm paper header background
+              textColor: [190, 18, 60],   // Red pen ink header text like the physical register
+              fontStyle: 'bold',
+              halign: 'center',
+              fontSize: splitMode === 'HALF_6' ? 9.5 : 8,
+              lineColor: [185, 28, 28],
+              lineWidth: 0.8
+            },
+            columnStyles: {
+              0: { cellWidth: 28, halign: 'center', fontStyle: 'bold' },
+              1: { cellWidth: splitMode === 'HALF_6' ? 150 : 122, halign: 'left', fontStyle: 'bold' }
+            },
+            didParseCell: function (data) {
+              if (data.section === 'body' && data.column.index >= 2) {
+                data.cell.styles.halign = 'center';
+                const cType = cellMetaMatrix[data.row.index] ? cellMetaMatrix[data.row.index][data.column.index] : '';
+
+                if (cType === 'CROSS') {
+                  // "X" mark for Pre-admission or Exempted
+                  data.cell.styles.fontSize = splitMode === 'HALF_6' ? 12 : 10;
+                  data.cell.styles.textColor = [100, 116, 139];
+                  data.cell.styles.fontStyle = 'bold';
+                } else if (cType === 'DUE') {
+                  // Red ink for "Due - 300/-"
+                  data.cell.styles.textColor = [220, 38, 38];
+                  data.cell.styles.fontStyle = 'bold';
+                  data.cell.styles.fillColor = [254, 242, 242];
+                } else if (cType === 'ADVANCE') {
+                  // Red/Maroon ink for "Ad-100"
+                  data.cell.styles.textColor = [190, 18, 60];
+                  data.cell.styles.fontStyle = 'bold';
+                } else if (cType === 'PAID') {
+                  // Dark blue/slate pen ink for "400/- 17.04.25"
+                  data.cell.styles.textColor = [30, 58, 138];
+                  data.cell.styles.fontStyle = 'bold';
+                }
+              }
+            },
+            margin: { left: 25, right: 25, top: 30, bottom: 25 }
+          });
+        });
       });
 
-      doc.autoTable({
-        startY: 120,
-        head: [['Roll', 'Student Name', 'Batch', 'Fee & Admission', 'Balance & Advance', 'Status Summary', 'Contact']],
-        body: tableRows,
-        theme: 'striped',
-        headStyles: { fillColor: [67, 56, 202], textColor: 255, fontSize: 8, fontStyle: 'bold' },
-        bodyStyles: { fontSize: 8, textColor: [30, 41, 59] },
-        columnStyles: {
-          0: { cellWidth: 35 },
-          1: { cellWidth: 95, fontStyle: 'bold' },
-          2: { cellWidth: 70 },
-          3: { cellWidth: 80 },
-          4: { cellWidth: 95 },
-          5: { cellWidth: 105 },
-          6: { cellWidth: 35 }
-        },
-        margin: { left: 40, right: 40 }
-      });
-
-      doc.save(`Tuition_Fee_Report_${new Date().toISOString().slice(0, 10)}.pdf`);
+      const fileSuffix = (mode === 'YEARLY') ? `Register_${selectedYear}` : `Register_Lifetime`;
+      doc.save(`Tuition_Fee_${fileSuffix}_${new Date().toISOString().slice(0, 10)}.pdf`);
+      closeModal('pdfExportModal');
     }
 
     // Startup
