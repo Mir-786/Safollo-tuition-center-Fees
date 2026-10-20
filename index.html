@@ -139,6 +139,10 @@
             <i data-lucide="users" class="w-4 h-4 text-amber-300"></i>
             <span>Students Directory</span>
           </a>
+          <button onclick="openStudentsOverview(true)" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white transition text-left">
+            <i data-lucide="chart-no-axes-combined" class="w-4 h-4 text-cyan-300"></i>
+            <span>Students</span>
+          </button>
 
           <!-- ALL HISTORY (SERVER-SIDE) -->
           <button onclick="openGlobalHistoryModal()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white transition text-left">
@@ -623,7 +627,7 @@
   </div>
 
   <!-- ==================== MODAL: EDIT STUDENT PROFILE ==================== -->
-  <div id="editStudentModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+  <div id="editStudentModal" class="hidden fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[80] flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
       <div class="bg-indigo-700 px-6 py-4 flex justify-between items-center text-white">
         <h3 class="font-bold text-base flex items-center gap-2"><i data-lucide="edit-3" class="w-5 h-5 text-amber-300"></i> Edit Student Profile</h3>
@@ -1234,6 +1238,33 @@
     </div>
   </div>
 
+  <!-- Students Overview -->
+  <div id="studentsOverviewModal" class="fixed inset-0 z-[90] hidden bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5">
+    <div class="bg-white w-full max-w-4xl max-h-[92vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+      <div class="bg-indigo-700 text-white px-5 py-4 flex items-center justify-between">
+        <div><h2 class="font-black text-lg">Students Overview</h2><p class="text-xs text-indigo-100">Active students, class-wise totals and yearly admissions</p></div>
+        <button onclick="closeModal('studentsOverviewModal')" class="p-2 rounded-lg hover:bg-indigo-600" aria-label="Close"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <div class="p-4 sm:p-5 overflow-y-auto space-y-5">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4"><p class="text-xs font-bold uppercase text-emerald-700">Active Students</p><div id="overviewActiveCount" class="text-3xl font-black text-emerald-800 mt-1">0</div></div>
+          <div class="rounded-xl border border-rose-200 bg-rose-50 p-4"><p class="text-xs font-bold uppercase text-rose-700">No Longer Attending</p><div id="overviewNoLongerCount" class="text-3xl font-black text-rose-800 mt-1">0</div></div>
+          <div class="rounded-xl border border-indigo-200 bg-indigo-50 p-4"><p class="text-xs font-bold uppercase text-indigo-700">All Student Records</p><div id="overviewAllCount" class="text-3xl font-black text-indigo-800 mt-1">0</div></div>
+        </div>
+        <section class="border border-slate-200 rounded-xl overflow-hidden">
+          <div class="px-4 py-3 bg-slate-50 border-b border-slate-200"><h3 class="font-bold text-slate-800">Class-wise Student Count</h3><p class="text-xs text-slate-500">Active and no-longer-attending students are counted separately.</p></div>
+          <div class="overflow-x-auto"><table class="w-full text-sm"><thead class="bg-white text-xs uppercase text-slate-500"><tr><th class="text-left px-4 py-2">Class</th><th class="text-right px-4 py-2">Active</th><th class="text-right px-4 py-2">No Longer</th><th class="text-right px-4 py-2">Total</th></tr></thead><tbody id="overviewClassRows" class="divide-y divide-slate-100"></tbody></table></div>
+        </section>
+        <section class="border border-slate-200 rounded-xl p-4 space-y-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3"><div><h3 class="font-bold text-slate-800">Admissions by Year</h3><p class="text-xs text-slate-500">Choose a year to see how many students joined that year.</p></div><select id="overviewAdmissionYear" onchange="updateStudentsOverview()" class="border border-slate-300 rounded-lg px-3 py-2 bg-white text-sm font-semibold"></select></div>
+          <div class="rounded-lg bg-amber-50 border border-amber-200 p-3 flex items-center justify-between gap-3"><span class="text-sm font-semibold text-amber-900">Admissions in selected year</span><span id="overviewAdmissionCount" class="text-2xl font-black text-amber-800">0</span></div>
+          <div id="overviewAdmissionNames" class="text-sm text-slate-600"></div>
+        </section>
+      </div>
+      <div class="px-5 py-3 border-t border-slate-200 flex justify-end"><button onclick="closeModal('studentsOverviewModal')" class="px-4 py-2 rounded-lg bg-indigo-700 hover:bg-indigo-800 text-white text-sm font-bold">Close</button></div>
+    </div>
+  </div>
+
   <!-- Application Logic -->
   <script>
     // 3 Authorized Admin Accounts with Round Avatars
@@ -1682,6 +1713,55 @@
       }
     }
 
+    function escapeHTML(value) {
+      return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+    }
+
+    // ==================== STUDENTS OVERVIEW ====================
+    function openStudentsOverview(fromSidebar = false) {
+      updateStudentsOverview(true);
+      openModal('studentsOverviewModal');
+      if (fromSidebar && window.innerWidth < 768) {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar && !sidebar.classList.contains('-translate-x-full')) toggleMobileSidebar();
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function updateStudentsOverview(rebuildYears = false) {
+      const active = students.filter(st => !st.noLongerAttending);
+      const noLonger = students.filter(st => !!st.noLongerAttending);
+      document.getElementById('overviewActiveCount').textContent = active.length;
+      document.getElementById('overviewNoLongerCount').textContent = noLonger.length;
+      document.getElementById('overviewAllCount').textContent = students.length;
+
+      const classRows = document.getElementById('overviewClassRows');
+      const classNames = [...new Set([...batches.map(b => b.name), ...students.map(st => st.class).filter(Boolean)])];
+      classRows.innerHTML = classNames.map(name => {
+        const activeCount = active.filter(st => st.class === name).length;
+        const oldCount = noLonger.filter(st => st.class === name).length;
+        return `<tr><td class="px-4 py-2.5 font-semibold text-slate-700">${escapeHTML(String(name))}</td><td class="px-4 py-2.5 text-right font-bold text-emerald-700">${activeCount}</td><td class="px-4 py-2.5 text-right font-bold text-rose-700">${oldCount}</td><td class="px-4 py-2.5 text-right font-black">${activeCount + oldCount}</td></tr>`;
+      }).join('') || '<tr><td colspan="4" class="px-4 py-4 text-center text-slate-400">No class records</td></tr>';
+
+      const yearSelect = document.getElementById('overviewAdmissionYear');
+      if (rebuildYears || !yearSelect.options.length) {
+        const years = new Set([new Date().getFullYear()]);
+        students.forEach(st => { const d = parseDateSafely(st.admissionDate); if (st.admissionDate && !isNaN(d.getFullYear())) years.add(d.getFullYear()); });
+        const current = String(yearSelect.value || new Date().getFullYear());
+        yearSelect.innerHTML = [...years].sort((a,b) => b-a).map(y => `<option value="${y}">${y}</option>`).join('');
+        yearSelect.value = years.has(Number(current)) ? current : String(new Date().getFullYear());
+      }
+      const year = Number(yearSelect.value || new Date().getFullYear());
+      const admitted = students.filter(st => {
+        if (!st.admissionDate) return false;
+        const d = parseDateSafely(st.admissionDate);
+        return !isNaN(d.getFullYear()) && d.getFullYear() === year;
+      });
+      document.getElementById('overviewAdmissionCount').textContent = admitted.length;
+      const namesEl = document.getElementById('overviewAdmissionNames');
+      namesEl.innerHTML = admitted.length ? `<div class="font-bold text-xs uppercase text-slate-500 mb-1.5">Students admitted in ${year}</div><div class="flex flex-wrap gap-1.5">${admitted.map(st => `<span class="px-2 py-1 rounded-md bg-slate-100 border border-slate-200">${escapeHTML(String(st.name || 'Unnamed'))} <span class="text-slate-400">(${escapeHTML(String(st.class || '-'))})</span></span>`).join('')}</div>` : `<p>No admission records found for ${year}.</p>`;
+    }
+
     // ==================== NETWORK STATUS & OFFLINE ALERT ====================
     function checkNetworkStatus() {
       const overlay = document.getElementById('offlineOverlay');
@@ -1709,11 +1789,15 @@
       }
     });
 
-    setInterval(() => {
-      if (navigator.onLine && document.visibilityState === 'visible' && supabaseClient) {
-        fetchCloudData();
+    // Safety refresh every 2 minutes; realtime subscriptions handle normal changes.
+    // Prevent overlapping network refreshes, which can make the UI sluggish.
+    let cloudRefreshInProgress = false;
+    setInterval(async () => {
+      if (navigator.onLine && document.visibilityState === 'visible' && supabaseClient && !cloudRefreshInProgress) {
+        cloudRefreshInProgress = true;
+        try { await fetchCloudData(); } finally { cloudRefreshInProgress = false; }
       }
-    }, 15000);
+    }, 120000);
 
     // ==================== EDIT STUDENT PROFILE ====================
     function openEditStudentModal(studentId) {
@@ -2335,12 +2419,11 @@
       const addSelect = document.getElementById('mClass');
       const currentFilter = filterSelect.value || "ALL";
 
-      filterSelect.innerHTML = `<option value="ALL">All Classes (${students.length} Students)</option>`;
+      filterSelect.innerHTML = `<option value="ALL">All Classes</option>`;
       addSelect.innerHTML = '';
 
       batches.forEach(b => {
-        const count = students.filter(s => s.class === b.name).length;
-        filterSelect.innerHTML += `<option value="${b.name}">${b.name} (${count} Student${count === 1 ? '' : 's'})</option>`;
+        filterSelect.innerHTML += `<option value="${b.name}">${b.name}</option>`;
         addSelect.innerHTML += `<option value="${b.name}">${b.name} (₹${b.defaultFee}/mo)</option>`;
       });
 
@@ -3200,7 +3283,38 @@
       const {action,studentId}=pendingStudentAction;const st=students.find(x=>x.id===studentId);if(!st)return cancelActionConfirmation();
       if(action==='noLonger'){const date=document.getElementById('noLongerDateInput').value;if(!date){alert('Please select the date.');return;}st.noLongerAttending=true;st.noLongerFromDate=date;st.history=st.history||[];st.history.push({type:'Status',date:new Date().toISOString(),description:`Marked no longer attending from ${date}`});await logSystemActivity('Edit','Student Marked No Longer',`${st.name} (Roll: #${st.roll}) stopped attending from ${date}`);await syncStudentToCloud(st);cancelActionConfirmation();renderProfileModalContent(st);renderProfileCalendar(st,profileCalendarYear);alert('Student status and date saved.');return;}
       if(action==='restore'){const date=document.getElementById('noLongerDateInput').value;if(!date){alert('Please select the date the student is returning.');return;}st.noLongerAttending=false;st.attendingFromDate=date;st.history=st.history||[];st.history.push({type:'Status',date:new Date().toISOString(),description:`Restored to attending from ${date}`});await logSystemActivity('Edit','Student Attendance Restored',`${st.name} (Roll: #${st.roll}) restored to attending from ${date}`);await syncStudentToCloud(st);cancelActionConfirmation();renderProfileModalContent(st);renderProfileCalendar(st,profileCalendarYear);alert('Student restored from '+date+'.');return;}
-      if(action==='remove'){await logSystemActivity('Delete','Student Record Deleted',`Deleted ${st.name} (Roll: #${st.roll}, Batch: ${st.class})`);if(supabaseClient){const {error}=await supabaseClient.from('students').delete().eq('id',studentId);if(error){alert('Could not delete from server: '+error.message);return;}}students=students.filter(x=>x.id!==studentId);localStorage.setItem('cached_students_backup',JSON.stringify(students));cancelActionConfirmation();closeProfileModal();populateBatchDropdowns();updateMetrics();renderStudents();}
+      if(action==='remove'){
+        // Optimistic UI: remove the student locally first so the interface responds immediately.
+        const originalIndex = students.findIndex(x => x.id === studentId);
+        const deletedStudent = st;
+        students = students.filter(x => x.id !== studentId);
+        try { localStorage.setItem('cached_students_backup', JSON.stringify(students)); } catch (e) { console.warn('Could not update local student cache:', e); }
+        cancelActionConfirmation();
+        closeProfileModal();
+        populateBatchDropdowns();
+        updateMetrics();
+        renderStudents();
+
+        // Save the activity log and delete on the server in the background, without blocking the UI.
+        void logSystemActivity('Delete','Student Record Deleted',`Deleted ${deletedStudent.name} (Roll: #${deletedStudent.roll}, Batch: ${deletedStudent.class})`);
+        if (supabaseClient) {
+          supabaseClient.from('students').delete().eq('id', studentId).then(({error}) => {
+            if (error) throw error;
+          }).catch(error => {
+            console.error('Could not delete student from server:', error);
+            // Restore the local record if the server deletion failed.
+            if (!students.some(x => x.id === studentId)) {
+              students.splice(Math.max(0, Math.min(originalIndex, students.length)), 0, deletedStudent);
+              try { localStorage.setItem('cached_students_backup', JSON.stringify(students)); } catch (e) { console.warn(e); }
+              populateBatchDropdowns();
+              updateMetrics();
+              renderStudents();
+              alert('The student could not be removed from the server. The student record has been restored. Please check your connection and try again.');
+            }
+          });
+        }
+        return;
+      }
     }
 
     // ==================== GENERAL CUSTOM PAYMENT ====================
@@ -3556,6 +3670,7 @@
     // ==================== TABLE RENDERING ====================
     function renderStudents() {
       const search = document.getElementById('searchInput').value.toLowerCase().trim();
+      const activeStudentCount = students.reduce((n, st) => n + (!st.noLongerAttending ? 1 : 0), 0);
       const filterClass = document.getElementById('filterClass').value;
       const filterStatus = document.getElementById('filterStatus').value;
       const dueFilter = document.getElementById('dueFilterPeriod').value;
@@ -3576,14 +3691,14 @@
         }
         if (kpiLabel) kpiLabel.innerText = `${filterClass} Students`;
         if (kpiTotalEl) kpiTotalEl.innerText = classStudentsCount;
-        if (kpiSubEl) kpiSubEl.innerText = `Out of ${students.filter(s => !s.noLongerAttending).length} Active Students`;
+        if (kpiSubEl) kpiSubEl.innerText = `Out of ${activeStudentCount} Active Students`;
       } else {
         if (classCountBadge) {
           classCountBadge.classList.add('hidden');
           classCountBadge.classList.remove('inline-flex');
         }
         if (kpiLabel) kpiLabel.innerText = 'Total Active Students';
-        if (kpiTotalEl) kpiTotalEl.innerText = students.filter(s => !s.noLongerAttending).length;
+        if (kpiTotalEl) kpiTotalEl.innerText = activeStudentCount;
         if (kpiSubEl) kpiSubEl.innerText = `${batches.length} Active Batches`;
       }
 
