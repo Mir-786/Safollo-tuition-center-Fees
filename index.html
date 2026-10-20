@@ -25,7 +25,8 @@
       #printableReceipt, #printableReceipt * { visibility: visible; }
       #printableReceipt { position: absolute; left: 0; top: 0; width: 100%; display: block !important; }
     }
-  </style>
+  .confirm-slider-track{position:relative;height:54px;border-radius:999px;background:#e2e8f0;border:1px solid #cbd5e1;overflow:hidden;touch-action:pan-y;user-select:none}.confirm-slider-fill{position:absolute;inset:0 auto 0 0;width:0;background:linear-gradient(90deg,#818cf8,#4f46e5)}.confirm-slider-knob{position:absolute;top:4px;left:4px;width:44px;height:44px;border-radius:50%;background:white;color:#4338ca;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px #0f172a30;z-index:2;cursor:grab}.confirm-slider-track.armed .confirm-slider-fill{background:linear-gradient(90deg,#34d399,#059669)}
+</style>
 </head>
 <body class="bg-slate-100 text-slate-900 font-sans min-h-screen">
 
@@ -237,7 +238,7 @@
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
             <div>
-              <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Enrolled</p>
+              <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider" id="kpiTotalStudentsLabel">Total Enrolled</p>
               <h3 class="text-2xl font-bold text-slate-800 mt-1" id="kpiTotalStudents">0</h3>
               <p class="text-[11px] text-indigo-600 mt-0.5 font-medium" id="kpiActiveBatchesCount">0 Active Batches</p>
             </div>
@@ -342,13 +343,20 @@
               <!-- Batches populated dynamically -->
             </select>
 
+            <!-- CLASS STUDENT COUNT BADGE (Visible when a class filter is applied) -->
+            <div id="classStudentCountBadge" class="hidden items-center gap-1.5 px-3 py-2 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-800 text-xs font-bold shadow-sm">
+              <i data-lucide="users" class="w-3.5 h-3.5 text-indigo-600"></i>
+              <span id="classStudentCountText">0 Students</span>
+            </div>
+
             <!-- DIRECTORY FILTER STATUS -->
             <select id="filterStatus" onchange="renderStudents()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium">
-              <option value="ALL" selected>All Status</option>
+              <option value="ACTIVE" selected>Active Students</option>
+              <option value="ALL">All Students</option>
               <option value="DUE">Pending Due (Active Due Filter)</option>
               <option value="COLLECTED">Collected / Paid (Active Collection Filter)</option>
               <option value="ADVANCE">With Advance Balance</option>
-              <option value="PAID">All Dues Cleared (Zero Due)</option>
+              <option value="PAID">All Dues Cleared (Zero Due)</option><option value="NO_LONGER">No Longer Attending</option>
             </select>
           </div>
         </section>
@@ -449,6 +457,16 @@
               <option value="ALL">All Students</option>
             </select>
           </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase text-slate-600 mb-1">4. Student Attendance Status</label>
+          <select id="pdfExportStatus" onchange="updatePDFExportPreview()" class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white text-xs font-semibold focus:ring-2 focus:ring-rose-500 focus:outline-none">
+            <option value="ALL">All Students (including No Longer)</option>
+            <option value="ACTIVE">Active Students only</option>
+            <option value="NO_LONGER">Only Marked as No Longer</option>
+          </select>
+          <p class="text-[10px] text-slate-500 mt-1">Students marked as No Longer will be clearly labeled in the exported PDF.</p>
         </div>
 
         <!-- Register Legend Preview -->
@@ -772,9 +790,6 @@
               <button onclick="openEditStudentModalFromProfile()" title="Edit Student Profile" class="text-amber-300 hover:text-white p-1 rounded-md bg-white/10 transition">
                 <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
               </button>
-              <button onclick="exportSingleStudentPDFFromProfile()" title="Export Register PDF for this Student" class="text-rose-200 hover:text-white px-2 py-0.5 rounded-md bg-rose-600/80 hover:bg-rose-600 text-[11px] font-bold flex items-center gap-1 transition">
-                <i data-lucide="book-open-check" class="w-3 h-3"></i> Register PDF
-              </button>
             </div>
             <p class="text-xs text-indigo-200 mt-0.5">
               Roll: <span class="font-mono font-bold text-white" id="profRoll">-</span> • 
@@ -903,9 +918,10 @@
       </div>
 
       <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-between items-center text-xs">
-        <button onclick="deleteStudentFromProfile()" class="text-rose-600 hover:text-rose-800 font-semibold flex items-center gap-1">
-          <i data-lucide="trash-2" class="w-4 h-4"></i> Remove Student
-        </button>
+        <div class="flex items-center gap-2 flex-wrap">
+          <button onclick="requestStudentAction('remove')" class="text-rose-600 hover:text-rose-800 font-semibold flex items-center gap-1 px-2 py-2 rounded-xl hover:bg-rose-50"><i data-lucide="trash-2" class="w-4 h-4"></i> Remove Student</button>
+          <button id="markNoLongerBtn" onclick="requestStudentAction('noLonger')" class="text-amber-700 font-bold flex items-center gap-1 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 hover:bg-amber-100"><i data-lucide="user-minus" class="w-4 h-4"></i> Mark as No Longer</button>
+        </div>
         <button onclick="closeProfileModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-4 py-2 rounded-lg">
           Close Profile
         </button>
@@ -913,6 +929,7 @@
     </div>
   </div>
 
+<div id="actionConfirmModal" class="hidden fixed inset-0 bg-slate-950/65 backdrop-blur-sm z-[90] flex items-center justify-center p-4"><div class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden"><div id="actionConfirmHeader" class="px-6 py-5 bg-gradient-to-r from-indigo-700 to-violet-700 text-white"><h3 id="actionConfirmTitle" class="font-black text-lg">Confirm action</h3><p id="actionConfirmSubtitle" class="text-xs text-white/80">Slide to unlock confirmation</p></div><div class="p-6 space-y-4"><div id="noLongerDateWrap" class="hidden"><label id="attendanceDateLabel" class="block text-xs font-bold uppercase text-slate-600 mb-1">Not attending from which date?</label><input id="noLongerDateInput" type="date" class="w-full rounded-xl border border-slate-300 px-3 py-2.5"><p class="text-[11px] text-slate-500 mt-1">Date is saved to the server and shown on the fee calendar.</p></div><p id="actionConfirmMessage" class="text-sm font-semibold text-slate-700"></p><div id="confirmSliderTrack" class="confirm-slider-track" tabindex="0"><div id="confirmSliderFill" class="confirm-slider-fill"></div><div id="confirmSliderKnob" class="confirm-slider-knob">»</div><span id="confirmSliderLabel" class="absolute inset-0 flex items-center justify-center text-xs font-extrabold text-slate-500 pointer-events-none pl-10">SLIDE RIGHT TO CONFIRM</span></div><p id="confirmSliderHint" class="text-[10px] text-slate-400 text-center">Drag the round button all the way right</p><div id="actionConfirmButtons" class="hidden grid-cols-2 gap-3"><button onclick="cancelActionConfirmation()" class="rounded-xl border p-3 font-bold">Cancel</button><button id="actionConfirmOkBtn" onclick="executeConfirmedAction()" class="rounded-xl bg-indigo-600 text-white p-3 font-extrabold">OK, Confirm</button></div></div></div></div>
   <!-- ==================== MODAL: MANAGE PAID / ADVANCE MONTH ==================== -->
   <div id="managePaidMonthModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden animate-fade-in">
@@ -1482,7 +1499,7 @@
     let students = [];
     let batches = [
       { name: "Baby", defaultFee: 100 },
-     { name: "UKG/LKG", defaultFee: 200 },
+      { name: "UKG/LKG", defaultFee: 200 },
       { name: "Class 1", defaultFee: 200 },
       { name: "Class 2", defaultFee: 200 },
       { name: "Class 3", defaultFee: 250 },
@@ -1787,6 +1804,7 @@
       if (selectedStudentIdForProfile === s.id) {
         viewStudentProfile(s.id);
       }
+      populateBatchDropdowns();
       renderStudents();
       updateMetrics();
       alert(`Profile for ${newName} updated successfully!`);
@@ -2003,7 +2021,10 @@
               paidMonths: s.paid_months || [],
               exemptedMonths: s.exempted_months || [],
               advanceBalance: parseFloat(s.advance_balance) || 0,
-              history: s.history || []
+              history: s.history || [],
+              noLongerAttending: !!s.no_longer_attending,
+              noLongerFromDate: s.no_longer_from_date || '',
+              attendingFromDate: s.attending_from_date || ''
             }));
             localStorage.setItem('cached_students_backup', JSON.stringify(students));
           } else {
@@ -2139,6 +2160,7 @@
     async function syncStudentToCloud(student) {
       localStorage.setItem('cached_students_backup', JSON.stringify(students));
       if (!supabaseClient) {
+        populateBatchDropdowns();
         updateMetrics();
         renderStudents();
         return;
@@ -2155,9 +2177,13 @@
         paid_months: student.paidMonths,
         exempted_months: student.exemptedMonths,
         advance_balance: student.advanceBalance,
-        history: student.history
+        history: student.history,
+        no_longer_attending: !!student.noLongerAttending,
+        no_longer_from_date: student.noLongerFromDate || null,
+        attending_from_date: student.attendingFromDate || null
       };
       await supabaseClient.from('students').upsert(dbPayload);
+      populateBatchDropdowns();
       updateMetrics();
       renderStudents();
     }
@@ -2309,11 +2335,12 @@
       const addSelect = document.getElementById('mClass');
       const currentFilter = filterSelect.value || "ALL";
 
-      filterSelect.innerHTML = `<option value="ALL">All Classes (${batches.length})</option>`;
+      filterSelect.innerHTML = `<option value="ALL">All Classes (${students.length} Students)</option>`;
       addSelect.innerHTML = '';
 
       batches.forEach(b => {
-        filterSelect.innerHTML += `<option value="${b.name}">${b.name}</option>`;
+        const count = students.filter(s => s.class === b.name).length;
+        filterSelect.innerHTML += `<option value="${b.name}">${b.name} (${count} Student${count === 1 ? '' : 's'})</option>`;
         addSelect.innerHTML += `<option value="${b.name}">${b.name} (₹${b.defaultFee}/mo)</option>`;
       });
 
@@ -2991,6 +3018,12 @@
       document.getElementById('profMonthlyFee').innerText = `₹${s.monthlyFee} / month`;
       document.getElementById('profDueCycle').innerText = `Every ${formatDayOrdinal(s.dueDay || 1)} of month`;
       document.getElementById('profAdvanceHeld').innerText = `₹${s.advanceBalance || 0}`;
+      const statusBtn = document.getElementById('markNoLongerBtn');
+      if (statusBtn) {
+        if (s.noLongerAttending) { statusBtn.innerHTML = '<i data-lucide="user-check" class="w-4 h-4"></i> Restore Student'; statusBtn.className = 'text-emerald-700 font-bold flex items-center gap-1 px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200 hover:bg-emerald-100'; }
+        else { statusBtn.innerHTML = '<i data-lucide="user-minus" class="w-4 h-4"></i> Mark as No Longer'; statusBtn.className = 'text-amber-700 font-bold flex items-center gap-1 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 hover:bg-amber-100'; }
+        if (window.lucide) lucide.createIcons();
+      }
 
       document.getElementById('profileCalendarYearDisplay').innerText = activeProfileCalendarYear;
 
@@ -3073,7 +3106,13 @@
         const info = getMonthStatus(student, m, year);
         const card = document.createElement('div');
         
-        if (info.status === 'PAID') {
+        const cutoff = student.noLongerAttending && student.noLongerFromDate ? parseDateSafely(student.noLongerFromDate) : null;
+        const cutoffMonth = cutoff && !isNaN(cutoff.getTime()) ? new Date(cutoff.getFullYear(), cutoff.getMonth(), 1) : null;
+        const isAfterLeavingDate = !!(student.noLongerAttending && cutoffMonth && new Date(year, m, 1) >= cutoffMonth);
+        if (isAfterLeavingDate) {
+          card.className = "bg-amber-100 text-amber-900 rounded-xl p-2.5 text-center border-2 border-amber-300 shadow-sm";
+          card.innerHTML = `<p class="text-[10px] font-bold uppercase">${SHORT_MONTHS[m]}</p><div class="text-[10px] font-black mt-1">● No Longer</div><p class="text-[9px] mt-1 truncate">From ${student.noLongerFromDate}</p>`;
+        } else         if (info.status === 'PAID') {
           card.className = "bg-emerald-500 text-white rounded-xl p-2 text-center shadow-sm cursor-pointer hover:bg-emerald-600 border border-emerald-600 transition";
           card.innerHTML = `
             <p class="text-[10px] font-bold uppercase tracking-wider">${SHORT_MONTHS[m]}</p>
@@ -3136,24 +3175,32 @@
       if (selectedStudentIdForProfile) sendWhatsAppReminder(selectedStudentIdForProfile);
     }
 
-    async function deleteStudentFromProfile() {
-      if (!selectedStudentIdForProfile) return;
-      const s = students.find(item => item.id === selectedStudentIdForProfile);
-      if (!s) return;
-
-      if (confirm(`Permanently delete student ${s.name} (#${s.roll}) and all records?`)) {
-        const delId = selectedStudentIdForProfile;
-        await logSystemActivity("Delete", "Student Record Deleted", `Deleted ${s.name} (Roll: #${s.roll}, Batch: ${s.class})`);
-
-        if (supabaseClient) {
-          await supabaseClient.from('students').delete().eq('id', delId);
-        }
-        students = students.filter(item => item.id !== delId);
-        localStorage.setItem('cached_students_backup', JSON.stringify(students));
-        closeProfileModal();
-        updateMetrics();
-        renderStudents();
-      }
+    let pendingStudentAction = null, sliderArmed = false;
+    function requestStudentAction(action) {
+      const st = students.find(x => x.id === selectedStudentIdForProfile); if (!st) return;
+      if (action === 'noLonger' && st.noLongerAttending) action = 'restore';
+      pendingStudentAction = {action, studentId:st.id}; sliderArmed = false;
+      const el = id => document.getElementById(id);
+      el('noLongerDateWrap').classList.toggle('hidden', !['noLonger','restore'].includes(action));
+      el('attendanceDateLabel').innerText = action === 'restore' ? 'Coming back / attending again from which date?' : 'Not attending from which date?';
+      el('noLongerDateInput').value = action === 'restore' ? (st.attendingFromDate || new Date().toISOString().slice(0,10)) : (st.noLongerFromDate || new Date().toISOString().slice(0,10));
+      el('actionConfirmButtons').classList.add('hidden'); el('actionConfirmButtons').classList.remove('grid');
+      el('confirmSliderTrack').classList.remove('armed'); el('confirmSliderFill').style.width='0';
+      el('confirmSliderKnob').style.left='4px'; el('confirmSliderLabel').innerText='SLIDE RIGHT TO CONFIRM';
+      if(action==='remove'){el('actionConfirmHeader').className='px-6 py-5 bg-gradient-to-r from-rose-700 to-red-600 text-white';el('actionConfirmTitle').innerText='Remove Student';el('actionConfirmSubtitle').innerText='Permanent action • confirmation required';el('actionConfirmMessage').innerText=`Permanently remove ${st.name} and their student record?`;el('actionConfirmOkBtn').className='rounded-xl bg-rose-600 text-white p-3 font-extrabold';el('actionConfirmOkBtn').innerText='Yes, Remove Student';}
+      else if(action==='noLonger'){el('actionConfirmHeader').className='px-6 py-5 bg-gradient-to-r from-amber-600 to-orange-500 text-white';el('actionConfirmTitle').innerText='Mark as No Longer Attending';el('actionConfirmSubtitle').innerText='Keep history • update fee calendar';el('actionConfirmMessage').innerText=`Mark ${st.name} as no longer attending from the selected date?`;el('actionConfirmOkBtn').className='rounded-xl bg-amber-600 text-white p-3 font-extrabold';el('actionConfirmOkBtn').innerText='Yes, Mark No Longer';}
+      else {el('actionConfirmHeader').className='px-6 py-5 bg-gradient-to-r from-emerald-700 to-teal-600 text-white';el('actionConfirmTitle').innerText='Restore Student';el('actionConfirmSubtitle').innerText='Return student to active status';el('actionConfirmMessage').innerText=`Restore ${st.name} as an attending student?`;el('actionConfirmOkBtn').className='rounded-xl bg-emerald-600 text-white p-3 font-extrabold';el('actionConfirmOkBtn').innerText='Yes, Restore';}
+      el('actionConfirmModal').classList.remove('hidden');
+    }
+    function cancelActionConfirmation(){pendingStudentAction=null;sliderArmed=false;document.getElementById('actionConfirmModal').classList.add('hidden');}
+    function armActionConfirmation(){sliderArmed=true;const t=document.getElementById('confirmSliderTrack');t.classList.add('armed');document.getElementById('confirmSliderFill').style.width='100%';document.getElementById('confirmSliderKnob').style.left=(t.clientWidth-52)+'px';document.getElementById('confirmSliderLabel').innerText='CONFIRMATION UNLOCKED';document.getElementById('confirmSliderHint').innerText='Choose Cancel or OK to continue';document.getElementById('actionConfirmButtons').classList.remove('hidden');document.getElementById('actionConfirmButtons').classList.add('grid');}
+    (function(){document.addEventListener('DOMContentLoaded',()=>{const t=document.getElementById('confirmSliderTrack'),k=document.getElementById('confirmSliderKnob');if(!t||!k)return;let drag=false,x0=0,l0=4;const move=x=>{if(!drag||sliderArmed)return;const max=t.clientWidth-k.offsetWidth-4;const left=Math.max(4,Math.min(max,l0+x-x0));k.style.left=left+'px';document.getElementById('confirmSliderFill').style.width=(left+k.offsetWidth)+'px';if(left>=max-3){drag=false;armActionConfirmation();}};k.addEventListener('pointerdown',e=>{if(sliderArmed)return;drag=true;x0=e.clientX;l0=parseFloat(k.style.left)||4;k.setPointerCapture(e.pointerId);e.preventDefault();});k.addEventListener('pointermove',e=>move(e.clientX));k.addEventListener('pointerup',()=>drag=false);t.addEventListener('keydown',e=>{if(!sliderArmed&&['ArrowRight','End',' '].includes(e.key)){e.preventDefault();armActionConfirmation();}});});})();
+    async function executeConfirmedAction(){
+      if(!pendingStudentAction||!sliderArmed)return;
+      const {action,studentId}=pendingStudentAction;const st=students.find(x=>x.id===studentId);if(!st)return cancelActionConfirmation();
+      if(action==='noLonger'){const date=document.getElementById('noLongerDateInput').value;if(!date){alert('Please select the date.');return;}st.noLongerAttending=true;st.noLongerFromDate=date;st.history=st.history||[];st.history.push({type:'Status',date:new Date().toISOString(),description:`Marked no longer attending from ${date}`});await logSystemActivity('Edit','Student Marked No Longer',`${st.name} (Roll: #${st.roll}) stopped attending from ${date}`);await syncStudentToCloud(st);cancelActionConfirmation();renderProfileModalContent(st);renderProfileCalendar(st,profileCalendarYear);alert('Student status and date saved.');return;}
+      if(action==='restore'){const date=document.getElementById('noLongerDateInput').value;if(!date){alert('Please select the date the student is returning.');return;}st.noLongerAttending=false;st.attendingFromDate=date;st.history=st.history||[];st.history.push({type:'Status',date:new Date().toISOString(),description:`Restored to attending from ${date}`});await logSystemActivity('Edit','Student Attendance Restored',`${st.name} (Roll: #${st.roll}) restored to attending from ${date}`);await syncStudentToCloud(st);cancelActionConfirmation();renderProfileModalContent(st);renderProfileCalendar(st,profileCalendarYear);alert('Student restored from '+date+'.');return;}
+      if(action==='remove'){await logSystemActivity('Delete','Student Record Deleted',`Deleted ${st.name} (Roll: #${st.roll}, Batch: ${st.class})`);if(supabaseClient){const {error}=await supabaseClient.from('students').delete().eq('id',studentId);if(error){alert('Could not delete from server: '+error.message);return;}}students=students.filter(x=>x.id!==studentId);localStorage.setItem('cached_students_backup',JSON.stringify(students));cancelActionConfirmation();closeProfileModal();populateBatchDropdowns();updateMetrics();renderStudents();}
     }
 
     // ==================== GENERAL CUSTOM PAYMENT ====================
@@ -3326,28 +3373,15 @@
     function sendWhatsAppReminder(id) {
       const s = students.find(item => item.id === id);
       if (!s) return;
-
-      if (!s.phone || s.phone.length < 10) {
-        alert('Please update guardian WhatsApp number in student profile.');
-        return;
-      }
-
-      const cleanPhone = s.phone.length === 10 ? '91' + s.phone : s.phone;
+      const digits = (s.phone || '').replace(/\D/g, '');
+      if (digits.length < 10) { alert('Please update guardian WhatsApp number in student profile.'); return; }
+      const cleanPhone = digits.length === 10 ? '91' + digits : digits;
       const dueInfo = getStudentCalculatedDue(s);
-      const todayFormatted = formatDateDMY(new Date());
-      const collector = getCurrentCollectorName();
-
-      let dueLine = `*Outstanding Due Today (${todayFormatted}): ₹${dueInfo.netDueToday}*`;
-      if (!dueInfo.isCleared) {
-        dueLine += `\n*Breakdown: ${dueInfo.breakdownText}*`;
-      }
-      if (s.advanceBalance > 0) {
-        dueLine += `\n*Advance Wallet Balance: ₹${s.advanceBalance}*`;
-      }
-
-      const message = `Dear Guardian, this is an official fee reminder for *${s.name}* (Roll: ${s.roll}, Batch: ${s.class}).\n\n${dueLine}\nMonthly Fee: ₹${s.monthlyFee} (Billed every ${formatDayOrdinal(s.dueDay || 1)} of month, matures after next month payment date).\n\nAuthorized Collector: *${collector}*\nPlease clear the balance at your earliest convenience. Thank you!`;
-      const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
-      window.open(url, '_blank');
+      const dueMonths = (dueInfo.dueKeys || []).map(key => String(key).replace(/[-_]/g, ' '));
+      const monthsText = dueMonths.length ? dueMonths.join(', ') : 'বর্তমান বকেয়া';
+      const amount = Math.round(dueInfo.netDueToday * 100) / 100;
+      const message = `${s.name} এর ${monthsText} এর ${amount} টাকা বাকি আছে`;
+      window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
     }
 
     // ==================== QR SCANNER ====================
@@ -3443,7 +3477,7 @@
         if (matches) {
           filteredTotal += Number(h.amount || 0);
           if (Number(h.amount || 0) > 0) txnCount++;
-          else if (Number(h.amount || 0) < 0) txCount = Math.max(0, txnCount - 1);
+          else if (Number(h.amount || 0) < 0) txnCount = Math.max(0, txnCount - 1);
         }
       });
 
@@ -3466,7 +3500,10 @@
     }
 
     function updateMetrics() {
-      const totalStudents = students.length;
+      const activeStudents = students.filter(s => !s.noLongerAttending);
+      const totalStudents = activeStudents.length;
+      const filterClassEl = document.getElementById('filterClass');
+      const selectedClass = filterClassEl ? filterClassEl.value : 'ALL';
       const dueFilter = document.getElementById('dueFilterPeriod').value;
       const duePickers = document.getElementById('dueCustomPickers');
 
@@ -3496,8 +3533,18 @@
         if (adv > 0) advanceStudentsCount++;
       });
 
-      document.getElementById('kpiTotalStudents').innerText = totalStudents;
-      document.getElementById('kpiActiveBatchesCount').innerText = `${batches.length} Active Batches`;
+      const kpiLabel = document.getElementById('kpiTotalStudentsLabel');
+      if (selectedClass && selectedClass !== 'ALL') {
+        const classCount = activeStudents.filter(s => s.class === selectedClass).length;
+        if (kpiLabel) kpiLabel.innerText = `${selectedClass} Students`;
+        document.getElementById('kpiTotalStudents').innerText = classCount;
+        document.getElementById('kpiActiveBatchesCount').innerText = `Out of ${totalStudents} Total Enrolled`;
+      } else {
+        if (kpiLabel) kpiLabel.innerText = `Total Enrolled`;
+        document.getElementById('kpiTotalStudents').innerText = totalStudents;
+        document.getElementById('kpiActiveBatchesCount').innerText = `${batches.length} Active Batches`;
+      }
+
       document.getElementById('kpiTotalDue').innerText = '₹' + totalDueSum.toLocaleString('en-IN');
       document.getElementById('kpiDueStudents').innerText = dueStudentsCount;
       document.getElementById('kpiTotalAdvance').innerText = '₹' + totalAdvanceHeld.toLocaleString('en-IN');
@@ -3512,6 +3559,33 @@
       const filterClass = document.getElementById('filterClass').value;
       const filterStatus = document.getElementById('filterStatus').value;
       const dueFilter = document.getElementById('dueFilterPeriod').value;
+
+      // Update Class Student Count Badge & Top KPI Card when a class filter (e.g. Class 10) is applied
+      const classCountBadge = document.getElementById('classStudentCountBadge');
+      const classCountText = document.getElementById('classStudentCountText');
+      const kpiLabel = document.getElementById('kpiTotalStudentsLabel');
+      const kpiTotalEl = document.getElementById('kpiTotalStudents');
+      const kpiSubEl = document.getElementById('kpiActiveBatchesCount');
+
+      if (filterClass && filterClass !== 'ALL') {
+        const classStudentsCount = students.filter(s => s.class === filterClass && !s.noLongerAttending).length;
+        if (classCountBadge && classCountText) {
+          classCountBadge.classList.remove('hidden');
+          classCountBadge.classList.add('inline-flex');
+          classCountText.innerText = `${filterClass}: ${classStudentsCount} Student${classStudentsCount === 1 ? '' : 's'}`;
+        }
+        if (kpiLabel) kpiLabel.innerText = `${filterClass} Students`;
+        if (kpiTotalEl) kpiTotalEl.innerText = classStudentsCount;
+        if (kpiSubEl) kpiSubEl.innerText = `Out of ${students.filter(s => !s.noLongerAttending).length} Active Students`;
+      } else {
+        if (classCountBadge) {
+          classCountBadge.classList.add('hidden');
+          classCountBadge.classList.remove('inline-flex');
+        }
+        if (kpiLabel) kpiLabel.innerText = 'Total Active Students';
+        if (kpiTotalEl) kpiTotalEl.innerText = students.filter(s => !s.noLongerAttending).length;
+        if (kpiSubEl) kpiSubEl.innerText = `${batches.length} Active Batches`;
+      }
 
       const headerLabelEl = document.getElementById('tableDueHeaderCol');
       if (headerLabelEl) {
@@ -3542,16 +3616,22 @@
         const periodCol = getStudentPeriodCollection(s);
 
         let matchesStatus = true;
-        if (filterStatus === 'DUE') {
-          matchesStatus = (dueInfo.netDueToday > 0);
+        if (filterStatus === 'ACTIVE') {
+          matchesStatus = !s.noLongerAttending;
+        } else if (filterStatus === 'NO_LONGER') {
+          matchesStatus = !!s.noLongerAttending;
+        } else if (filterStatus === 'DUE') {
+          matchesStatus = !s.noLongerAttending && (dueInfo.netDueToday > 0);
         } else if (filterStatus === 'COLLECTED') {
-          matchesStatus = (periodCol.collectedInPeriod > 0);
+          matchesStatus = !s.noLongerAttending && (periodCol.collectedInPeriod > 0);
         } else if (filterStatus === 'ADVANCE') {
-          matchesStatus = hasAdvance;
+          matchesStatus = !s.noLongerAttending && hasAdvance;
         } else if (filterStatus === 'PAID') {
-          matchesStatus = (dueInfo.netDueToday === 0);
+          matchesStatus = !s.noLongerAttending && (dueInfo.netDueToday === 0);
         }
 
+        /* status filter deliberately keeps NO_LONGER exclusive */
+        /* legacy status branches removed below */
         return matchesSearch && matchesClass && matchesStatus;
       });
 
@@ -3729,12 +3809,6 @@
       lucide.createIcons();
     }
 
-    function exportSingleStudentPDFFromProfile() {
-      if (selectedStudentIdForProfile) {
-        openPDFExportModal(selectedStudentIdForProfile);
-      }
-    }
-
     function onPDFBatchFilterChange() {
       populatePDFStudentDropdown(null);
       updatePDFExportPreview();
@@ -3779,21 +3853,23 @@
       const yearVal = document.getElementById('pdfExportYear').value;
       const batchVal = document.getElementById('pdfExportBatch').value;
       const studentVal = document.getElementById('pdfExportStudent').value;
+      const statusVal = document.getElementById('pdfExportStatus')?.value || 'ALL';
       const badgeEl = document.getElementById('pdfPreviewBadge');
       const descEl = document.getElementById('pdfPreviewDescription');
 
       const targetStudents = students.filter(s => {
         const matchBatch = (batchVal === 'ALL' || s.class === batchVal);
         const matchStu = (studentVal === 'ALL' || s.id === studentVal);
-        return matchBatch && matchStu;
+        const matchStatus = statusVal === 'ALL' || (statusVal === 'ACTIVE' && !s.noLongerAttending) || (statusVal === 'NO_LONGER' && !!s.noLongerAttending);
+        return matchBatch && matchStu && matchStatus;
       });
 
       if (activePDFReportMode === 'YEARLY') {
         badgeEl.innerText = `Yearly Register (${yearVal})`;
-        descEl.innerText = `Exports ${yearVal} Register Sheet for ${targetStudents.length} student(s) with SL NO, Name/Start Date, and monthly boxes showing Amount + Paid Date or Due.`;
+        descEl.innerText = `Exports ${yearVal} Register Sheet for ${targetStudents.length} student(s). No Longer students are labeled in red in the PDF.`;
       } else {
         badgeEl.innerText = `Lifetime Register (All Years)`;
-        descEl.innerText = `Exports multi-year Register Book for ${targetStudents.length} student(s) from their earliest admission year to the present.`;
+        descEl.innerText = `Exports multi-year Register Book for ${targetStudents.length} student(s). No Longer students are labeled in red in the PDF.`;
       }
     }
 
@@ -3806,7 +3882,7 @@
       const st = getMonthStatus(student, monthIndex, year);
       const fee = student.monthlyFee || 0;
 
-      // 1. Pre-Admission or Exempted -> "X" (like February for SK Riju / Moyna)
+      // 1. Pre-Admission or Exempted -> "X"
       if (st.status === 'PRE_ADMISSION' || st.status === 'EXEMPT') {
         return { text: "X", cellType: "CROSS" };
       }
@@ -3822,7 +3898,7 @@
         };
       }
 
-      // 3. Matured Due -> "Due - 300/-" (or shows remaining due after advance offset)
+      // 3. Matured Due -> "Due - 300/-"
       if (st.status === 'DUE') {
         if (advanceTracker.remainingAdvance > 0) {
           if (advanceTracker.remainingAdvance >= fee) {
@@ -3860,11 +3936,13 @@
       const splitMode = document.getElementById('pdfMonthSplitMode').value; // 'FULL_12' or 'HALF_6'
       const selectedBatch = document.getElementById('pdfExportBatch').value;
       const selectedStudent = document.getElementById('pdfExportStudent').value;
+      const selectedStatus = document.getElementById('pdfExportStatus')?.value || 'ALL';
 
       const filteredStudents = students.filter(s => {
         const matchBatch = (selectedBatch === 'ALL' || s.class === selectedBatch);
         const matchStu = (selectedStudent === 'ALL' || s.id === selectedStudent);
-        return matchBatch && matchStu;
+        const matchStatus = selectedStatus === 'ALL' || (selectedStatus === 'ACTIVE' && !s.noLongerAttending) || (selectedStatus === 'NO_LONGER' && !!s.noLongerAttending);
+        return matchBatch && matchStu && matchStatus;
       });
 
       if (filteredStudents.length === 0) {
@@ -3963,7 +4041,8 @@
 
           const bodyRows = activeList.map((s, idx) => {
             const startStr = formatStartDateShort(s.admissionDate);
-            const nameAndStartCell = `${s.name} (${s.monthlyFee}/-)\nStart: ${startStr} • Roll: ${s.roll}`;
+            const statusLabel = s.noLongerAttending ? `\nSTATUS: NO LONGER ATTENDING${s.noLongerFromDate ? ' FROM ' + formatStartDateShort(s.noLongerFromDate) : ''}` : (s.attendingFromDate ? `\nRESTORED: ${formatStartDateShort(s.attendingFromDate)}` : '');
+            const nameAndStartCell = `${s.name} (${s.monthlyFee}/-)\nStart: ${startStr} • Roll: ${s.roll}${statusLabel}`;
 
             const rowCells = [
               `${idx + 1}.`,
@@ -4010,6 +4089,10 @@
               1: { cellWidth: splitMode === 'HALF_6' ? 150 : 122, halign: 'left', fontStyle: 'bold' }
             },
             didParseCell: function (data) {
+              if (data.section === 'body' && data.column.index === 1) {
+                const rowStudent = activeList[data.row.index];
+                if (rowStudent && rowStudent.noLongerAttending) { data.cell.styles.textColor = [185, 28, 28]; data.cell.styles.fillColor = [254, 242, 242]; data.cell.styles.fontStyle = 'bold'; }
+              }
               if (data.section === 'body' && data.column.index >= 2) {
                 data.cell.styles.halign = 'center';
                 const cType = cellMetaMatrix[data.row.index] ? cellMetaMatrix[data.row.index][data.column.index] : '';
