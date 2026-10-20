@@ -3750,6 +3750,12 @@
         return matchesSearch && matchesClass && matchesStatus;
       });
 
+      // Keep the student directory ordered by Roll Number (numeric-aware,
+      // so 2 appears before 10; non-numeric rolls remain naturally sorted).
+      filtered.sort((a, b) => String(a.roll ?? '').localeCompare(
+        String(b.roll ?? ''), undefined, { numeric: true, sensitivity: 'base' }
+      ));
+
       if (filtered.length === 0) {
         document.getElementById('noDataMessage').classList.remove('hidden');
       } else {
