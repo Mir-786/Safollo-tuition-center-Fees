@@ -3507,7 +3507,8 @@
       const monthCount = dueMonths.length;
       const monthsText = dueMonths.join(', ');
       const message = monthCount
-        ? `${s.name} এর ${monthCount} মাস (${monthsText}) এর মোট ${amount} টাকা বাকি আছে।`
+        ? `${s.name} এর ${monthCount} মাস (${monthsText}) এর মোট ${amount} টাকা টিউশন ফি বাকি আছে।
+   ~ *_Safollo Tuition Center_*`
         : `${s.name} এর বর্তমানে কোনো মাসের টিউশন ফি বাকি নেই।`;
       window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
     }
