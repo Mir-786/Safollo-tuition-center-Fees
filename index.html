@@ -2432,9 +2432,20 @@
     }
 
     // ==================== NEW ADMISSION ====================
+    function getNextStudentRollNumber() {
+      // Use the highest numeric roll, preserving at least three digits (005 -> 006).
+      const numericRolls = (students || [])
+        .map(student => String(student.roll ?? '').trim())
+        .filter(roll => /^\d+$/.test(roll));
+      const highest = numericRolls.reduce((max, roll) => Math.max(max, parseInt(roll, 10)), 0);
+      const width = Math.max(3, ...numericRolls.map(roll => roll.length));
+      return String(highest + 1).padStart(width, '0');
+    }
+
     function openAddStudentModal() {
       document.getElementById('studentForm').reset();
       populateBatchDropdowns();
+      document.getElementById('mRoll').value = getNextStudentRollNumber();
       
       const todayStr = new Date().toISOString().slice(0, 10);
       document.getElementById('mAdmissionDate').value = todayStr;
@@ -3491,10 +3502,13 @@
       if (digits.length < 10) { alert('Please update guardian WhatsApp number in student profile.'); return; }
       const cleanPhone = digits.length === 10 ? '91' + digits : digits;
       const dueInfo = getStudentCalculatedDue(s);
-      const dueMonths = (dueInfo.dueKeys || []).map(key => String(key).replace(/[-_]/g, ' '));
-      const monthsText = dueMonths.length ? dueMonths.join(', ') : 'বর্তমান বকেয়া';
+      const dueMonths = (dueInfo.dueKeys || []).map(key => String(key).trim());
       const amount = Math.round(dueInfo.netDueToday * 100) / 100;
-      const message = `${s.name} এর ${monthsText} এর ${amount} টাকা বাকি আছে`;
+      const monthCount = dueMonths.length;
+      const monthsText = dueMonths.join(', ');
+      const message = monthCount
+        ? `${s.name} এর ${monthCount} মাস (${monthsText}) এর মোট ${amount} টাকা বাকি আছে।`
+        : `${s.name} এর বর্তমানে কোনো মাসের টিউশন ফি বাকি নেই।`;
       window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`, '_blank');
     }
 
