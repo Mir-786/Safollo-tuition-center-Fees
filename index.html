@@ -880,11 +880,9 @@
             </div>
             <div class="text-2xl font-black mt-0.5" id="profDueAmount">₹0</div>
             <p class="text-xs font-medium text-slate-700 mt-1" id="profDueBreakdownText">-</p>
+            <p class="text-xs font-bold text-slate-700 mt-2" id="profMonthlyFeeAmount">Monthly Fees: ₹0</p>
           </div>
           <div class="flex items-center gap-2 flex-wrap">
-            <button onclick="openPaymentFromProfile()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow transition">
-              <i data-lucide="credit-card" class="w-4 h-4"></i> Pay
-            </button>
             <button onclick="sendWhatsAppFromProfile()" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow transition">
               <i data-lucide="message-circle" class="w-4 h-4"></i> WhatsApp
             </button>
@@ -3394,6 +3392,8 @@
       const dueBanner = document.getElementById('profDueBanner');
       const dueAmountEl = document.getElementById('profDueAmount');
       const dueTextEl = document.getElementById('profDueBreakdownText');
+      const monthlyFeeEl = document.getElementById('profMonthlyFeeAmount');
+      if (monthlyFeeEl) monthlyFeeEl.innerText = `Monthly Fees: ₹${Number(s.monthlyFee || 0).toLocaleString('en-IN')}`;
       const advBadge = document.getElementById('profAdvanceBadge');
       const deleteAdvBtn = document.getElementById('profDeleteAdvBtn');
 
@@ -4185,9 +4185,6 @@
               </button>
               <button onclick="viewStudentProfile('${s.id}')" title="Student Profile & Calendar" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 p-1.5 rounded-lg transition shadow-sm">
                 <i data-lucide="user" class="w-4 h-4"></i>
-              </button>
-              <button onclick="openGeneralPaymentModal('${s.id}')" title="Pay" class="bg-emerald-600 hover:bg-emerald-700 text-white p-1.5 rounded-lg transition shadow-sm">
-                <i data-lucide="credit-card" class="w-4 h-4"></i>
               </button>
               <button onclick="sendWhatsAppReminder('${s.id}')" title="WhatsApp Due Alert" class="bg-green-500 hover:bg-green-600 text-white p-1.5 rounded-lg transition shadow-sm">
                 <i data-lucide="message-circle" class="w-4 h-4"></i>
