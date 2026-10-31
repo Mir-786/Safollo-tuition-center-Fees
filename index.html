@@ -1,4 +1,3 @@
-<!--remove pay button-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -290,6 +289,7 @@
                 <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Outstanding Dues</p>
                 <select id="dueFilterPeriod" onclick="event.stopPropagation()" onchange="onDueFilterChange()" class="text-[10px] font-bold border border-slate-200 rounded px-1.5 py-0.5 bg-slate-50 focus:outline-none">
                   <option value="MATURED_TODAY" selected>Matured Today</option>
+                  <option value="RUNNING_MONTH_MATURED">Running Month Mature Today</option>
                   <option value="THIS_MONTH">This Month</option>
                   <option value="CUSTOM_MONTH">Select Month</option>
                   <option value="CUSTOM_YEAR">Select Year</option>
@@ -2812,7 +2812,7 @@
 
     function getStudentCalculatedDue(student, filterMode = null, targetMonth = null, targetYear = null) {
       if (!filterMode) {
-        filterMode = document.getElementById('dueFilterPeriod') ? document.getElementById('dueFilterPeriod').value : 'MATURED_TODAY';
+        filterMode = 'MATURED_TODAY';
       }
 
       const now = new Date();
@@ -2844,6 +2844,16 @@
             maturedUnpaidMonthsCount++;
             dueKeys.push(st.key);
           }
+        }
+      } else if (filterMode === 'RUNNING_MONTH_MATURED') {
+        // Students whose previous month's fee maturity date has passed as of today.
+        const prev = new Date(currentYear, currentMonth - 1, 1);
+        const pm = prev.getMonth();
+        const py = prev.getFullYear();
+        const st = getMonthStatus(student, pm, py);
+        if (st.status === 'DUE') {
+          maturedUnpaidMonthsCount = 1;
+          dueKeys.push(st.key);
         }
       } else if (filterMode === 'THIS_MONTH') {
         const st = getMonthStatus(student, currentMonth, currentYear);
@@ -4056,6 +4066,7 @@
       const headerLabelEl = document.getElementById('tableDueHeaderCol');
       if (headerLabelEl) {
         if (dueFilter === 'MATURED_TODAY') headerLabelEl.innerText = "Dues (Matured) & Advance";
+        else if (dueFilter === 'RUNNING_MONTH_MATURED') headerLabelEl.innerText = "Previous Month Matured Dues & Advance";
         else if (dueFilter === 'THIS_MONTH') headerLabelEl.innerText = "Dues (This Month) & Advance";
         else if (dueFilter === 'CUSTOM_MONTH') {
           const m = parseInt(document.getElementById('dueMonthSelect').value, 10);
@@ -4114,7 +4125,7 @@
       }
 
       filtered.forEach(s => {
-        const dueInfo = getStudentCalculatedDue(s, dueFilter);
+        const dueInfo = getStudentCalculatedDue(s);
         const hasAdvance = (s.advanceBalance || 0) > 0;
         const periodCol = getStudentPeriodCollection(s);
 
@@ -4464,7 +4475,12 @@
           return isNaN(admYear) || admYear <= yearNum;
         });
 
-        const activeList = studentsForYear.length > 0 ? studentsForYear : filteredStudents;
+        const activeList = (studentsForYear.length > 0 ? studentsForYear : filteredStudents).slice().sort((a, b) => {
+          const ar = parseInt(String(a.roll || '').replace(/\D/g, ''), 10);
+          const br = parseInt(String(b.roll || '').replace(/\D/g, ''), 10);
+          if (Number.isNaN(ar) && Number.isNaN(br)) return String(a.roll || '').localeCompare(String(b.roll || ''));
+          if (Number.isNaN(ar)) return 1; if (Number.isNaN(br)) return -1; return ar - br;
+        });
 
         // Track advance per student across the year's chunks
         const studentAdvanceMap = {};
@@ -4511,7 +4527,7 @@
           const bodyRows = activeList.map((s, idx) => {
             const startStr = formatStartDateShort(s.admissionDate);
             const statusLabel = s.noLongerAttending ? `\nSTATUS: NO LONGER ATTENDING${s.noLongerFromDate ? ' FROM ' + formatStartDateShort(s.noLongerFromDate) : ''}` : (s.attendingFromDate ? `\nRESTORED: ${formatStartDateShort(s.attendingFromDate)}` : '');
-            const nameAndStartCell = `${s.name} (${s.monthlyFee}/-)\nStart: ${startStr} • Roll: ${s.roll}${statusLabel}`;
+            const nameAndStartCell = `${s.name} (${s.class || 'No Class'}) (${s.monthlyFee}/-)\nStart: ${startStr} • Roll: ${s.roll}${statusLabel}`;
 
             const rowCells = [
               `${idx + 1}.`,
@@ -4529,6 +4545,37 @@
             cellMetaMatrix.push(rowMeta);
             return rowCells;
           });
+
+          // Monthly financial totals for the visible month columns.
+          const monthPaidTotals = [], monthDueTotals = [], monthAdvTotals = [], monthGrandTotals = [];
+          chunk.indices.forEach(mIdx => {
+            let paid = 0, due = 0, adv = 0;
+            activeList.forEach(stu => {
+              const key = `${MONTH_NAMES[mIdx]} ${yearNum}`;
+              const status = getMonthStatus(stu, mIdx, yearNum);
+              if (status.status === 'PAID' || status.status === 'PAID_ADVANCE') {
+                const rec = getPaymentRecordForMonthKey(stu, status.key);
+                paid += Number(rec?.amount || stu.monthlyFee || 0);
+              } else if (status.status === 'DUE') {
+                const wallet = Number(stu.advanceBalance || 0);
+                const priorDue = chunk.indices.slice(0, chunk.indices.indexOf(mIdx)).reduce((sum, priorIdx) => {
+                  const priorStatus = getMonthStatus(stu, priorIdx, yearNum);
+                  return sum + (priorStatus.status === 'DUE' ? Number(stu.monthlyFee || 0) : 0);
+                }, 0);
+                const applied = Math.max(0, Math.min(Number(stu.monthlyFee || 0), wallet - priorDue));
+                adv += applied;
+                due += Number(stu.monthlyFee || 0) - applied;
+              }
+            });
+            monthPaidTotals.push(paid); monthDueTotals.push(due); monthAdvTotals.push(adv);
+            monthGrandTotals.push(paid + due + adv);
+          });
+          const totalRow = (label, values) => ['', label, ...values.map(v => `Rs. ${Number(v || 0).toLocaleString('en-IN')}`)];
+          bodyRows.push(totalRow('TOTAL PAID', monthPaidTotals));
+          bodyRows.push(totalRow('TOTAL DUE', monthDueTotals));
+          bodyRows.push(totalRow('TOTAL ADV', monthAdvTotals));
+          bodyRows.push(totalRow('GRAND TOTAL (PAID + DUE + ADV)', monthGrandTotals));
+          cellMetaMatrix.push(...Array.from({length: 4}, () => ['TOTAL', 'TOTAL', ...chunk.indices.map(() => 'TOTAL')]));
 
           doc.autoTable({
             startY: 54,
@@ -4558,11 +4605,17 @@
               1: { cellWidth: splitMode === 'HALF_6' ? 150 : 122, halign: 'left', fontStyle: 'bold' }
             },
             didParseCell: function (data) {
-              if (data.section === 'body' && data.column.index === 1) {
+              if (data.section === 'body' && data.row.index >= activeList.length) {
+                data.cell.styles.fontStyle = 'bold';
+                data.cell.styles.fillColor = [241, 245, 249];
+                data.cell.styles.textColor = [15, 23, 42];
+                if (data.column.index >= 2) data.cell.styles.halign = 'center';
+              }
+              if (data.section === 'body' && data.row.index < activeList.length && data.column.index === 1) {
                 const rowStudent = activeList[data.row.index];
                 if (rowStudent && rowStudent.noLongerAttending) { data.cell.styles.textColor = [185, 28, 28]; data.cell.styles.fillColor = [254, 242, 242]; data.cell.styles.fontStyle = 'bold'; }
               }
-              if (data.section === 'body' && data.column.index >= 2) {
+              if (data.section === 'body' && data.row.index < activeList.length && data.column.index >= 2) {
                 data.cell.styles.halign = 'center';
                 const cType = cellMetaMatrix[data.row.index] ? cellMetaMatrix[data.row.index][data.column.index] : '';
 
