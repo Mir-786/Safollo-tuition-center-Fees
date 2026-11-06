@@ -333,8 +333,8 @@
               <div class="flex items-center justify-between gap-1 mb-2">
                 <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Collections</span>
                 <select id="collectionPeriodFilter" onclick="event.stopPropagation()" onchange="onCollectionFilterChange()" class="text-[10px] font-bold border border-slate-200 rounded px-1.5 py-0.5 bg-slate-50 focus:outline-none">
-                  <option value="TODAY">Today (Received)</option>
-                  <option value="MONTH" selected>This Month Fee</option>
+                  <option value="TODAY" selected>Today (Received)</option>
+                  <option value="MONTH">This Month Fee</option>
                   <option value="CUSTOM_MONTH">Select Fee Month</option>
                   <option value="YEAR">Select Fee Year</option>
                   <option value="ALL">All Time</option>
@@ -364,7 +364,7 @@
         </section>
 
         <!-- Filters & Search Toolbar -->
-        <section class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
+        <section id="studentFilterToolbar" class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between transition-colors duration-200">
           <div class="relative w-full md:w-96">
             <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-slate-400"></i>
             <input 
@@ -372,15 +372,17 @@
               id="searchInput" 
               oninput="renderStudents()" 
               placeholder="Search by Name, Roll No, or Mobile..." 
-              class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              class="w-full pl-9 pr-10 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             />
+            <button type="button" id="clearSearchBtn" onclick="clearStudentSearch()" aria-label="Clear search" title="Clear search" class="hidden absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 items-center justify-center">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
           </div>
 
-          <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+          <div class="flex flex-wrap md:flex-nowrap items-center gap-3 w-full md:w-auto">
             <select id="filterClass" onchange="renderStudents()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none font-medium">
               <!-- Batches populated dynamically -->
             </select>
-
             <!-- CLASS STUDENT COUNT BADGE (Visible when a class filter is applied) -->
             <div id="classStudentCountBadge" class="hidden items-center gap-1.5 px-3 py-2 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-800 text-xs font-bold shadow-sm">
               <i data-lucide="users" class="w-3.5 h-3.5 text-indigo-600"></i>
@@ -396,6 +398,7 @@
               <option value="ADVANCE">With Advance Balance</option>
               <option value="PAID">All Dues Cleared (Zero Due)</option><option value="NO_LONGER">No Longer Attending</option>
             </select>
+            <button type="button" id="clearFiltersBtn" onclick="clearStudentFilters()" class="hidden md:ml-auto shrink-0 px-3 py-2 rounded-lg border border-red-300 bg-red-600 text-white hover:bg-red-700 text-xs font-bold whitespace-nowrap transition">Clear Filter</button>
           </div>
         </section>
 
@@ -2767,7 +2770,7 @@
       const maturityDate = new Date(year, monthIndex + 1, dueDay);
 
       if ((student.paidMonths || []).includes(key)) {
-        const isAdvance = startOfToday <= maturityDate;
+        const isAdvance = startOfToday < maturityDate;
         const paidOnDate = getPaymentDateForMonthKey(student, key);
         return {
           status: isAdvance ? 'PAID_ADVANCE' : 'PAID',
@@ -2781,6 +2784,20 @@
 
       if ((student.exemptedMonths || []).includes(key)) {
         return { status: 'EXEMPT', label: 'Exempt', isDueNow: false, key, maturityDate };
+      }
+
+      // Months covered by a No Longer Attending period are non-billable.
+      // The leaving month is included; the month the student returns is billable again.
+      const leavingDate = student.noLongerFromDate ? parseDateSafely(student.noLongerFromDate) : null;
+      const returningDate = student.attendingFromDate ? parseDateSafely(student.attendingFromDate) : null;
+      if (leavingDate && !isNaN(leavingDate.getTime())) {
+        const monthStart = new Date(year, monthIndex, 1);
+        const leavingMonth = new Date(leavingDate.getFullYear(), leavingDate.getMonth(), 1);
+        const returningMonth = returningDate && !isNaN(returningDate.getTime())
+          ? new Date(returningDate.getFullYear(), returningDate.getMonth(), 1) : null;
+        if (monthStart >= leavingMonth && (!returningMonth || monthStart < returningMonth)) {
+          return { status: 'NO_LONGER', label: 'No Longer', isDueNow: false, key, maturityDate };
+        }
       }
 
       const adm = parseDateSafely(student.admissionDate);
@@ -2967,6 +2984,11 @@
         return;
       }
 
+      if (info.status === 'NO_LONGER') {
+        alert(`${monthKey} is within the student's No Longer Attending period, so no fee is due.`);
+        return;
+      }
+
       if (info.status === 'PRE_ADMISSION') {
         alert(`${monthKey} is prior to enrollment (${formatDateDMY(s.admissionDate)}).`);
         return;
@@ -3032,6 +3054,8 @@
       const { studentId, monthKey } = activeManageMonthData;
       const s = students.find(item => item.id === studentId);
       if (!s) return;
+      const reason = prompt(`Enter reason for exempting ${monthKey}:`);
+      if (!reason || !reason.trim()) return;
 
       s.paidMonths = (s.paidMonths || []).filter(k => k !== monthKey);
       if (!s.exemptedMonths) s.exemptedMonths = [];
@@ -3043,7 +3067,7 @@
       const log = {
         amount: -refundAmount,
         mode: "Fee Exemption",
-        note: `Converted ${monthKey} to Exemption (Fee Reversed ₹${refundAmount})`,
+        note: `Converted ${monthKey} to Exemption (Fee Reversed ₹${refundAmount}). Reason: ${reason.trim()}`,
         collectedBy: getCurrentCollectorName(),
         date: new Date().toISOString().slice(0, 10),
         monthCovered: monthKey,
@@ -3052,7 +3076,7 @@
       if (!s.history) s.history = [];
       s.history.unshift(log);
 
-      await logSystemActivity("Exemption", "Converted to Exemption", `${monthKey} converted to fee waiver for ${s.name} (Collection reduced by ₹${refundAmount})`);
+      await logSystemActivity("Exemption", "Converted to Exemption", `${monthKey} converted to fee waiver for ${s.name} (Reason: ${reason.trim()}; Collection reduced by ₹${refundAmount})`);
 
       await syncStudentToCloud(s);
       closeModal('managePaidMonthModal');
@@ -3114,6 +3138,7 @@
         date: payDateISO,
         monthCovered: monthKey,
         monthsCoveredList: [monthKey],
+        isPartial: totalAvailable < s.monthlyFee,
         collectedBy: collector,
         type: 'Payment'
       };
@@ -3299,7 +3324,11 @@
         }
       });
 
-      combined.sort((a, b) => new Date(b.date) - new Date(a.date));
+      combined.sort((a, b) => {
+        const ta = Date.parse(a.date || '') || 0;
+        const tb = Date.parse(b.date || '') || 0;
+        return tb - ta; // newest date/time first
+      });
 
       const filtered = combined.filter(item => {
         const matchesType = (selectedType === 'ALL') || (item.type.toLowerCase() === selectedType.toLowerCase());
@@ -3529,6 +3558,16 @@
       alert(`Recorded ${valid.length} month(s), total ₹${total}.`);
     }
 
+    function hasPartialPaymentForMonth(student, monthKey) {
+      if ((student.paidMonths || []).includes(monthKey)) return false;
+      if ((student.exemptedMonths || []).includes(monthKey)) return false;
+      return (student.history || []).some(h => {
+        if (h.type !== 'Payment' || !h.isPartial || Number(h.amount || 0) <= 0) return false;
+        const covered = [h.monthCovered, ...(Array.isArray(h.monthsCoveredList) ? h.monthsCoveredList : [])];
+        return covered.includes(monthKey);
+      });
+    }
+
     function renderProfileCalendar(student, year) {
       const grid = document.getElementById('profCalendarGrid');
       grid.innerHTML = '';
@@ -3537,10 +3576,7 @@
         const info = getMonthStatus(student, m, year);
         const card = document.createElement('div');
         
-        const cutoff = student.noLongerAttending && student.noLongerFromDate ? parseDateSafely(student.noLongerFromDate) : null;
-        const cutoffMonth = cutoff && !isNaN(cutoff.getTime()) ? new Date(cutoff.getFullYear(), cutoff.getMonth(), 1) : null;
-        const isAfterLeavingDate = !!(student.noLongerAttending && cutoffMonth && new Date(year, m, 1) >= cutoffMonth);
-        if (isAfterLeavingDate) {
+        if (info.status === 'NO_LONGER') {
           card.className = "bg-amber-100 text-amber-900 rounded-xl p-2.5 text-center border-2 border-amber-300 shadow-sm";
           card.innerHTML = `<p class="text-[10px] font-bold uppercase">${SHORT_MONTHS[m]}</p><div class="text-[10px] font-black mt-1">● No Longer</div><p class="text-[9px] mt-1 truncate">From ${student.noLongerFromDate}</p>`;
         } else         if (info.status === 'PAID') {
@@ -3591,6 +3627,15 @@
             <p class="text-[10px] font-semibold uppercase">${SHORT_MONTHS[m]}</p>
             <span class="text-[9px] block mt-1">Pre-admission</span>
           `;
+        }
+
+        if (hasPartialPaymentForMonth(student, info.key)) {
+          card.classList.add('relative');
+          const partialDot = document.createElement('span');
+          partialDot.title = 'Partial payment received';
+          partialDot.setAttribute('aria-label', 'Partial payment received');
+          partialDot.className = 'absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-green-400 ring-2 ring-white shadow';
+          card.appendChild(partialDot);
         }
 
         card.dataset.monthIndex = String(m);
@@ -3807,6 +3852,7 @@
         date: payDateISO,
         monthCovered: finalMonthCovered,
         monthsCoveredList: monthsClearedInThisTx,
+        isPartial: amount < dueInfo.netDueToday,
         collectedBy: collector,
         type: 'Payment'
       };
@@ -4009,16 +4055,9 @@
       });
 
       const kpiLabel = document.getElementById('kpiTotalStudentsLabel');
-      if (selectedClass && selectedClass !== 'ALL') {
-        const classCount = activeStudents.filter(s => s.class === selectedClass).length;
-        if (kpiLabel) kpiLabel.innerText = `${selectedClass} Students`;
-        document.getElementById('kpiTotalStudents').innerText = classCount;
-        document.getElementById('kpiActiveBatchesCount').innerText = `Out of ${totalStudents} Total Enrolled`;
-      } else {
-        if (kpiLabel) kpiLabel.innerText = `Total Enrolled`;
-        document.getElementById('kpiTotalStudents').innerText = totalStudents;
-        document.getElementById('kpiActiveBatchesCount').innerText = `${batches.length} Active Batches`;
-      }
+      if (kpiLabel) kpiLabel.innerText = 'Total Active Students';
+      document.getElementById('kpiTotalStudents').innerText = activeStudents.length;
+      document.getElementById('kpiActiveBatchesCount').innerText = `${batches.length} Active Batches`;
 
       document.getElementById('kpiTotalDue').innerText = '₹' + totalDueSum.toLocaleString('en-IN');
       document.getElementById('kpiDueStudents').innerText = dueStudentsCount;
@@ -4026,6 +4065,55 @@
       document.getElementById('kpiAdvanceStudents').innerText = advanceStudentsCount;
 
       updateCollectionMetrics();
+    }
+
+    function updateStudentFilterVisuals() {
+      const search = document.getElementById('searchInput');
+      const classFilter = document.getElementById('filterClass');
+      const statusFilter = document.getElementById('filterStatus');
+      const clearSearch = document.getElementById('clearSearchBtn');
+      const clearFilters = document.getElementById('clearFiltersBtn');
+      const hasSearchFilter = !!(search && search.value.trim());
+      const hasClassFilter = !!(classFilter && classFilter.value !== 'ALL');
+      const hasStatusFilter = !!(statusFilter && statusFilter.value !== 'ACTIVE');
+
+      // Highlight only the individual control(s) that currently have an active filter.
+      [[search, hasSearchFilter],
+       [classFilter, hasClassFilter],
+       [statusFilter, hasStatusFilter]
+      ].forEach(([el, active]) => {
+        if (!el) return;
+        el.classList.toggle('border-2', active);
+        el.classList.toggle('border-emerald-500', active);
+        el.classList.toggle('border-slate-300', !active);
+      });
+
+      // Show the red Clear Filter button only while at least one filter is active.
+      if (clearFilters) {
+        clearFilters.classList.toggle('hidden', !(hasSearchFilter || hasClassFilter || hasStatusFilter));
+      }
+
+      if (clearSearch) {
+        clearSearch.classList.toggle('hidden', !(search && search.value));
+        clearSearch.classList.toggle('flex', !!(search && search.value));
+      }
+    }
+
+    function clearStudentSearch() {
+      const input = document.getElementById('searchInput');
+      if (input) input.value = '';
+      renderStudents();
+      if (input) input.focus();
+    }
+
+    function clearStudentFilters() {
+      const classFilter = document.getElementById('filterClass');
+      const statusFilter = document.getElementById('filterStatus');
+      const search = document.getElementById('searchInput');
+      if (classFilter) classFilter.value = 'ALL';
+      if (statusFilter) statusFilter.value = 'ACTIVE';
+      if (search) search.value = '';
+      renderStudents();
     }
 
     // ==================== TABLE RENDERING ====================
@@ -4050,18 +4138,16 @@
           classCountBadge.classList.add('inline-flex');
           classCountText.innerText = `${filterClass}: ${classStudentsCount} Student${classStudentsCount === 1 ? '' : 's'}`;
         }
-        if (kpiLabel) kpiLabel.innerText = `${filterClass} Students`;
-        if (kpiTotalEl) kpiTotalEl.innerText = classStudentsCount;
-        if (kpiSubEl) kpiSubEl.innerText = `Out of ${activeStudentCount} Active Students`;
-      } else {
-        if (classCountBadge) {
-          classCountBadge.classList.add('hidden');
-          classCountBadge.classList.remove('inline-flex');
-        }
-        if (kpiLabel) kpiLabel.innerText = 'Total Active Students';
-        if (kpiTotalEl) kpiTotalEl.innerText = activeStudentCount;
-        if (kpiSubEl) kpiSubEl.innerText = `${batches.length} Active Batches`;
+      } else if (classCountBadge) {
+        classCountBadge.classList.add('hidden');
+        classCountBadge.classList.remove('inline-flex');
       }
+      // KPI is global: class/search/status filters must never change the active-student total.
+      if (kpiLabel) kpiLabel.innerText = 'Total Active Students';
+      if (kpiTotalEl) kpiTotalEl.innerText = activeStudentCount;
+      if (kpiSubEl) kpiSubEl.innerText = `${batches.length} Active Batches`;
+
+      updateStudentFilterVisuals();
 
       const headerLabelEl = document.getElementById('tableDueHeaderCol');
       if (headerLabelEl) {
