@@ -40,6 +40,22 @@
       #printableReceipt { position: absolute; left: 0; top: 0; width: 100%; display: block !important; }
     }
   .confirm-slider-track{position:relative;height:54px;border-radius:999px;background:#e2e8f0;border:1px solid #cbd5e1;overflow:hidden;touch-action:pan-y;user-select:none}.confirm-slider-fill{position:absolute;inset:0 auto 0 0;width:0;background:linear-gradient(90deg,#818cf8,#4f46e5)}.confirm-slider-knob{position:absolute;top:4px;left:4px;width:44px;height:44px;border-radius:50%;background:white;color:#4338ca;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px #0f172a30;z-index:2;cursor:grab}.confirm-slider-track.armed .confirm-slider-fill{background:linear-gradient(90deg,#34d399,#059669)}
+    /* Sticky Student name only — no side shadow so it looks continuous with other columns */
+    #mainStudentsTable { border-collapse: separate; border-spacing: 0; }
+    #mainStudentsTable thead th.sticky-col-name,
+    #mainStudentsTable tbody td.sticky-col-name {
+      position: sticky;
+      left: 0;
+      z-index: 20;
+      min-width: 9.5rem;
+    }
+    #mainStudentsTable thead th.sticky-col-name { background: #f1f5f9; }
+    #mainStudentsTable tbody td.sticky-col-name { background: #fff; z-index: 15; }
+    #mainStudentsTable tbody tr:hover td.sticky-col-name { background: #eef2ff; }
+    @media (max-width: 640px) {
+      #mainStudentsTable thead th.sticky-col-name,
+      #mainStudentsTable tbody td.sticky-col-name { min-width: 7.5rem; }
+    }
 </style>
 </head>
 <body class="bg-slate-100 text-slate-900 font-sans min-h-screen">
@@ -297,8 +313,9 @@
                 </select>
               </div>
 
-              <!-- Secondary Selectors for Due Month/Year -->
+              <!-- Secondary Selectors for Due Month/Year / Running last-3 months -->
               <div id="dueCustomPickers" class="hidden flex items-center gap-1 mb-2" onclick="event.stopPropagation()">
+                <select id="dueRunningMonthSelect" onchange="onDueFilterChange()" class="hidden text-[10px] border border-slate-200 rounded px-1 py-0.5 bg-slate-50 font-bold"></select>
                 <select id="dueMonthSelect" onchange="onDueFilterChange()" class="text-[10px] border border-slate-200 rounded px-1 py-0.5 bg-slate-50"></select>
                 <select id="dueYearSelect" onchange="onDueFilterChange()" class="text-[10px] border border-slate-200 rounded px-1 py-0.5 bg-slate-50"></select>
               </div>
@@ -409,7 +426,7 @@
               <thead>
                 <tr class="bg-slate-100 text-slate-600 text-xs font-semibold uppercase tracking-wider border-b border-slate-200">
                   <th class="py-3 px-4 whitespace-nowrap">Roll</th>
-                  <th class="py-3 px-4 whitespace-nowrap">Student</th>
+                  <th class="py-3 px-4 whitespace-nowrap sticky-col-name">Student</th>
                   <th class="py-3 px-4 whitespace-nowrap">Class</th>
                   <th class="py-3 px-4 whitespace-nowrap">Monthly Fee</th>
                   <th class="py-3 px-4 whitespace-nowrap" id="tableDueHeaderCol">Dues</th>
@@ -643,7 +660,7 @@
             <table class="w-full text-left text-xs">
               <thead class="bg-slate-100 text-slate-600 font-semibold border-b border-slate-200">
                 <tr>
-                  <th class="py-2.5 px-3">Date (DD/MM/YYYY)</th>
+                  <th class="py-2.5 px-3">Date & Time</th>
                   <th class="py-2.5 px-3">Action Type</th>
                   <th class="py-2.5 px-3">Description / Details</th>
                   <th class="py-2.5 px-3">Performed By</th>
@@ -984,7 +1001,7 @@
             <table class="w-full text-left text-xs">
               <thead class="bg-slate-100 text-slate-600 font-semibold border-b border-slate-200 sticky top-0 z-10">
                 <tr>
-                  <th class="py-2.5 px-3">Date (DD/MM/YYYY)</th>
+                  <th class="py-2.5 px-3">Date & Time</th>
                   <th class="py-2.5 px-3">Amount</th>
                   <th class="py-2.5 px-3">Collected By</th>
                   <th class="py-2.5 px-3">Mode</th>
@@ -1486,6 +1503,41 @@
       const month = String(d.getMonth() + 1).padStart(2, '0');
       const year = d.getFullYear();
       return `${day}/${month}/${year}`;
+    }
+
+    // DD/MM/YYYY + time (for Server Activity History)
+    function formatDateTimeDMY(dateInput) {
+      if (!dateInput) return "-";
+      const d = (typeof dateInput === 'string' && (dateInput.includes('T') || dateInput.includes(':')))
+        ? new Date(dateInput)
+        : parseDateSafely(dateInput);
+      if (isNaN(d.getTime())) return formatDateDMY(dateInput);
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      const hasTime = (typeof dateInput === 'string' && (dateInput.includes('T') || /\d{1,2}:\d{2}/.test(dateInput)))
+        || (d.getHours() !== 0 || d.getMinutes() !== 0 || d.getSeconds() !== 0);
+      if (!hasTime) return `${day}/${month}/${year}`;
+      let h = d.getHours();
+      const m = String(d.getMinutes()).padStart(2, '0');
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12; if (h === 0) h = 12;
+      return `${day}/${month}/${year}<br><span class="text-[10px] text-slate-400 font-normal">${h}:${m} ${ampm}</span>`;
+    }
+
+    // Store full ISO timestamp for sorting; keep selected calendar date if different day
+    function paymentTimestampISO(dateOnlyYYYYMMDD) {
+      const now = new Date();
+      if (!dateOnlyYYYYMMDD) return now.toISOString();
+      const today = now.toISOString().slice(0, 10);
+      if (dateOnlyYYYYMMDD === today) return now.toISOString();
+      // Historical/backdated payment: use noon local of that day so sort stays stable
+      const parts = dateOnlyYYYYMMDD.split('-');
+      if (parts.length === 3) {
+        const d = new Date(parseInt(parts[0],10), parseInt(parts[1],10)-1, parseInt(parts[2],10), 12, 0, 0);
+        return isNaN(d.getTime()) ? dateOnlyYYYYMMDD : d.toISOString();
+      }
+      return dateOnlyYYYYMMDD;
     }
 
     // Notebook-style compact dot date: DD.MM.YY (e.g. 17.04.25)
@@ -2546,6 +2598,30 @@
           el.appendChild(opt);
         }
       });
+
+      populateRunningMonthSelect();
+    }
+
+    // Last 3 months before current (e.g. Nov → Aug, Sep, Oct) for Running Month Mature filter
+    function populateRunningMonthSelect() {
+      const el = document.getElementById('dueRunningMonthSelect');
+      if (!el) return;
+      const now = new Date();
+      const prevSelection = el.value;
+      el.innerHTML = '';
+      // offset 1 = previous month, 2 = two months ago, 3 = three months ago
+      for (let offset = 1; offset <= 3; offset++) {
+        const d = new Date(now.getFullYear(), now.getMonth() - offset, 1);
+        const opt = document.createElement('option');
+        opt.value = `${d.getMonth()}|${d.getFullYear()}`;
+        opt.innerText = `${SHORT_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+        if (offset === 1) opt.selected = true;
+        el.appendChild(opt);
+      }
+      // restore previous selection if still in list
+      if (prevSelection && [...el.options].some(o => o.value === prevSelection)) {
+        el.value = prevSelection;
+      }
     }
 
     // ==================== BATCH MANAGER & CLASS FEES ====================
@@ -2827,6 +2903,110 @@
       };
     }
 
+    // Next fee payment date for the student list.
+    // App rule: month M's fee date = dueDay of month (M+1)  [maturity date]
+    // Example: October fee date = 08/11/26; November fee date = 08/12/26.
+    // If October is full advance-paid → skip October → show days until November fee date.
+    // Always returns non-empty "Fee in X days (...)".
+    function getNextFeePaymentInfo(student) {
+      try {
+        const now = new Date();
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        let dueDay = parseInt(student && student.dueDay, 10);
+        if (!dueDay || dueDay < 1) dueDay = 1;
+        if (dueDay > 31) dueDay = 31;
+
+        function makeDueDate(year, month, day) {
+          // month may be > 11; Date handles overflow
+          const lastDay = new Date(year, month + 1, 0).getDate();
+          return new Date(year, month, Math.min(day, lastDay));
+        }
+
+        function feeDateForMonth(year, monthIndex) {
+          // Fee date / maturity for monthIndex = dueDay of the following month
+          return makeDueDate(year, monthIndex + 1, dueDay);
+        }
+
+        function nextCalendarDueDay(fromDate) {
+          let y = fromDate.getFullYear();
+          let m = fromDate.getMonth();
+          let candidate = makeDueDate(y, m, dueDay);
+          if (candidate < fromDate) {
+            m += 1;
+            if (m > 11) { m = 0; y += 1; }
+            candidate = makeDueDate(y, m, dueDay);
+          }
+          return candidate;
+        }
+
+        let targetDate = null;
+
+        // Scan from a bit before current month so already-paid past months are skipped cleanly
+        for (let i = -1; i < 24; i++) {
+          const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+          const m = d.getMonth();
+          const y = d.getFullYear();
+          let st;
+          try {
+            st = getMonthStatus(student, m, y);
+          } catch (e) {
+            continue;
+          }
+          if (!st) continue;
+
+          // Skip months already settled (including advance-paid) — e.g. October Adv Paid → November
+          if (st.status === 'PAID' || st.status === 'PAID_ADVANCE') continue;
+          if (st.status === 'EXEMPT' || st.status === 'PRE_ADMISSION' || st.status === 'NO_LONGER') continue;
+
+          // Unpaid (DUE or UPCOMING): fee date = maturity = dueDay of next calendar month
+          let maturity = null;
+          if (st.maturityDate instanceof Date && !isNaN(st.maturityDate.getTime())) {
+            maturity = new Date(st.maturityDate.getFullYear(), st.maturityDate.getMonth(), st.maturityDate.getDate());
+          } else {
+            maturity = feeDateForMonth(y, m);
+          }
+
+          if (maturity >= startOfToday) {
+            targetDate = maturity;
+            break;
+          }
+          // Maturity already passed for this unpaid month → keep looking at later unpaid months
+        }
+
+        // Fallback when every near month is paid / no unpaid found
+        if (!targetDate || isNaN(targetDate.getTime())) {
+          targetDate = nextCalendarDueDay(startOfToday);
+        }
+
+        const days = Math.max(0, Math.round((targetDate - startOfToday) / 86400000));
+        return {
+          days,
+          label: `Fee in ${days} day${days === 1 ? '' : 's'} (${formatDateDMY(targetDate)})`,
+          status: 'UPCOMING'
+        };
+      } catch (err) {
+        const now = new Date();
+        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const dueDay = parseInt(student && student.dueDay, 10) || 1;
+        let y = startOfToday.getFullYear();
+        let m = startOfToday.getMonth();
+        let lastDay = new Date(y, m + 1, 0).getDate();
+        let candidate = new Date(y, m, Math.min(dueDay, lastDay));
+        if (candidate < startOfToday) {
+          m += 1;
+          if (m > 11) { m = 0; y += 1; }
+          lastDay = new Date(y, m + 1, 0).getDate();
+          candidate = new Date(y, m, Math.min(dueDay, lastDay));
+        }
+        const days = Math.max(0, Math.round((candidate - startOfToday) / 86400000));
+        return {
+          days,
+          label: `Fee in ${days} day${days === 1 ? '' : 's'} (${formatDateDMY(candidate)})`,
+          status: 'UPCOMING'
+        };
+      }
+    }
+
     function getStudentCalculatedDue(student, filterMode = null, targetMonth = null, targetYear = null) {
       if (!filterMode) {
         filterMode = 'MATURED_TODAY';
@@ -2863,10 +3043,18 @@
           }
         }
       } else if (filterMode === 'RUNNING_MONTH_MATURED') {
-        // Students whose previous month's fee maturity date has passed as of today.
-        const prev = new Date(currentYear, currentMonth - 1, 1);
-        const pm = prev.getMonth();
-        const py = prev.getFullYear();
+        // Selected from last-3-months picker (default = previous month).
+        let pm, py;
+        const runEl = document.getElementById('dueRunningMonthSelect');
+        if (runEl && runEl.value && runEl.value.includes('|')) {
+          const parts = runEl.value.split('|');
+          pm = parseInt(parts[0], 10);
+          py = parseInt(parts[1], 10);
+        } else {
+          const prev = new Date(currentYear, currentMonth - 1, 1);
+          pm = prev.getMonth();
+          py = prev.getFullYear();
+        }
         const st = getMonthStatus(student, pm, py);
         if (st.status === 'DUE') {
           maturedUnpaidMonthsCount = 1;
@@ -3029,7 +3217,7 @@
         mode: "Reversal",
         note: `Reversal: ${actionLabel} for ${monthKey}`,
         collectedBy: getCurrentCollectorName(),
-        date: new Date().toISOString().slice(0, 10),
+        date: new Date().toISOString(),
         monthCovered: monthKey,
         type: "Reversal"
       };
@@ -3069,7 +3257,7 @@
         mode: "Fee Exemption",
         note: `Converted ${monthKey} to Exemption (Fee Reversed ₹${refundAmount}). Reason: ${reason.trim()}`,
         collectedBy: getCurrentCollectorName(),
-        date: new Date().toISOString().slice(0, 10),
+        date: new Date().toISOString(),
         monthCovered: monthKey,
         type: "Exemption"
       };
@@ -3123,22 +3311,43 @@
       if (!s.paidMonths) s.paidMonths = [];
       if (!s.advanceBalance) s.advanceBalance = 0;
 
-      const totalAvailable = amount + s.advanceBalance;
-      if (totalAvailable >= s.monthlyFee) {
-        if (!s.paidMonths.includes(monthKey)) s.paidMonths.push(monthKey);
-        s.advanceBalance = totalAvailable - s.monthlyFee;
+      // Detect if this month is still upcoming (fee due date not yet reached)
+      const mkParts = (monthKey || '').split(' ');
+      const mkIdx = MONTH_NAMES.indexOf(mkParts[0] || '');
+      const mkYear = parseInt(mkParts[1], 10);
+      const monthStatusBefore = (mkIdx >= 0 && !isNaN(mkYear)) ? getMonthStatus(s, mkIdx, mkYear) : null;
+      const isEarlyPayment = monthStatusBefore && (monthStatusBefore.status === 'UPCOMING' || monthStatusBefore.status === 'PRE_ADMISSION');
+
+      let isPartial = false;
+      if (isEarlyPayment) {
+        // Before due date: entire payment goes into Advance Wallet (Total Advance Held)
+        // and month is marked paid if amount covers the fee (calendar shows Adv Paid).
+        s.advanceBalance = (s.advanceBalance || 0) + amount;
+        if (amount >= s.monthlyFee || s.advanceBalance >= s.monthlyFee) {
+          if (!s.paidMonths.includes(monthKey)) s.paidMonths.push(monthKey);
+        } else {
+          isPartial = true;
+        }
       } else {
-        s.advanceBalance = totalAvailable;
+        // Matured due month: cover fee from amount + wallet; leftover stays advance
+        const totalAvailable = amount + s.advanceBalance;
+        if (totalAvailable >= s.monthlyFee) {
+          if (!s.paidMonths.includes(monthKey)) s.paidMonths.push(monthKey);
+          s.advanceBalance = totalAvailable - s.monthlyFee;
+        } else {
+          s.advanceBalance = totalAvailable;
+          isPartial = true;
+        }
       }
 
       const receipt = {
         amount,
         mode,
         note,
-        date: payDateISO,
+        date: paymentTimestampISO(payDateISO),
         monthCovered: monthKey,
         monthsCoveredList: [monthKey],
-        isPartial: totalAvailable < s.monthlyFee,
+        isPartial,
         collectedBy: collector,
         type: 'Payment'
       };
@@ -3191,7 +3400,7 @@
         mode: 'Fee Exemption',
         note: `Exemption for ${monthKey} (${reason})`,
         collectedBy: collector,
-        date: new Date().toISOString().slice(0, 10),
+        date: new Date().toISOString(),
         type: 'Exemption'
       };
       if (!s.history) s.history = [];
@@ -3214,7 +3423,13 @@
 
       let filterLabel = "Matured As of Today";
       if (filterMode === 'THIS_MONTH') filterLabel = "This Month's Dues";
-      else if (filterMode === 'CUSTOM_MONTH') {
+      else if (filterMode === 'RUNNING_MONTH_MATURED') {
+        const runEl = document.getElementById('dueRunningMonthSelect');
+        if (runEl && runEl.value && runEl.value.includes('|')) {
+          const p = runEl.value.split('|');
+          filterLabel = `Running Matured: ${SHORT_MONTHS[parseInt(p[0],10)]} ${p[1]}`;
+        } else filterLabel = "Previous Month Matured";
+      } else if (filterMode === 'CUSTOM_MONTH') {
         const m = parseInt(document.getElementById('dueMonthSelect').value, 10);
         const y = document.getElementById('dueYearSelect').value;
         filterLabel = `Month: ${SHORT_MONTHS[m]} ${y}`;
@@ -3325,8 +3540,19 @@
       });
 
       combined.sort((a, b) => {
-        const ta = Date.parse(a.date || '') || 0;
-        const tb = Date.parse(b.date || '') || 0;
+        const parseTs = (v) => {
+          if (!v) return 0;
+          const t = Date.parse(v);
+          if (!isNaN(t)) return t;
+          // DD/MM/YYYY fallback
+          if (typeof v === 'string' && v.includes('/')) {
+            const p = v.split(/[\s/]/);
+            if (p.length >= 3) return new Date(+p[2], +p[1]-1, +p[0]).getTime() || 0;
+          }
+          return 0;
+        };
+        const ta = parseTs(a.date);
+        const tb = parseTs(b.date);
         return tb - ta; // newest date/time first
       });
 
@@ -3351,7 +3577,7 @@
           const tr = document.createElement('tr');
           tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
           tr.innerHTML = `
-            <td class="py-2.5 px-3 font-medium text-slate-600 whitespace-nowrap">${formatDateDMY(item.date)}</td>
+            <td class="py-2.5 px-3 font-medium text-slate-600 whitespace-nowrap">${formatDateTimeDMY(item.date)}</td>
             <td class="py-2.5 px-3">
               <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold ${badgeClass}">
                 ${item.type}
@@ -3475,7 +3701,7 @@
           const row = document.createElement('tr');
           row.className = isExempt ? "bg-violet-50/50 hover:bg-violet-50" : "hover:bg-slate-50";
           row.innerHTML = `
-            <td class="py-2 px-3 text-slate-600 font-medium">${formatDateDMY(h.date)}</td>
+            <td class="py-2 px-3 text-slate-600 font-medium">${formatDateTimeDMY(h.date)}</td>
             <td class="py-2 px-3 font-bold ${isExempt ? 'text-violet-700' : (Number(h.amount) < 0 ? 'text-rose-600' : 'text-emerald-700')}">
               ${isExempt ? 'WAIVED' : (Number(h.amount) < 0 ? `-₹${Math.abs(h.amount)}` : `₹${h.amount}`)}
             </td>
@@ -3545,10 +3771,15 @@
       if (!valid.length) return alert('Select at least one unpaid/billable month. Paid and exempt months cannot be bulk-paid.');
       const total = valid.length * Number(st.monthlyFee || 0);
       if (!confirm(`Record full fee payments for ${valid.length} selected month(s) for ${st.name}?\nMonths: ${valid.map(x => x.monthKey).join(', ')}\nTotal: ₹${total}\nPayment mode: Cash. Continue?`)) return;
-      const date = new Date().toISOString().slice(0,10); st.history = st.history || []; st.paidMonths = st.paidMonths || [];
+      const date = new Date().toISOString(); st.history = st.history || []; st.paidMonths = st.paidMonths || [];
       for (const item of valid) {
         const status = getMonthStatus(st, item.monthIndex, item.year).status;
         if (status === 'EXEMPT' || status === 'PAID' || status === 'PAID_ADVANCE') continue;
+        // Early (upcoming) months: add fee amount into Advance Held as well
+        const isEarly = status === 'UPCOMING' || status === 'PRE_ADMISSION';
+        if (isEarly) {
+          st.advanceBalance = (st.advanceBalance || 0) + Number(st.monthlyFee || 0);
+        }
         if (!st.paidMonths.includes(item.monthKey)) st.paidMonths.push(item.monthKey);
         st.history.unshift({ amount: Number(st.monthlyFee || 0), mode: 'Cash', note: `Fees payment for ${item.monthKey}`, date, monthCovered: item.monthKey, collectedBy: getCurrentCollectorName(), type: 'Payment' });
       }
@@ -3817,49 +4048,90 @@
       const dueInfo = getStudentCalculatedDue(s);
       let finalMonthCovered = '';
       const monthsClearedInThisTx = [];
+      let isPartialPayment = false;
+
+      // Helper: is this month still upcoming (not matured yet)?
+      function isMonthStillUpcoming(monthKeyStr) {
+        const parts = (monthKeyStr || '').split(' ');
+        const mIdx = MONTH_NAMES.indexOf(parts[0] || '');
+        const y = parseInt(parts[1], 10);
+        if (mIdx < 0 || isNaN(y)) return false;
+        const st = getMonthStatus(s, mIdx, y);
+        return st.status === 'UPCOMING' || st.status === 'PRE_ADMISSION';
+      }
 
       if (chosenCover !== 'AUTO') {
         finalMonthCovered = chosenCover;
-        if (!s.paidMonths.includes(chosenCover)) {
-          s.paidMonths.push(chosenCover);
+        // Paying specifically for a future (not-yet-matured) month:
+        // treat like calendar click-pay → cover that month fee from amount+wallet, leftover stays advance.
+        if (isMonthStillUpcoming(chosenCover) && !(s.paidMonths || []).includes(chosenCover)) {
+          // Before due date: full amount added to Total Advance Held; mark month if covered
+          s.advanceBalance = (s.advanceBalance || 0) + amount;
+          if (amount >= s.monthlyFee || s.advanceBalance >= s.monthlyFee) {
+            s.paidMonths.push(chosenCover);
+            monthsClearedInThisTx.push(chosenCover);
+          } else {
+            isPartialPayment = true;
+            monthsClearedInThisTx.push(chosenCover);
+          }
+        } else {
+          // Matured / already-due month or already paid — mark paid, then settle remaining matured dues + surplus to advance
+          if (!(s.paidMonths || []).includes(chosenCover)) {
+            s.paidMonths.push(chosenCover);
+          }
+          monthsClearedInThisTx.push(chosenCover);
+          // Recompute dues after marking this month, then apply amount against remaining matured dues
+          const dueAfter = getStudentCalculatedDue(s);
+          if (amount >= dueAfter.netDueToday) {
+            dueAfter.dueKeys.forEach(k => {
+              if (!s.paidMonths.includes(k)) s.paidMonths.push(k);
+              if (!monthsClearedInThisTx.includes(k)) monthsClearedInThisTx.push(k);
+            });
+            s.advanceBalance = (s.advanceBalance || 0) + (amount - dueAfter.netDueToday);
+          } else {
+            s.advanceBalance = (s.advanceBalance || 0) + amount;
+            isPartialPayment = true;
+          }
         }
-        monthsClearedInThisTx.push(chosenCover);
       } else {
+        // AUTO: clear matured dues first; any surplus goes to Advance wallet (early payment credit)
         finalMonthCovered = dueInfo.dueKeys[0] || formatMonthKey(MONTH_NAMES[new Date(payDateISO).getMonth()], new Date(payDateISO).getFullYear());
+        if (amount >= dueInfo.netDueToday) {
+          dueInfo.dueKeys.forEach(k => {
+            if (!s.paidMonths.includes(k)) s.paidMonths.push(k);
+            if (!monthsClearedInThisTx.includes(k)) monthsClearedInThisTx.push(k);
+          });
+          const surplus = amount - dueInfo.netDueToday;
+          s.advanceBalance = (s.advanceBalance || 0) + surplus;
+        } else {
+          s.advanceBalance = (s.advanceBalance || 0) + amount;
+          isPartialPayment = true;
+        }
+        if (monthsClearedInThisTx.length === 0 && finalMonthCovered) {
+          monthsClearedInThisTx.push(finalMonthCovered);
+        }
       }
 
-      if (amount >= dueInfo.netDueToday) {
-        dueInfo.dueKeys.forEach(k => {
-          if (!s.paidMonths.includes(k)) s.paidMonths.push(k);
-          if (!monthsClearedInThisTx.includes(k)) monthsClearedInThisTx.push(k);
-        });
-        const surplus = amount - dueInfo.netDueToday;
-        s.advanceBalance += surplus;
-      } else {
-        s.advanceBalance += amount;
+      if (!note) {
+        if (monthsClearedInThisTx.length) note = `Fee Payment for ${monthsClearedInThisTx.join(', ')}`;
+        else note = 'Advance payment credit';
       }
-
-      if (monthsClearedInThisTx.length === 0 && finalMonthCovered) {
-        monthsClearedInThisTx.push(finalMonthCovered);
-      }
-
-      if (!note) note = `Fee Payment for ${monthsClearedInThisTx.join(', ')}`;
 
       const receipt = {
         amount,
         mode,
         note,
-        date: payDateISO,
-        monthCovered: finalMonthCovered,
+        date: paymentTimestampISO(payDateISO),
+        monthCovered: finalMonthCovered || (monthsClearedInThisTx[0] || 'Advance'),
         monthsCoveredList: monthsClearedInThisTx,
-        isPartial: amount < dueInfo.netDueToday,
+        isPartial: isPartialPayment,
         collectedBy: collector,
         type: 'Payment'
       };
       if (!s.history) s.history = [];
       s.history.unshift(receipt);
 
-      await logSystemActivity("Payment", `Payment Collected (₹${amount})`, `Collected from ${s.name} (Roll: #${s.roll}, Fee Month: ${monthsClearedInThisTx.join(', ')}) on ${formatDateDMY(payDateISO)} via ${mode}`);
+      await logSystemActivity("Payment", `Payment Collected (₹${amount})`, `Collected from ${s.name} (Roll: #${s.roll}, Fee Month: ${monthsClearedInThisTx.join(', ') || 'Advance'}) on ${formatDateDMY(payDateISO)} via ${mode}`);
 
       await syncStudentToCloud(s);
       closeModal('paymentModal');
@@ -4028,15 +4300,27 @@
       const dueFilter = document.getElementById('dueFilterPeriod').value;
       const duePickers = document.getElementById('dueCustomPickers');
 
-      if (dueFilter === 'CUSTOM_MONTH' || dueFilter === 'CUSTOM_YEAR') {
+      const runSel = document.getElementById('dueRunningMonthSelect');
+      const monthSel = document.getElementById('dueMonthSelect');
+      const yearSel = document.getElementById('dueYearSelect');
+      if (dueFilter === 'RUNNING_MONTH_MATURED') {
+        populateRunningMonthSelect();
         duePickers.classList.remove('hidden');
+        if (runSel) runSel.classList.remove('hidden');
+        if (monthSel) monthSel.classList.add('hidden');
+        if (yearSel) yearSel.classList.add('hidden');
+      } else if (dueFilter === 'CUSTOM_MONTH' || dueFilter === 'CUSTOM_YEAR') {
+        duePickers.classList.remove('hidden');
+        if (runSel) runSel.classList.add('hidden');
+        if (yearSel) yearSel.classList.remove('hidden');
         if (dueFilter === 'CUSTOM_YEAR') {
-          document.getElementById('dueMonthSelect').classList.add('hidden');
+          if (monthSel) monthSel.classList.add('hidden');
         } else {
-          document.getElementById('dueMonthSelect').classList.remove('hidden');
+          if (monthSel) monthSel.classList.remove('hidden');
         }
       } else {
         duePickers.classList.add('hidden');
+        if (runSel) runSel.classList.add('hidden');
       }
 
       let totalDueSum = 0;
@@ -4152,7 +4436,17 @@
       const headerLabelEl = document.getElementById('tableDueHeaderCol');
       if (headerLabelEl) {
         if (dueFilter === 'MATURED_TODAY') headerLabelEl.innerText = "Dues (Matured) & Advance";
-        else if (dueFilter === 'RUNNING_MONTH_MATURED') headerLabelEl.innerText = "Previous Month Matured Dues & Advance";
+        else if (dueFilter === 'RUNNING_MONTH_MATURED') {
+          const runEl = document.getElementById('dueRunningMonthSelect');
+          let label = "Previous Month Matured Dues & Advance";
+          if (runEl && runEl.value && runEl.value.includes('|')) {
+            const p = runEl.value.split('|');
+            const mi = parseInt(p[0], 10);
+            const yi = parseInt(p[1], 10);
+            if (!isNaN(mi) && !isNaN(yi)) label = `${SHORT_MONTHS[mi]} ${yi} Matured Dues & Advance`;
+          }
+          headerLabelEl.innerText = label;
+        }
         else if (dueFilter === 'THIS_MONTH') headerLabelEl.innerText = "Dues (This Month) & Advance";
         else if (dueFilter === 'CUSTOM_MONTH') {
           const m = parseInt(document.getElementById('dueMonthSelect').value, 10);
@@ -4211,16 +4505,36 @@
       }
 
       filtered.forEach(s => {
-        const dueInfo = getStudentCalculatedDue(s);
+        const dueInfo = getStudentCalculatedDue(s, dueFilter);
+        let nextFeeInfo = { days: null, label: '', status: null };
+        try {
+          nextFeeInfo = getNextFeePaymentInfo(s) || nextFeeInfo;
+        } catch (e) {
+          console.warn('getNextFeePaymentInfo failed for', s && s.name, e);
+        }
         const hasAdvance = (s.advanceBalance || 0) > 0;
         const periodCol = getStudentPeriodCollection(s);
 
         let statusBadgesHtml = '';
-        const paidCount = (s.paidMonths || []).length;
+        // Split paid months into matured (PAID) vs early (PAID_ADVANCE) so list mirrors calendar
+        let maturedPaidCount = 0;
+        let advancePaidCount = 0;
+        (s.paidMonths || []).forEach(monthKey => {
+          const parts = String(monthKey).split(' ');
+          const mIdx = MONTH_NAMES.indexOf(parts[0] || '');
+          const y = parseInt(parts[1], 10);
+          if (mIdx < 0 || isNaN(y)) { maturedPaidCount++; return; }
+          const st = getMonthStatus(s, mIdx, y);
+          if (st.status === 'PAID_ADVANCE') advancePaidCount++;
+          else maturedPaidCount++;
+        });
         const exemptCount = (s.exemptedMonths || []).length;
 
-        if (paidCount > 0) {
-          statusBadgesHtml += `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1.5 py-0.5 rounded">${paidCount} Paid</span> `;
+        if (maturedPaidCount > 0) {
+          statusBadgesHtml += `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1.5 py-0.5 rounded">${maturedPaidCount} Paid</span> `;
+        }
+        if (advancePaidCount > 0) {
+          statusBadgesHtml += `<span class="bg-cyan-100 text-cyan-800 text-[10px] font-bold px-1.5 py-0.5 rounded">${advancePaidCount} Adv Paid</span> `;
         }
         if (exemptCount > 0) {
           statusBadgesHtml += `<span class="bg-violet-100 text-violet-800 text-[10px] font-bold px-1.5 py-0.5 rounded">${exemptCount} Exempt</span> `;
@@ -4229,10 +4543,11 @@
           statusBadgesHtml += `<span class="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-1.5 py-0.5 rounded border border-emerald-200">Paid in Period: ₹${periodCol.collectedInPeriod}</span> `;
         }
         if (dueInfo.netDueToday > 0) {
-          statusBadgesHtml += `<span class="bg-rose-100 text-rose-800 text-[10px] font-bold px-1.5 py-0.5 rounded">Due</span>`;
+          const dueMonthCount = (dueInfo.dueKeys && dueInfo.dueKeys.length) ? dueInfo.dueKeys.length : (dueInfo.maturedUnpaidMonthsCount || 1);
+          statusBadgesHtml += `<span class="bg-rose-100 text-rose-800 text-[10px] font-bold px-1.5 py-0.5 rounded">${dueMonthCount} Due</span>`;
         } else if (hasAdvance) {
           statusBadgesHtml += `<span class="bg-cyan-100 text-cyan-800 text-[10px] font-bold px-1.5 py-0.5 rounded">Adv: ₹${s.advanceBalance}</span>`;
-        } else {
+        } else if (maturedPaidCount === 0 && advancePaidCount === 0) {
           statusBadgesHtml += `<span class="bg-slate-100 text-slate-600 text-[10px] font-semibold px-1.5 py-0.5 rounded">Clear</span>`;
         }
 
@@ -4241,7 +4556,7 @@
         tr.innerHTML = `
           <td class="py-3 px-4 font-mono font-bold text-indigo-900 whitespace-nowrap">#${s.roll}</td>
           
-          <td class="py-3 px-4 whitespace-nowrap">
+          <td class="py-3 px-4 whitespace-nowrap sticky-col-name">
             <button onclick="viewStudentProfile('${s.id}')" class="font-bold text-slate-900 hover:text-indigo-600 text-left transition flex items-center gap-1 whitespace-nowrap">
               <span class="truncate max-w-[125px] sm:max-w-none block">${s.name}</span>
               <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
@@ -4270,6 +4585,9 @@
               </div>
               <div class="text-[11px] font-medium ${dueInfo.netDueToday > 0 ? 'text-amber-700' : 'text-slate-400'}">
                 ${dueInfo.breakdownText}
+              </div>
+              <div class="text-[10px] font-semibold ${(nextFeeInfo && nextFeeInfo.days !== null && nextFeeInfo.days <= 7) ? 'text-amber-600' : 'text-indigo-600'}">
+                ${(nextFeeInfo && nextFeeInfo.label) ? nextFeeInfo.label : ''}
               </div>
             </div>
           </td>
