@@ -4506,7 +4506,52 @@
       document.getElementById('kpiTxnCount').innerText = `${txnCount} Receipts`;
     }
 
+    // Convert an early fee payment from "Advance Held" to a normal matured
+    // payment once that month's scheduled due date has passed. This is
+    // idempotent: each receipt stores the amount already converted.
+    function reconcileMaturedAdvancePayments() {
+      const today = new Date();
+      const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      students.forEach(st => {
+        if (!Array.isArray(st.history) || !Array.isArray(st.paidMonths)) return;
+        let changed = false;
+        st.paidMonths.forEach(monthKey => {
+          const parts = String(monthKey || '').split(' ');
+          const monthIndex = MONTH_NAMES.indexOf(parts[0] || '');
+          const year = parseInt(parts[1], 10);
+          if (monthIndex < 0 || !Number.isFinite(year)) return;
+          const dueDate = new Date(year, monthIndex + 1, Number(st.dueDay || 1));
+          if (todayStart < dueDate) return;
+
+          const receipt = st.history.find(h => {
+            if (!h || h.type !== 'Payment' || Number(h.advanceConvertedAmount || 0) > 0) return false;
+            const covered = [h.monthCovered, ...(Array.isArray(h.monthsCoveredList) ? h.monthsCoveredList : [])];
+            if (!covered.includes(monthKey) || !h.date) return false;
+            const paidAt = new Date(h.date);
+            return !Number.isNaN(paidAt.getTime()) && paidAt < dueDate;
+          });
+          if (!receipt) return;
+
+          const alreadyConverted = Math.max(0, Number(receipt.advanceConvertedAmount || 0));
+          const feeToConvert = Math.max(0, Number(st.monthlyFee || 0) - alreadyConverted);
+          const wallet = Math.max(0, Number(st.advanceBalance || 0));
+          const converted = Math.min(feeToConvert, wallet);
+          if (converted > 0) {
+            st.advanceBalance = Math.max(0, wallet - converted);
+            receipt.advanceConvertedAmount = alreadyConverted + converted;
+            receipt.advanceConvertedOn = todayStart.toISOString().slice(0, 10);
+            changed = true;
+          }
+        });
+        if (changed) {
+          // Persist the updated wallet and conversion marker for all devices.
+          syncStudentToCloud(st).catch(err => console.error('Advance conversion sync failed:', err));
+        }
+      });
+    }
+
     function updateMetrics() {
+      reconcileMaturedAdvancePayments();
       const activeStudents = students.filter(s => !s.noLongerAttending);
       const totalStudents = activeStudents.length;
       const filterClassEl = document.getElementById('filterClass');
