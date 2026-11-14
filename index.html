@@ -4765,11 +4765,14 @@
 
       filtered.forEach(s => {
         const dueInfo = getStudentCalculatedDue(s, dueFilter);
+        // Do not show the upcoming fee countdown for students marked as No Longer.
         let nextFeeInfo = { days: null, label: '', status: null };
-        try {
-          nextFeeInfo = getNextFeePaymentInfo(s) || nextFeeInfo;
-        } catch (e) {
-          console.warn('getNextFeePaymentInfo failed for', s && s.name, e);
+        if (!s.noLongerAttending) {
+          try {
+            nextFeeInfo = getNextFeePaymentInfo(s) || nextFeeInfo;
+          } catch (e) {
+            console.warn('getNextFeePaymentInfo failed for', s && s.name, e);
+          }
         }
         const hasAdvance = (s.advanceBalance || 0) > 0;
         const periodCol = getStudentPeriodCollection(s);
